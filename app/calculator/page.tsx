@@ -141,7 +141,7 @@ export default function Page() {
   // - iPhone: tight single column, no scrolling (use 100dvh + overflow hidden)
   // - iPad: 2 columns (controls left, price/actions right)
   return (
-    <div className="h-[100dvh] overflow-hidden bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
+    <div className="min-h-[100dvh] bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
       <div className="mx-auto h-full w-full max-w-5xl flex flex-col gap-3">
         {/* Header */}
         <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:px-6 sm:py-4">
@@ -190,8 +190,8 @@ export default function Page() {
         </header>
 
         {/* Main */}
-        <div className="flex-1 min-h-0">
-          <div className="h-full grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="w-full">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Controls */}
             <section className="min-h-0 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 flex flex-col gap-4">
               <div className="grid grid-cols-2 gap-3">
