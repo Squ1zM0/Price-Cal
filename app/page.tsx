@@ -96,11 +96,11 @@ export default function Page() {
       <div className="mx-auto h-full w-full max-w-xl flex flex-col gap-3">
         <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5">
           <div className="flex items-center gap-3 sm:gap-4">
-            <div className="relative h-10 w-20 sm:h-14 sm:w-28 shrink-0">
-              <Image src="/accutrol-logo.jpeg" alt="Accutrol logo" fill className="object-contain" priority />
+            <div className="relative h-10 w-40 sm:h-14 sm:w-56 shrink-0">
+              <Image src="/accutrol-header.jpeg" alt="Accutrol logo" fill className="object-contain" priority />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl font-semibold leading-tight truncate">Accutrol Pricing Calculator</h1>
+              <h1 className="text-base sm:text-xl font-semibold leading-tight truncate">Accutrol Pricing Calc</h1>
               <p className="hidden sm:block text-sm text-slate-600">Material + labor → overhead → warranty → offset</p>
             </div>
 
@@ -211,6 +211,19 @@ export default function Page() {
               <div className="flex items-center justify-between">
                 <span className="text-xs sm:text-sm">Hourly rate</span>
                 <span className="font-semibold">{money(hourlyRate)}/hr</span>
+              </div>
+            </div>
+
+            <div className="flex-1 min-h-0 rounded-2xl border border-slate-200 bg-white/70 flex items-center justify-center overflow-hidden">
+              <div className="relative w-full h-full">
+                <Image
+                  src="/accutrol-header.jpeg"
+                  alt="Accutrol"
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 640px) 90vw, 520px"
+                  priority
+                />
               </div>
             </div>
 
