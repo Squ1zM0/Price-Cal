@@ -300,8 +300,58 @@ function RunCard({
   );
 }
 
+
+function VelocityPicker({
+  value,
+  onChange,
+  label,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  label: string;
+}) {
+  const presets = ["700", "800", "900"];
+  return (
+    <div className="mt-3">
+      <div className="flex items-center justify-between gap-3">
+        <div className="text-xs font-semibold text-slate-600">{label}</div>
+        <div className="flex items-center gap-2">
+          {presets.map((p) => {
+            const active = value === p;
+            return (
+              <button
+                key={p}
+                type="button"
+                onClick={() => onChange(p)}
+                className={[
+                  "h-8 px-3 rounded-full text-xs font-semibold ring-1 transition",
+                  active
+                    ? "bg-slate-900 text-white ring-slate-900"
+                    : "bg-white text-slate-900 ring-slate-200 hover:ring-slate-300",
+                ].join(" ")}
+                aria-pressed={active}
+              >
+                {p}
+              </button>
+            );
+          })}
+          <input
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            inputMode="decimal"
+            className="h-8 w-20 rounded-full bg-white px-3 text-xs font-semibold text-slate-900 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
+            aria-label={`${label} custom`}
+          />
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Page() {
-  const [velocityStr, setVelocityStr] = useState("700");
+  const [returnVelocityStr, setReturnVelocityStr] = useState("700");
+  const [supplyVelocityStr, setSupplyVelocityStr] = useState("700");
+
 
   const [mainReturn, setMainReturn] = useState<DuctInput>({
     shape: "rect",
@@ -320,18 +370,19 @@ export default function Page() {
 
   const [runs, setRuns] = useState<Run[]>([]);
 
-  const velocity = useMemo(() => parseNum(velocityStr), [velocityStr]);
+  const returnVelocity = useMemo(() => parseNum(returnVelocityStr), [returnVelocityStr]);
+  const supplyVelocity = useMemo(() => parseNum(supplyVelocityStr), [supplyVelocityStr]);
 
   const mainReturnArea = useMemo(() => areaIn2(mainReturn), [mainReturn]);
   const mainSupplyArea = useMemo(() => areaIn2(mainSupply), [mainSupply]);
 
   const mainReturnCfm = useMemo(
-    () => round1(cfmFromArea(mainReturnArea, velocity)),
-    [mainReturnArea, velocity]
+    () => round1(cfmFromArea(mainReturnArea, returnVelocity)),
+    [mainReturnArea, returnVelocity]
   );
   const mainSupplyCfm = useMemo(
-    () => round1(cfmFromArea(mainSupplyArea, velocity)),
-    [mainSupplyArea, velocity]
+    () => round1(cfmFromArea(mainSupplyArea, supplyVelocity)),
+    [mainSupplyArea, supplyVelocity]
   );
 
   const totals = useMemo(() => {
@@ -348,7 +399,7 @@ export default function Page() {
       ret: round1(ret),
       combined: round1(supply + ret),
     };
-  }, [runs, velocity, mainSupplyCfm, mainReturnCfm]);
+  }, [runs, supplyVelocity, returnVelocity, mainSupplyCfm, mainReturnCfm]);
 
   function addRun(kind: RunKind) {
     const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -357,7 +408,8 @@ export default function Page() {
   }
 
   function resetAll() {
-    setVelocityStr("700");
+    setReturnVelocityStr("700");
+    setSupplyVelocityStr("700");
     setMainReturn({ shape: "rect", dir: "one", w: "", h: "", d: "" });
     setMainSupply({ shape: "rect", dir: "one", w: "", h: "", d: "" });
     setRuns([]);
@@ -407,21 +459,13 @@ export default function Page() {
                 <div className="text-sm font-semibold text-slate-900">Duct Calculator</div>
                 <div className="text-xs text-slate-600">Area (in²) ÷ 144 × velocity = approx CFM</div>
               </div>
-              <div className="w-36">
-                <label className="text-xs font-semibold text-slate-600">Velocity (FPM)</label>
-                <input
-                  value={velocityStr}
-                  onChange={(e) => setVelocityStr(e.target.value)}
-                  inputMode="decimal"
-                  className="mt-1 w-full rounded-2xl bg-slate-50 px-3 py-2 text-base font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
-                />
               </div>
-            </div>
 
             {/* Main trunks */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div className="rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
                 <div className="text-sm font-semibold text-slate-900">Main Return Trunk</div>
+                <VelocityPicker value={returnVelocityStr} onChange={setReturnVelocityStr} label="Return Velocity (FPM)" />
                 <div className="mt-3">
                   <div className="text-xs font-semibold text-slate-600">Shape</div>
                   <div className="mt-1">
@@ -448,6 +492,7 @@ export default function Page() {
 
               <div className="rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
                 <div className="text-sm font-semibold text-slate-900">Main Supply Trunk</div>
+                <VelocityPicker value={supplyVelocityStr} onChange={setSupplyVelocityStr} label="Supply Velocity (FPM)" />
                 <div className="mt-3">
                   <div className="text-xs font-semibold text-slate-600">Shape</div>
                   <div className="mt-1">
@@ -508,7 +553,7 @@ export default function Page() {
                     <RunCard
                       key={r.id}
                       run={r}
-                      velocity={velocity}
+                      velocity={r.kind === "supply" ? supplyVelocity : returnVelocity}
                       onChange={(next) =>
                         setRuns((prev) => prev.map((x) => (x.id === r.id ? next : x)))
                       }
