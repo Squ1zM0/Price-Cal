@@ -261,9 +261,7 @@ export default function Page() {
                 </div>
               ) : null}
 
-              <div className="mt-2 text-center text-[10px] sm:text-xs text-slate-500">
-                Formula: (Material + tax + Labor) / 0.65 × 1.05 × 1.10
-              </div>
+              
             </section>
           </div>
         </section>
