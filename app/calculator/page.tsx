@@ -326,29 +326,38 @@ export default function Page() {
             {/* Result / Actions */}
             <section className="min-h-0 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 flex flex-col gap-4">
               <div className="rounded-3xl bg-slate-900 p-4 sm:p-5 text-white">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
+                {/* Header */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
                     <div className="text-xs/5 opacity-80">Final Price</div>
-                    {/* Price + Copy (always visible on mobile) */}
-                    <div className="mt-1 flex items-center gap-2 flex-wrap">
+                    <div className="mt-1 flex items-baseline gap-2">
                       <div className="text-3xl sm:text-4xl font-extrabold tracking-tight tabular-nums">
                         {moneyFmt.format(final)}
                       </div>
                       <button
                         type="button"
                         onClick={copyFinalPrice}
-                        className="h-9 shrink-0 rounded-2xl bg-white/15 px-3 text-xs font-semibold hover:bg-white/20 ring-1 ring-inset ring-white/20"
+                        className="shrink-0 rounded-full bg-white/10 px-3 py-1.5 text-xs font-semibold hover:bg-white/15 active:bg-white/20 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                        aria-label="Copy final price"
                         title="Copy final price"
                       >
                         {copied ? "Copied" : "Copy"}
                       </button>
                     </div>
+
+                    {/* Mobile helper (keep copy beside price, move meta below) */}
+                    <div className="mt-1 text-xs opacity-80 sm:hidden">
+                      Base: {moneyFmt.format(base)} • {wigglePct == null ? "No wiggle" : `Wiggle ${pctLabel(wigglePct)}`}
+                    </div>
                   </div>
-                  <div className="text-right text-xs opacity-80">
+
+                  {/* Desktop meta */}
+                  <div className="hidden sm:block text-right text-xs opacity-80">
                     Base: {moneyFmt.format(base)}
                     <div>{wigglePct == null ? "No wiggle" : `Wiggle ${pctLabel(wigglePct)}`}</div>
                   </div>
                 </div>
+
 
                 <div className="mt-3 grid grid-cols-2 gap-2">
                   <button
