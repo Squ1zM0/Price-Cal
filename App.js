@@ -9,115 +9,90 @@ import {
   Switch,
   StyleSheet,
   Platform,
+  Alert,
+  ScrollView,
 } from "react-native";
+
+const LOGO = require("./assets/accutrol_logo.jpeg");
 
 const RATES = {
   residential: { x1: 125, x2: 175 },
   commercial: { x1: 150, x2: 200 },
 };
 
-function clampNumber(n) {
-  if (Number.isNaN(n) || n === null || n === undefined) return 0;
-  return n;
+const DEFAULT_TAX_PCT = "8.0";
+
+function n(v) {
+  const x = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(/[^0-9.]/g, ""));
+  return Number.isFinite(x) ? x : 0;
 }
 
-function roundToDollar(n) {
-  return Math.round(n);
+function money(v) {
+  const x = Math.round(n(v));
+  return x.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 }
 
-function formatMoney(n) {
-  const v = clampNumber(n);
-  return v.toLocaleString(undefined, {
-    style: "currency",
-    currency: "USD",
-    maximumFractionDigits: 0,
-  });
+function pctLabel(p) {
+  const sign = p > 0 ? "+" : "";
+  return `${sign}${Math.round(p * 100)}%`;
 }
 
-function parseNumeric(text) {
-  // allow digits and a single dot
-  const cleaned = (text || "").replace(/[^0-9.]/g, "");
-  // prevent multiple dots
-  const parts = cleaned.split(".");
-  if (parts.length <= 2) return cleaned;
-  return parts[0] + "." + parts.slice(1).join("");
-}
-
-function TogglePill({ label, active, onPress }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[styles.pill, active ? styles.pillActive : styles.pillInactive]}
-      accessibilityRole="button"
-    >
-      <Text style={[styles.pillText, active ? styles.pillTextActive : styles.pillTextInactive]}>
-        {label}
-      </Text>
-    </Pressable>
-  );
-}
-
-function Divider() {
-  return <View style={styles.divider} />;
+function wiggleRandomPct() {
+  // 5%–15%
+  return 0.05 + Math.random() * 0.10;
 }
 
 export default function App() {
   const [materialInput, setMaterialInput] = useState("");
   const [hoursInput, setHoursInput] = useState("");
 
-  const [taxIncluded, setTaxIncluded] = useState(true);
-  const [taxRatePct, setTaxRatePct] = useState("8.0"); // default; editable
-
   const [jobType, setJobType] = useState("residential"); // residential | commercial
   const [crew, setCrew] = useState("x1"); // x1 | x2
 
-  const [wiggleAppliedPct, setWiggleAppliedPct] = useState(null); // number (e.g., 0.11 or -0.07)
+  const [taxIncluded, setTaxIncluded] = useState(true);
+  const [taxRatePct, setTaxRatePct] = useState(DEFAULT_TAX_PCT);
 
-  const material = useMemo(
-    () => clampNumber(parseFloat(parseNumeric(materialInput))),
-    [materialInput]
-  );
-  const hours = useMemo(() => clampNumber(parseFloat(parseNumeric(hoursInput))), [hoursInput]);
-  const taxRate = useMemo(() => clampNumber(parseFloat(parseNumeric(taxRatePct))) / 100, [taxRatePct]);
+  const [wiggleAppliedPct, setWiggleAppliedPct] = useState(null); // number (0.11) or (-0.07)
+  const [showBreakdown, setShowBreakdown] = useState(false);
+
+  const material = useMemo(() => n(materialInput), [materialInput]);
+  const hours = useMemo(() => n(hoursInput), [hoursInput]);
+  const taxRate = useMemo(() => n(taxRatePct) / 100, [taxRatePct]);
 
   const hourlyRate = RATES[jobType][crew];
 
-  const basePrice = useMemo(() => {
-    const materialWithTax = taxIncluded ? material : material * (1 + taxRate);
+  const breakdown = useMemo(() => {
+    const matWithTax = taxIncluded ? material : material * (1 + taxRate);
     const labor = hours * hourlyRate;
+    const subtotal = matWithTax + labor;
 
-    const totalBeforeOverhead = materialWithTax + labor;
-    const final = (totalBeforeOverhead / 0.65) * 1.05 * 1.1;
+    const afterOverhead = subtotal / 0.65;
+    const afterWarranty = afterOverhead * 1.05;
+    const final = afterWarranty * 1.1;
 
-    return final;
+    return {
+      matWithTax,
+      labor,
+      subtotal,
+      afterOverhead,
+      afterWarranty,
+      final,
+    };
   }, [material, taxIncluded, taxRate, hours, hourlyRate]);
+
+  const basePrice = breakdown.final;
 
   const finalPrice = useMemo(() => {
     if (wiggleAppliedPct === null) return basePrice;
     return basePrice * (1 + wiggleAppliedPct);
   }, [basePrice, wiggleAppliedPct]);
 
-  const breakdown = useMemo(() => {
-    const materialWithTax = taxIncluded ? material : material * (1 + taxRate);
-    const labor = hours * hourlyRate;
-    const totalBeforeOverhead = materialWithTax + labor;
-    const afterOverhead = totalBeforeOverhead / 0.65;
-    const afterWarranty = afterOverhead * 1.05;
-    const afterOffset = afterWarranty * 1.1;
-
-    return {
-      materialWithTax,
-      labor,
-      totalBeforeOverhead,
-      afterOverhead,
-      afterWarranty,
-      afterOffset,
-    };
-  }, [material, taxIncluded, taxRate, hours, hourlyRate]);
+  const canCalculate = useMemo(() => {
+    return String(materialInput ?? "").trim().length > 0 || String(hoursInput ?? "").trim().length > 0;
+  }, [materialInput, hoursInput]);
 
   function applyWiggle(direction) {
-    // random 5%–15%
-    const pct = 0.05 + Math.random() * 0.1; // 0.05..0.15
+    const pct = wiggleRandomPct();
     setWiggleAppliedPct(direction === "up" ? pct : -pct);
   }
 
@@ -125,38 +100,73 @@ export default function App() {
     setWiggleAppliedPct(null);
   }
 
-  const wiggleLabel = useMemo(() => {
-    if (wiggleAppliedPct === null) return "None";
-    const sign = wiggleAppliedPct >= 0 ? "+" : "-";
-    return `${sign}${Math.round(Math.abs(wiggleAppliedPct) * 100)}%`;
-  }, [wiggleAppliedPct]);
+  function clearAll() {
+    setMaterialInput("");
+    setHoursInput("");
+    setTaxIncluded(true);
+    setTaxRatePct(DEFAULT_TAX_PCT);
+    setJobType("residential");
+    setCrew("x1");
+    setWiggleAppliedPct(null);
+    setShowBreakdown(false);
+  }
 
-  const canCompute = useMemo(() => {
-    // allow 0 material and/or 0 hours, but warn if both empty
-    return (materialInput || "").trim().length > 0 || (hoursInput || "").trim().length > 0;
-  }, [materialInput, hoursInput]);
+  function copyPrice() {
+    // Clipboard API differs between Expo versions; keep it simple and user-safe.
+    Alert.alert("Price", `Final price: ${money(finalPrice)}\n\n(If you want, I can add a one-tap Copy button using expo-clipboard.)`);
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.container}>
-        <Text style={styles.title}>HVAC Price Calculator</Text>
-        <Image
-          source={require("./assets/accutrol_logo.jpeg")}
-          style={styles.logo}
-          resizeMode="contain"
-          accessibilityLabel="Accutrol logo"
-        />
-        <Text style={styles.subtitle}>Fast job pricing with overhead + warranty + offset baked in.</Text>
+      <ScrollView contentContainerStyle={styles.scroll}>
+        <View style={styles.header}>
+          <Image source={LOGO} style={styles.logo} resizeMode="contain" />
+          <View style={{ flex: 1 }}>
+            <Text style={styles.title}>Job Price Calculator</Text>
+            <Text style={styles.subtitle}>Fast HVAC quoting (material + labor → final)</Text>
+          </View>
+        </View>
 
         <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Inputs</Text>
+          <Text style={styles.cardTitle}>1) Job Setup</Text>
 
-          <Text style={styles.label}>Material Cost</Text>
+          <Text style={styles.label}>Type</Text>
+          <View style={styles.segmentRow}>
+            <SegmentButton
+              label="Residential"
+              active={jobType === "residential"}
+              onPress={() => setJobType("residential")}
+            />
+            <SegmentButton
+              label="Commercial"
+              active={jobType === "commercial"}
+              onPress={() => setJobType("commercial")}
+            />
+          </View>
+
+          <Text style={[styles.label, { marginTop: 12 }]}>Crew</Text>
+          <View style={styles.segmentRow}>
+            <SegmentButton label="x1 Tech" active={crew === "x1"} onPress={() => setCrew("x1")} />
+            <SegmentButton label="x2 Tech" active={crew === "x2"} onPress={() => setCrew("x2")} />
+          </View>
+
+          <View style={styles.pillRow}>
+            <Pill label={`Rate`} value={`${money(hourlyRate)}/hr`} />
+            <Pill label={`Overhead`} value={`÷ 0.65`} />
+            <Pill label={`Warranty`} value={`+ 5%`} />
+            <Pill label={`Offset`} value={`+ 10%`} />
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>2) Inputs</Text>
+
+          <Text style={styles.label}>Material</Text>
           <TextInput
             value={materialInput}
-            onChangeText={(t) => setMaterialInput(parseNumeric(t))}
+            onChangeText={setMaterialInput}
             placeholder="e.g. 450"
-            keyboardType={Platform.select({ ios: "decimal-pad", android: "numeric" })}
+            keyboardType="decimal-pad"
             style={styles.input}
           />
 
@@ -172,205 +182,243 @@ export default function App() {
               <Text style={styles.label}>Tax Rate (%)</Text>
               <TextInput
                 value={taxRatePct}
-                onChangeText={(t) => setTaxRatePct(parseNumeric(t))}
-                placeholder="8.0"
-                keyboardType={Platform.select({ ios: "decimal-pad", android: "numeric" })}
+                onChangeText={setTaxRatePct}
+                placeholder={DEFAULT_TAX_PCT}
+                keyboardType="decimal-pad"
                 style={styles.input}
               />
-              <Text style={styles.hint}>Used only when “Tax already included” is off.</Text>
             </View>
           ) : null}
 
-          <Divider />
-
-          <Text style={styles.label}>Hours</Text>
+          <Text style={[styles.label, { marginTop: 12 }]}>Hours</Text>
           <TextInput
             value={hoursInput}
-            onChangeText={(t) => setHoursInput(parseNumeric(t))}
-            placeholder="e.g. 3.5"
-            keyboardType={Platform.select({ ios: "decimal-pad", android: "numeric" })}
+            onChangeText={setHoursInput}
+            placeholder="e.g. 2.5"
+            keyboardType="decimal-pad"
             style={styles.input}
           />
-
-          <Text style={[styles.label, { marginTop: 12 }]}>Job Type</Text>
-          <View style={styles.rowWrap}>
-            <TogglePill
-              label="Residential"
-              active={jobType === "residential"}
-              onPress={() => setJobType("residential")}
-            />
-            <TogglePill
-              label="Commercial"
-              active={jobType === "commercial"}
-              onPress={() => setJobType("commercial")}
-            />
-          </View>
-
-          <Text style={[styles.label, { marginTop: 12 }]}>Crew</Text>
-          <View style={styles.rowWrap}>
-            <TogglePill label="x1 Tech" active={crew === "x1"} onPress={() => setCrew("x1")} />
-            <TogglePill label="x2 Tech" active={crew === "x2"} onPress={() => setCrew("x2")} />
-          </View>
-
-          <Text style={styles.smallMeta}>
-            Hourly rate: <Text style={styles.mono}>${hourlyRate}/hr</Text>
-          </Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.sectionTitle}>Price</Text>
+        <View style={[styles.card, styles.resultCard]}>
+          <Text style={styles.cardTitle}>Final Price</Text>
 
-          <View style={styles.priceRow}>
-            <Text style={styles.priceLabel}>Final</Text>
-            <Text style={styles.priceValue}>{formatMoney(roundToDollar(finalPrice))}</Text>
-          </View>
+          <Text style={styles.bigPrice}>{money(finalPrice)}</Text>
 
-          <View style={styles.rowBetween}>
-            <Text style={styles.smallMeta}>Wiggle applied: {wiggleLabel}</Text>
-            <Pressable onPress={resetWiggle} style={styles.linkBtn}>
-              <Text style={styles.linkText}>Reset</Text>
-            </Pressable>
-          </View>
+          {wiggleAppliedPct !== null ? (
+            <Text style={styles.wiggleTag}>Wiggle applied: {pctLabel(wiggleAppliedPct)}</Text>
+          ) : (
+            <Text style={styles.hint}>Optional: tap wiggle up/down to nudge price 5–15%</Text>
+          )}
 
-          <View style={styles.wiggleRow}>
+          <View style={styles.actionRow}>
             <Pressable
+              style={[styles.btn, styles.btnSecondary]}
               onPress={() => applyWiggle("down")}
-              style={[styles.wiggleBtn, styles.wiggleDown]}
-              disabled={!canCompute}
+              disabled={!canCalculate}
             >
-              <Text style={styles.wiggleText}>▼ Wiggle Down</Text>
+              <Text style={styles.btnText}>⬇ Wiggle</Text>
             </Pressable>
+
             <Pressable
+              style={[styles.btn, styles.btnPrimary]}
               onPress={() => applyWiggle("up")}
-              style={[styles.wiggleBtn, styles.wiggleUp]}
-              disabled={!canCompute}
+              disabled={!canCalculate}
             >
-              <Text style={styles.wiggleText}>▲ Wiggle Up</Text>
+              <Text style={[styles.btnText, styles.btnTextPrimary]}>⬆ Wiggle</Text>
             </Pressable>
           </View>
 
-          <Divider />
-
-          <Text style={styles.sectionTitle}>Breakdown</Text>
-          <View style={styles.breakRow}>
-            <Text style={styles.breakLabel}>Material (+tax)</Text>
-            <Text style={styles.breakVal}>{formatMoney(breakdown.materialWithTax)}</Text>
-          </View>
-          <View style={styles.breakRow}>
-            <Text style={styles.breakLabel}>Labor</Text>
-            <Text style={styles.breakVal}>{formatMoney(breakdown.labor)}</Text>
-          </View>
-          <View style={styles.breakRow}>
-            <Text style={styles.breakLabel}>Subtotal</Text>
-            <Text style={styles.breakVal}>{formatMoney(breakdown.totalBeforeOverhead)}</Text>
-          </View>
-          <View style={styles.breakRow}>
-            <Text style={styles.breakLabel}>After overhead (/0.65)</Text>
-            <Text style={styles.breakVal}>{formatMoney(breakdown.afterOverhead)}</Text>
-          </View>
-          <View style={styles.breakRow}>
-            <Text style={styles.breakLabel}>After warranty (+5%)</Text>
-            <Text style={styles.breakVal}>{formatMoney(breakdown.afterWarranty)}</Text>
-          </View>
-          <View style={styles.breakRow}>
-            <Text style={styles.breakLabel}>After offset (+10%)</Text>
-            <Text style={styles.breakVal}>{formatMoney(breakdown.afterOffset)}</Text>
+          <View style={styles.actionRow}>
+            <Pressable style={[styles.btn, styles.btnGhost]} onPress={resetWiggle} disabled={wiggleAppliedPct === null}>
+              <Text style={styles.btnText}>Reset</Text>
+            </Pressable>
+            <Pressable style={[styles.btn, styles.btnGhost]} onPress={copyPrice}>
+              <Text style={styles.btnText}>Details</Text>
+            </Pressable>
+            <Pressable style={[styles.btn, styles.btnGhost]} onPress={clearAll}>
+              <Text style={styles.btnText}>Clear</Text>
+            </Pressable>
           </View>
 
-          <Text style={styles.hint}>
-            Formula: (Material+Tax + Labor) / 0.65 × 1.05 × 1.10
-          </Text>
+          <Pressable
+            onPress={() => setShowBreakdown((v) => !v)}
+            style={styles.breakdownToggle}
+          >
+            <Text style={styles.breakdownToggleText}>{showBreakdown ? "Hide" : "Show"} breakdown</Text>
+          </Pressable>
+
+          {showBreakdown ? (
+            <View style={styles.breakdown}>
+              <Row label="Material (+ tax)" value={money(breakdown.matWithTax)} />
+              <Row label="Labor" value={money(breakdown.labor)} />
+              <Divider />
+              <Row label="Subtotal" value={money(breakdown.subtotal)} />
+              <Row label="After overhead (÷ 0.65)" value={money(breakdown.afterOverhead)} />
+              <Row label="After warranty (+5%)" value={money(breakdown.afterWarranty)} />
+              <Divider />
+              <Row label="Base final (+10%)" value={money(basePrice)} />
+            </View>
+          ) : null}
         </View>
 
         <Text style={styles.footer}>
-          Tip: If you want tax to always be added automatically, turn off “Tax already included” and set your local tax
-          rate.
+          Tip: set your exact local tax rate once (toggle tax off), then leave it.
         </Text>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#f5f6f8" },
-  container: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 20 },
-  title: { fontSize: 24, fontWeight: "800", marginTop: 8 },
-  logo: {
-    width: "100%",
-    height: 90,
-    marginTop: 10,
-    marginBottom: 6,
-  },
+function SegmentButton({ label, active, onPress }) {
+  return (
+    <Pressable onPress={onPress} style={[styles.segmentBtn, active ? styles.segmentBtnActive : null]}>
+      <Text style={[styles.segmentText, active ? styles.segmentTextActive : null]}>{label}</Text>
+    </Pressable>
+  );
+}
 
-  subtitle: { marginTop: 6, opacity: 0.75 },
+function Pill({ label, value }) {
+  return (
+    <View style={styles.pill}>
+      <Text style={styles.pillLabel}>{label}</Text>
+      <Text style={styles.pillValue}>{value}</Text>
+    </View>
+  );
+}
+
+function Row({ label, value }) {
+  return (
+    <View style={styles.breakRow}>
+      <Text style={styles.breakLabel}>{label}</Text>
+      <Text style={styles.breakValue}>{value}</Text>
+    </View>
+  );
+}
+
+function Divider() {
+  return <View style={styles.divider} />;
+}
+
+const styles = StyleSheet.create({
+  safe: { flex: 1, backgroundColor: "#0b1220" },
+  scroll: { padding: 16, paddingBottom: 28 },
+
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 14,
+  },
+  logo: {
+    width: 64,
+    height: 64,
+    borderRadius: 14,
+    backgroundColor: "#ffffff",
+    padding: 8,
+  },
+  title: { color: "#eaf0ff", fontSize: 22, fontWeight: "800", letterSpacing: 0.3 },
+  subtitle: { color: "#aab6d6", marginTop: 2, fontSize: 13 },
 
   card: {
-    backgroundColor: "#fff",
-    borderRadius: 16,
+    backgroundColor: "#101a33",
+    borderRadius: 18,
     padding: 14,
-    marginTop: 14,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.08)",
     shadowColor: "#000",
-    shadowOpacity: 0.06,
+    shadowOpacity: 0.25,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
+    shadowOffset: { width: 0, height: 6 },
+    ...Platform.select({ android: { elevation: 2 } }),
   },
-  sectionTitle: { fontSize: 16, fontWeight: "700", marginBottom: 10 },
-  label: { fontSize: 14, fontWeight: "600", marginBottom: 6 },
-  labelInline: { fontSize: 14, fontWeight: "600", marginRight: 10 },
+  cardTitle: { color: "#eaf0ff", fontSize: 16, fontWeight: "800", marginBottom: 10 },
+
+  label: { color: "#b9c4e6", fontSize: 12, fontWeight: "700", marginBottom: 6, letterSpacing: 0.4 },
+  labelInline: { color: "#b9c4e6", fontSize: 12, fontWeight: "700" },
+
   input: {
-    borderWidth: 1,
-    borderColor: "#d8dbe2",
-    borderRadius: 12,
+    backgroundColor: "#0c142a",
+    borderRadius: 14,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
+    color: "#eaf0ff",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
     fontSize: 16,
-    backgroundColor: "#fbfbfd",
   },
-  hint: { marginTop: 8, fontSize: 12, opacity: 0.7 },
 
-  row: { flexDirection: "row", alignItems: "center" },
-  rowBetween: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 10 },
-  rowWrap: { flexDirection: "row", flexWrap: "wrap", gap: 10 },
+  row: { flexDirection: "row", alignItems: "center", gap: 10 },
+  rowBetween: { marginTop: 10, flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
 
-  pill: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  pillActive: { backgroundColor: "#111827", borderColor: "#111827" },
-  pillInactive: { backgroundColor: "#ffffff", borderColor: "#d8dbe2" },
-  pillText: { fontSize: 14, fontWeight: "700" },
-  pillTextActive: { color: "#ffffff" },
-  pillTextInactive: { color: "#111827" },
-
-  divider: { height: 1, backgroundColor: "#eef0f4", marginVertical: 14 },
-
-  smallMeta: { marginTop: 10, fontSize: 13, opacity: 0.8 },
-  mono: { fontFamily: Platform.select({ ios: "Menlo", android: "monospace" }) },
-
-  priceRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "baseline" },
-  priceLabel: { fontSize: 16, fontWeight: "800" },
-  priceValue: { fontSize: 28, fontWeight: "900" },
-
-  wiggleRow: { flexDirection: "row", gap: 10, marginTop: 12 },
-  wiggleBtn: {
+  segmentRow: { flexDirection: "row", gap: 10 },
+  segmentBtn: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 14,
+    backgroundColor: "#0c142a",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
     alignItems: "center",
   },
-  wiggleUp: { backgroundColor: "#111827" },
-  wiggleDown: { backgroundColor: "#374151" },
-  wiggleText: { color: "#fff", fontWeight: "800" },
+  segmentBtnActive: {
+    backgroundColor: "#1a2e66",
+    borderColor: "rgba(255,255,255,0.18)",
+  },
+  segmentText: { color: "#c6d1ef", fontWeight: "800" },
+  segmentTextActive: { color: "#ffffff" },
 
-  linkBtn: { paddingHorizontal: 10, paddingVertical: 6 },
-  linkText: { fontWeight: "800", opacity: 0.85 },
+  pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 10, marginTop: 12 },
+  pill: {
+    backgroundColor: "rgba(255,255,255,0.06)",
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    flexDirection: "row",
+    gap: 8,
+    alignItems: "center",
+  },
+  pillLabel: { color: "#aab6d6", fontSize: 11, fontWeight: "800" },
+  pillValue: { color: "#eaf0ff", fontSize: 12, fontWeight: "900" },
 
-  breakRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 6 },
-  breakLabel: { opacity: 0.75 },
-  breakVal: { fontWeight: "700" },
+  resultCard: {
+    borderColor: "rgba(255,255,255,0.14)",
+    backgroundColor: "#0f1c3d",
+  },
+  bigPrice: {
+    color: "#ffffff",
+    fontSize: 44,
+    fontWeight: "900",
+    letterSpacing: 0.6,
+    marginTop: 2,
+  },
+  hint: { color: "#aab6d6", marginTop: 6, fontSize: 12 },
+  wiggleTag: { color: "#eaf0ff", marginTop: 6, fontSize: 12, fontWeight: "800" },
 
-  footer: { marginTop: 14, fontSize: 12, opacity: 0.7 },
+  actionRow: { flexDirection: "row", gap: 10, marginTop: 12 },
+  btn: {
+    flex: 1,
+    borderRadius: 14,
+    paddingVertical: 12,
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+  btnPrimary: { backgroundColor: "#2b5cff", borderColor: "rgba(255,255,255,0.18)" },
+  btnSecondary: { backgroundColor: "rgba(255,255,255,0.06)" },
+  btnGhost: { backgroundColor: "transparent" },
+  btnText: { color: "#eaf0ff", fontWeight: "900" },
+  btnTextPrimary: { color: "#ffffff" },
+
+  breakdownToggle: { marginTop: 12, alignSelf: "center", paddingVertical: 10, paddingHorizontal: 14 },
+  breakdownToggleText: { color: "#b9c4e6", fontWeight: "800" },
+
+  breakdown: { marginTop: 6, backgroundColor: "rgba(0,0,0,0.18)", borderRadius: 14, padding: 12 },
+  breakRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingVertical: 6 },
+  breakLabel: { color: "#b9c4e6", fontSize: 12, fontWeight: "700", flex: 1, paddingRight: 10 },
+  breakValue: { color: "#ffffff", fontSize: 12, fontWeight: "900" },
+  divider: { height: 1, backgroundColor: "rgba(255,255,255,0.10)", marginVertical: 8 },
+
+  footer: { color: "#7f8bb1", fontSize: 12, marginTop: 6, textAlign: "center" },
 });
