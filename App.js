@@ -3,6 +3,7 @@ import {
   SafeAreaView,
   View,
   Text,
+  Image,
   TextInput,
   Pressable,
   Switch,
@@ -139,6 +140,12 @@ export default function App() {
     <SafeAreaView style={styles.safe}>
       <View style={styles.container}>
         <Text style={styles.title}>HVAC Price Calculator</Text>
+        <Image
+          source={require("./assets/accutrol_logo.jpeg")}
+          style={styles.logo}
+          resizeMode="contain"
+          accessibilityLabel="Accutrol logo"
+        />
         <Text style={styles.subtitle}>Fast job pricing with overhead + warranty + offset baked in.</Text>
 
         <View style={styles.card}>
@@ -288,6 +295,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#f5f6f8" },
   container: { flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 20 },
   title: { fontSize: 24, fontWeight: "800", marginTop: 8 },
+  logo: {
+    width: "100%",
+    height: 90,
+    marginTop: 10,
+    marginBottom: 6,
+  },
+
   subtitle: { marginTop: 6, opacity: 0.75 },
 
   card: {
