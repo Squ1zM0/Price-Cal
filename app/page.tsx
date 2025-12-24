@@ -11,98 +11,154 @@ const RATES: Record<JobType, Record<Crew, number>> = {
   residential: { x1: 125, x2: 175 },
 };
 
+const moneyFmt = new Intl.NumberFormat(undefined, {
+  style: "currency",
+  currency: "USD",
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
+
 function clampNum(n: number) {
-  if (!Number.isFinite(n)) return 0;
-  return n;
+  return Number.isFinite(n) ? n : 0;
 }
 
-function roundToCents(n: number) {
-  // Avoid floating-point display issues
+function roundCents(n: number) {
   return Math.round(clampNum(n) * 100) / 100;
 }
 
-function money(n: number) {
-  const v = clampNum(n);
-  return v.toLocaleString(undefined, { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
+function parseNum(s: string) {
+  const v = parseFloat(String(s).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(v) ? v : 0;
 }
 
-function pct(n: number) {
+function pctLabel(n: number) {
   const sign = n > 0 ? "+" : "";
   return `${sign}${Math.round(n * 100)}%`;
 }
 
+function SegButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={[
+        "px-3 py-2 rounded-2xl text-sm font-semibold transition",
+        "ring-1 ring-inset",
+        active
+          ? "bg-slate-900 text-white ring-slate-900"
+          : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50",
+      ].join(" ")}
+    >
+      {children}
+    </button>
+  );
+}
+
+function StatRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div className="text-slate-600">{label}</div>
+      <div className="font-semibold text-slate-900 tabular-nums">{value}</div>
+    </div>
+  );
+}
+
 export default function Page() {
-  const [material, setMaterial] = useState<string>("");
-  const [hours, setHours] = useState<string>("");
+  const [materialStr, setMaterialStr] = useState("");
+  const [hoursStr, setHoursStr] = useState("");
 
   const [jobType, setJobType] = useState<JobType>("residential");
   const [crew, setCrew] = useState<Crew>("x1");
 
-  const [taxIncluded, setTaxIncluded] = useState<boolean>(true);
-  const [taxRatePct, setTaxRatePct] = useState<string>("8.0");
+  const [taxIncluded, setTaxIncluded] = useState(true);
+  const [taxRateStr, setTaxRateStr] = useState("8.0");
 
-  const [wiggle, setWiggle] = useState<number | null>(null);
-  const [showBreakdown, setShowBreakdown] = useState(false);
+  const [wigglePct, setWigglePct] = useState<number | null>(null);
 
-  const materialVal = useMemo(() => clampNum(parseFloat(material.replace(/[^0-9.]/g, ""))), [material]);
-  const hoursVal = useMemo(() => clampNum(parseFloat(hours.replace(/[^0-9.]/g, ""))), [hours]);
-  const taxRate = useMemo(() => clampNum(parseFloat(taxRatePct)) / 100, [taxRatePct]);
+  const material = useMemo(() => parseNum(materialStr), [materialStr]);
+  const hours = useMemo(() => parseNum(hoursStr), [hoursStr]);
+  const taxRate = useMemo(() => parseNum(taxRateStr) / 100, [taxRateStr]);
 
   const hourlyRate = RATES[jobType][crew];
 
-  const breakdown = useMemo(() => {
-    const matWithTax = taxIncluded ? materialVal : materialVal * (1 + taxRate);
-    const labor = hoursVal * hourlyRate;
+  const base = useMemo(() => {
+    const matWithTax = taxIncluded ? material : material * (1 + taxRate);
+    const labor = hours * hourlyRate;
     const beforeOverhead = matWithTax + labor;
     const afterOverhead = beforeOverhead / 0.65;
     const afterWarranty = afterOverhead * 1.05;
     const afterOffset = afterWarranty * 1.1;
+    return roundCents(afterOffset);
+  }, [material, taxIncluded, taxRate, hours, hourlyRate]);
 
+  const final = useMemo(() => {
+    if (wigglePct == null) return base;
+    return roundCents(base * (1 + wigglePct));
+  }, [base, wigglePct]);
+
+  const breakdown = useMemo(() => {
+    const matWithTax = taxIncluded ? material : material * (1 + taxRate);
+    const labor = hours * hourlyRate;
+    const beforeOverhead = matWithTax + labor;
+    const afterOverhead = beforeOverhead / 0.65;
+    const afterWarranty = afterOverhead * 1.05;
+    const afterOffset = afterWarranty * 1.1;
     return {
-      matWithTax: roundToCents(matWithTax),
-      labor: roundToCents(labor),
-      beforeOverhead: roundToCents(beforeOverhead),
-      afterOverhead: roundToCents(afterOverhead),
-      afterWarranty: roundToCents(afterWarranty),
-      afterOffset: roundToCents(afterOffset),
+      matWithTax: roundCents(matWithTax),
+      labor: roundCents(labor),
+      beforeOverhead: roundCents(beforeOverhead),
+      afterOverhead: roundCents(afterOverhead),
+      afterWarranty: roundCents(afterWarranty),
+      afterOffset: roundCents(afterOffset),
     };
-  }, [materialVal, taxIncluded, taxRate, hoursVal, hourlyRate]);
+  }, [material, taxIncluded, taxRate, hours, hourlyRate]);
 
-  const basePrice = roundToCents(breakdown.afterOffset);
-
-  const finalPrice = useMemo(() => {
-    if (wiggle === null) return roundToCents(basePrice);
-    return roundToCents(basePrice * (1 + wiggle));
-  }, [basePrice, wiggle]);
-
-  function applyWiggle(dir: "up" | "down") {
-    const p = 0.05 + Math.random() * 0.10; // 5%..15%
-    setWiggle(dir === "up" ? p : -p);
-  }
-
-  function reset() {
-    setMaterial("");
-    setHours("");
-    setTaxIncluded(true);
-    setTaxRatePct("8.0");
+  function resetAll() {
+    setMaterialStr("");
+    setHoursStr("");
     setJobType("residential");
     setCrew("x1");
-    setWiggle(null);
-    setShowBreakdown(false);
+    setTaxIncluded(true);
+    setTaxRateStr("8.0");
+    setWigglePct(null);
   }
 
+  function applyWiggle(dir: "up" | "down") {
+    const pct = 0.05 + Math.random() * 0.1; // 5%..15%
+    setWigglePct(dir === "up" ? pct : -pct);
+  }
+
+  // Layout goals:
+  // - iPhone: tight single column, no scrolling (use 100dvh + overflow hidden)
+  // - iPad: 2 columns (controls left, price/actions right)
   return (
-    <div role="main" className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8">
-      <div className="mx-auto h-full w-full max-w-3xl flex flex-col gap-3">
-        <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="relative w-full app-header-logo">
-              <Image src="/accutrol-header-wide.jpeg" alt="Accutrol" fill className="object-contain" priority />
+    <div className="h-[100dvh] overflow-hidden bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
+      <div className="mx-auto h-full w-full max-w-5xl flex flex-col gap-3">
+        {/* Header */}
+        <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:px-6 sm:py-4">
+          <div className="flex items-center gap-3">
+            <div className="relative h-10 w-full sm:h-12">
+              <Image
+                src="/accutrol-header-wide.jpeg"
+                alt="Accutrol"
+                fill
+                priority
+                className="object-contain object-left"
+              />
             </div>
 
             <button
-              onClick={reset}
-              className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 hover:bg-slate-200"
+              type="button"
+              onClick={resetAll}
+              className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200"
               title="Clear all"
             >
               Clear
@@ -110,204 +166,196 @@ export default function Page() {
           </div>
         </header>
 
-        <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5 flex-1 min-h-0">
-          <div className="h-full flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-5 md:items-stretch">
-            <div className="flex flex-col gap-3 min-h-0">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="col-span-1">
-                <label className="text-xs sm:text-sm font-medium text-slate-700">Material</label>
-                <input
-                  value={material}
-                  onChange={(e) => setMaterial(e.target.value)}
-                  inputMode="decimal"
-                  placeholder="450"
-                  className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm sm:text-base outline-none focus:ring-2 focus:ring-slate-300"
-                />
-              </div>
-
-              <div className="col-span-1">
-                <label className="text-xs sm:text-sm font-medium text-slate-700">Hours</label>
-                <input
-                  value={hours}
-                  onChange={(e) => setHours(e.target.value)}
-                  inputMode="decimal"
-                  placeholder="2.5"
-                  className="mt-1.5 w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm sm:text-base outline-none focus:ring-2 focus:ring-slate-300"
-                />
-              </div>
-
-              <div className="col-span-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-xs sm:text-sm font-medium text-slate-700">Tax included</div>
-                    <div className="text-[11px] sm:text-xs text-slate-600">
-                      {taxIncluded ? "No tax added" : "Tax will be added"}
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => setTaxIncluded((v) => !v)}
-                    className={`h-8 w-14 rounded-full transition ${taxIncluded ? "bg-slate-900" : "bg-slate-300"}`}
-                    aria-label="Toggle tax included"
-                  >
-                    <span
-                      className={`block h-6 w-6 rounded-full bg-white shadow transition translate-y-[-1px] ${
-                        taxIncluded ? "translate-x-7" : "translate-x-1"
-                      }`}
-                    />
-                  </button>
+        {/* Main */}
+        <div className="flex-1 min-h-0">
+          <div className="h-full grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Controls */}
+            <section className="min-h-0 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 flex flex-col gap-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="text-xs font-semibold text-slate-600">Material Cost</label>
+                  <input
+                    value={materialStr}
+                    onChange={(e) => setMaterialStr(e.target.value)}
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    className="mt-1 w-full rounded-2xl bg-slate-50 px-3 py-3 text-base font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
                 </div>
 
-                {!taxIncluded ? (
-                  <div className="mt-2 flex items-center gap-2">
-                    <label className="text-[11px] sm:text-xs font-medium text-slate-700 shrink-0">Tax %</label>
+                <div className="col-span-2 sm:col-span-1">
+                  <label className="text-xs font-semibold text-slate-600">Hours</label>
+                  <input
+                    value={hoursStr}
+                    onChange={(e) => setHoursStr(e.target.value)}
+                    inputMode="decimal"
+                    placeholder="0.0"
+                    className="mt-1 w-full rounded-2xl bg-slate-50 px-3 py-3 text-base font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-3 py-3 ring-1 ring-inset ring-slate-200">
+                <div>
+                  <div className="text-sm font-semibold text-slate-900">Tax included</div>
+                  <div className="text-xs text-slate-600">
+                    {taxIncluded ? "Using material as-entered" : "Will add tax to material"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTaxIncluded((v) => !v)}
+                  className={[
+                    "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition",
+                    taxIncluded ? "bg-slate-900 ring-slate-900" : "bg-white ring-slate-200",
+                  ].join(" ")}
+                  aria-pressed={taxIncluded}
+                >
+                  <div
+                    className={[
+                      "h-8 w-8 rounded-full bg-white shadow transition",
+                      taxIncluded ? "translate-x-6" : "translate-x-0",
+                    ].join(" ")}
+                  />
+                </button>
+              </div>
+
+              {!taxIncluded ? (
+                <div className="grid grid-cols-2 gap-3 items-end">
+                  <div className="col-span-2 sm:col-span-1">
+                    <label className="text-xs font-semibold text-slate-600">Tax Rate (%)</label>
                     <input
-                      value={taxRatePct}
-                      onChange={(e) => setTaxRatePct(e.target.value)}
+                      value={taxRateStr}
+                      onChange={(e) => setTaxRateStr(e.target.value)}
                       inputMode="decimal"
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300"
+                      placeholder="8.0"
+                      className="mt-1 w-full rounded-2xl bg-slate-50 px-3 py-3 text-base font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
                     />
                   </div>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              {(["residential", "commercial"] as const).map((t) => (
-                <button
-                  key={t}
-                  onClick={() => setJobType(t)}
-                  className={`rounded-2xl px-3 py-2.5 text-xs sm:text-sm font-semibold transition ring-1 ${
-                    jobType === t
-                      ? "bg-slate-900 text-white ring-slate-900"
-                      : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {t === "residential" ? "Residential" : "Commercial"}
-                </button>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              {(["x1", "x2"] as const).map((c) => (
-                <button
-                  key={c}
-                  onClick={() => setCrew(c)}
-                  className={`rounded-2xl px-3 py-2.5 text-xs sm:text-sm font-semibold transition ring-1 ${
-                    crew === c
-                      ? "bg-slate-900 text-white ring-slate-900"
-                      : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50"
-                  }`}
-                >
-                  {c === "x1" ? "x1 tech" : "x2 tech"}
-                </button>
-              ))}
-            </div>
-
-            <div className="rounded-2xl bg-slate-50 border border-slate-200 px-3 py-2.5 text-sm text-slate-700">
-              <div className="flex items-center justify-between">
-                <span className="text-xs sm:text-sm">Hourly rate</span>
-                <span className="font-semibold">{money(hourlyRate)}/hr</span>
-              </div>
-            </div>
-
-            <div className="flex-1 min-h-0 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
-              <div className="h-full grid grid-cols-2 gap-2 sm:gap-3 content-start">
-                <Stat label="Material (+tax)" value={money(breakdown.matWithTax)} />
-                <Stat label="Labor" value={money(breakdown.labor)} />
-                <Stat label="Subtotal" value={money(breakdown.beforeOverhead)} />
-                <Stat label="Base price" value={money(basePrice)} />
-              </div>
-            </div>
-            </div>
-
-            </div>
-
-            <div className="flex flex-col gap-3 min-h-0">
-              <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5">
-              <div className="flex items-start justify-between gap-3">
-                <div className="min-w-0">
-                  <div className="text-xs sm:text-sm text-slate-600">Final price</div>
-                  <div className="text-3xl sm:text-4xl font-semibold tracking-tight leading-none">{money(finalPrice)}</div>
-                  <div className="mt-1 text-[11px] sm:text-xs text-slate-500">
-                    Base: {money(basePrice)} {wiggle !== null ? `(wiggle ${pct(wiggle)})` : ""}
+                  <div className="col-span-2 sm:col-span-1 text-xs text-slate-600">
+                    Material w/ tax: <span className="font-semibold text-slate-900">{moneyFmt.format(breakdown.matWithTax)}</span>
                   </div>
-                </div>
-
-                <div className="shrink-0">
-                  <div className="relative h-8 w-8 opacity-80">
-                    <Image src="/icon-192.png" alt="App icon" fill className="object-contain" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <button
-                  onClick={() => applyWiggle("down")}
-                  className="rounded-2xl bg-white ring-1 ring-slate-200 px-3 py-2.5 text-xs sm:text-sm font-semibold hover:bg-slate-50"
-                  title="Decrease 5%–15%"
-                >
-                  ↓ Wiggle Down
-                </button>
-                <button
-                  onClick={() => applyWiggle("up")}
-                  className="rounded-2xl bg-slate-900 text-white px-3 py-2.5 text-xs sm:text-sm font-semibold hover:bg-slate-800"
-                  title="Increase 5%–15%"
-                >
-                  ↑ Wiggle Up
-                </button>
-              </div>
-
-              <div className="mt-2 flex items-center justify-between">
-                <button onClick={() => setWiggle(null)} className="text-xs sm:text-sm font-semibold text-slate-700 hover:underline">
-                  Reset wiggle
-                </button>
-
-                <button
-                  onClick={() => setShowBreakdown((v) => !v)}
-                  className="hidden sm:inline text-xs sm:text-sm font-semibold text-slate-700 hover:underline"
-                >
-                  {showBreakdown ? "Hide breakdown" : "Show breakdown"}
-                </button>
-              </div>
-
-              {showBreakdown ? (
-                <div className="hidden sm:block mt-3 rounded-2xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-700 space-y-2">
-                  <Row label="Material (+tax if needed)" value={money(breakdown.matWithTax)} />
-                  <Row label={`Labor (${hoursVal || 0}h × ${money(hourlyRate)})`} value={money(breakdown.labor)} />
-                  <hr className="border-slate-200 my-2" />
-                  <Row label="Subtotal" value={money(breakdown.beforeOverhead)} />
-                  <Row label="After overhead (/0.65)" value={money(breakdown.afterOverhead)} />
-                  <Row label="After warranty (×1.05)" value={money(breakdown.afterWarranty)} />
-                  <Row label="After offset (×1.10)" value={money(breakdown.afterOffset)} />
                 </div>
               ) : null}
 
-              
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between">
+                  <div className="text-xs font-semibold text-slate-600">Job Type</div>
+                  <div className="text-xs text-slate-600">
+                    Rate: <span className="font-semibold text-slate-900">{moneyFmt.format(hourlyRate)}/hr</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <SegButton active={jobType === "residential"} onClick={() => setJobType("residential")}>
+                    Residential
+                  </SegButton>
+                  <SegButton active={jobType === "commercial"} onClick={() => setJobType("commercial")}>
+                    Commercial
+                  </SegButton>
+                </div>
+
+                <div className="text-xs font-semibold text-slate-600">Crew</div>
+                <div className="grid grid-cols-2 gap-2">
+                  <SegButton active={crew === "x1"} onClick={() => setCrew("x1")}>
+                    x1 Tech
+                  </SegButton>
+                  <SegButton active={crew === "x2"} onClick={() => setCrew("x2")}>
+                    x2 Tech
+                  </SegButton>
+                </div>
+              </div>
             </section>
-            </div>
+
+            {/* Result / Actions */}
+            <section className="min-h-0 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 flex flex-col gap-4">
+              <div className="rounded-3xl bg-slate-900 p-4 sm:p-5 text-white">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-xs/5 opacity-80">Final Price</div>
+                    <div className="mt-1 text-3xl sm:text-4xl font-extrabold tracking-tight tabular-nums">
+                      {moneyFmt.format(final)}
+                    </div>
+                  </div>
+                  <div className="text-right text-xs opacity-80">
+                    Base: {moneyFmt.format(base)}
+                    <div>{wigglePct == null ? "No wiggle" : `Wiggle ${pctLabel(wigglePct)}`}</div>
+                  </div>
+                </div>
+
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => applyWiggle("down")}
+                    className="rounded-2xl bg-white/10 px-3 py-3 text-sm font-semibold hover:bg-white/15"
+                    title="Decrease 5%–15%"
+                  >
+                    ↓ Wiggle Down
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => applyWiggle("up")}
+                    className="rounded-2xl bg-white/10 px-3 py-3 text-sm font-semibold hover:bg-white/15"
+                    title="Increase 5%–15%"
+                  >
+                    ↑ Wiggle Up
+                  </button>
+                </div>
+
+                <div className="mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setWigglePct(null)}
+                    className="w-full rounded-2xl bg-white/5 px-3 py-2 text-xs font-semibold hover:bg-white/10"
+                    disabled={wigglePct == null}
+                    title="Reset wiggle"
+                  >
+                    Reset wiggle
+                  </button>
+                </div>
+              </div>
+
+              {/* Compact breakdown – always visible but tight; scales on iPad */}
+              <div className="rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4 text-sm text-slate-700 flex flex-col gap-2">
+                <StatRow label="Material (w/ tax)" value={moneyFmt.format(breakdown.matWithTax)} />
+                <StatRow label={`Labor (${hours || 0}h × ${moneyFmt.format(hourlyRate)})`} value={moneyFmt.format(breakdown.labor)} />
+                <div className="h-px bg-slate-200 my-1" />
+                <StatRow label="Subtotal" value={moneyFmt.format(breakdown.beforeOverhead)} />
+                <StatRow label="After overhead (/0.65)" value={moneyFmt.format(breakdown.afterOverhead)} />
+                <StatRow label="After warranty (×1.05)" value={moneyFmt.format(breakdown.afterWarranty)} />
+                <StatRow label="After offset (×1.10)" value={moneyFmt.format(breakdown.afterOffset)} />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const txt = moneyFmt.format(final);
+                    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+                      navigator.clipboard.writeText(txt).catch(() => {});
+                    }
+                  }}
+                  className="rounded-2xl bg-white px-3 py-3 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
+                  title="Copy final price"
+                >
+                  Copy Price
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setWigglePct(null)}
+                  className="rounded-2xl bg-white px-3 py-3 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
+                  title="Reset to base"
+                >
+                  Base Price
+                </button>
+              </div>
+
+              <div className="text-[11px] text-slate-500 leading-snug">
+                Formula: (Material + Tax) + (Hours × Rate) ÷ 0.65 × 1.05 × 1.10
+              </div>
+            </section>
           </div>
-        </section>
+        </div>
       </div>
-    </div>
-  );
-}
-
-
-function Stat({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl bg-white ring-1 ring-slate-200 px-3 py-2.5">
-      <div className="text-[11px] sm:text-xs font-medium text-slate-600">{label}</div>
-      <div className="mt-0.5 text-sm sm:text-base font-semibold text-slate-900">{value}</div>
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4">
-      <div className="text-slate-600">{label}</div>
-      <div className="font-semibold text-slate-900">{value}</div>
     </div>
   );
 }
