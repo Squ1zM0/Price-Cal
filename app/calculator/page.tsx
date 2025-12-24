@@ -329,14 +329,15 @@ export default function Page() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-xs/5 opacity-80">Final Price</div>
-                    <div className="mt-1 flex items-center gap-2">
+                    {/* Price + Copy (always visible on mobile) */}
+                    <div className="mt-1 flex items-center gap-2 flex-wrap">
                       <div className="text-3xl sm:text-4xl font-extrabold tracking-tight tabular-nums">
                         {moneyFmt.format(final)}
                       </div>
                       <button
                         type="button"
                         onClick={copyFinalPrice}
-                        className="h-9 rounded-2xl bg-white/10 px-3 text-xs font-semibold hover:bg-white/15"
+                        className="h-9 shrink-0 rounded-2xl bg-white/15 px-3 text-xs font-semibold hover:bg-white/20 ring-1 ring-inset ring-white/20"
                         title="Copy final price"
                       >
                         {copied ? "Copied" : "Copy"}
