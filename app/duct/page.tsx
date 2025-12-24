@@ -390,7 +390,7 @@ export default function Page() {
     let ret = mainReturnCfm;
     for (const r of runs) {
       const area = areaIn2(r.input);
-      const cfm = round1(cfmFromArea(area, velocity));
+      const cfm = round1(cfmFromArea(area, r.kind === "supply" ? supplyVelocity : returnVelocity));
       if (r.kind === "supply") supply += cfm;
       else ret += cfm;
     }
