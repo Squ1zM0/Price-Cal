@@ -412,7 +412,12 @@ export default function Page() {
     return {
       supply: round1(supply),
       ret: round1(ret),
-      combined: round1(supply + ret),
+      system: round1(Math.min(supply, ret)),
+      limiting: supply <= ret ? "supply" : "return",
+      diff: round1(Math.abs(supply - ret)),
+      imbalancePct: round1(
+        (Math.abs(supply - ret) / Math.max(supply || 0, ret || 0, 1)) * 100
+      ),
       supplySource: runsTotals.supplyCount > 0 ? "runs" : "trunk",
       returnSource: runsTotals.returnCount > 0 ? "runs" : "trunk",
     };
@@ -615,8 +620,11 @@ export default function Page() {
                   </div>
                 </div>
                 <div className="rounded-2xl bg-white/10 px-3 py-3">
-                  <div className="text-xs opacity-80">Supply + Return</div>
-                  <div className="text-xl font-extrabold tabular-nums">{totals.combined}</div>
+                  <div className="text-xs opacity-80">System CFM (limiting)</div>
+                  <div className="text-xl font-extrabold tabular-nums">{totals.system}</div>
+                  <div className="mt-1 text-[11px] opacity-75">
+                    Limited by {totals.limiting} • Δ {totals.diff} ({totals.imbalancePct}%)
+                  </div>
                 </div>
               </div>
 
