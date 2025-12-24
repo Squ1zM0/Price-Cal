@@ -16,9 +16,14 @@ function clampNum(n: number) {
   return n;
 }
 
+function roundToCents(n: number) {
+  // Avoid floating-point display issues
+  return Math.round(clampNum(n) * 100) / 100;
+}
+
 function money(n: number) {
   const v = clampNum(n);
-  return v.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+  return v.toLocaleString(undefined, { style: "currency", currency: "USD", minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function pct(n: number) {
@@ -53,14 +58,21 @@ export default function Page() {
     const afterWarranty = afterOverhead * 1.05;
     const afterOffset = afterWarranty * 1.1;
 
-    return { matWithTax, labor, beforeOverhead, afterOverhead, afterWarranty, afterOffset };
+    return {
+      matWithTax: roundToCents(matWithTax),
+      labor: roundToCents(labor),
+      beforeOverhead: roundToCents(beforeOverhead),
+      afterOverhead: roundToCents(afterOverhead),
+      afterWarranty: roundToCents(afterWarranty),
+      afterOffset: roundToCents(afterOffset),
+    };
   }, [materialVal, taxIncluded, taxRate, hoursVal, hourlyRate]);
 
-  const basePrice = breakdown.afterOffset;
+  const basePrice = roundToCents(breakdown.afterOffset);
 
   const finalPrice = useMemo(() => {
-    if (wiggle === null) return basePrice;
-    return basePrice * (1 + wiggle);
+    if (wiggle === null) return roundToCents(basePrice);
+    return roundToCents(basePrice * (1 + wiggle));
   }, [basePrice, wiggle]);
 
   function applyWiggle(dir: "up" | "down") {
