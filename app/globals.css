@@ -2,14 +2,24 @@
 @tailwind components;
 @tailwind utilities;
 
-:root { color-scheme: light; }
+:root {
+  color-scheme: light;
+}
 
-body { @apply bg-slate-50 text-slate-900; }
-
-
-html, body { height: 100%; }
+html, body {
+  height: 100%;
+}
 
 body {
-  -webkit-tap-highlight-color: transparent;
+  margin: 0;
+  background: rgb(248 250 252); /* slate-50 */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  text-rendering: optimizeLegibility;
   overscroll-behavior: none;
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
 }
