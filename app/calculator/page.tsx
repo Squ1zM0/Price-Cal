@@ -83,6 +83,7 @@ export default function Page() {
   const [taxRateStr, setTaxRateStr] = useState("8.0");
 
   const [wigglePct, setWigglePct] = useState<number | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const material = useMemo(() => parseNum(materialStr), [materialStr]);
   const hours = useMemo(() => parseNum(hoursStr), [hoursStr]);
@@ -121,6 +122,39 @@ export default function Page() {
       afterOffset: roundCents(afterOffset),
     };
   }, [material, taxIncluded, taxRate, hours, hourlyRate]);
+
+  function copyFinalPrice() {
+    const txt = moneyFmt.format(final);
+
+    const markCopied = () => {
+      setCopied(true);
+      // quick, non-intrusive feedback
+      window.setTimeout(() => setCopied(false), 1200);
+    };
+
+    const fallback = () => {
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = txt;
+        ta.setAttribute("readonly", "true");
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+        markCopied();
+      } catch {
+        // ignore
+      }
+    };
+
+    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(txt).then(markCopied).catch(fallback);
+    } else {
+      fallback();
+    }
+  }
 
   function resetAll() {
     setMaterialStr("");
@@ -295,8 +329,18 @@ export default function Page() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <div className="text-xs/5 opacity-80">Final Price</div>
-                    <div className="mt-1 text-3xl sm:text-4xl font-extrabold tracking-tight tabular-nums">
-                      {moneyFmt.format(final)}
+                    <div className="mt-1 flex items-center gap-2">
+                      <div className="text-3xl sm:text-4xl font-extrabold tracking-tight tabular-nums">
+                        {moneyFmt.format(final)}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={copyFinalPrice}
+                        className="h-9 rounded-2xl bg-white/10 px-3 text-xs font-semibold hover:bg-white/15"
+                        title="Copy final price"
+                      >
+                        {copied ? "Copied" : "Copy"}
+                      </button>
                     </div>
                   </div>
                   <div className="text-right text-xs opacity-80">
@@ -352,15 +396,12 @@ export default function Page() {
                 <button
                   type="button"
                   onClick={() => {
-                    const txt = moneyFmt.format(final);
-                    if (typeof navigator !== "undefined" && navigator.clipboard?.writeText) {
-                      navigator.clipboard.writeText(txt).catch(() => {});
-                    }
+                    copyFinalPrice();
                   }}
                   className="rounded-2xl bg-white px-3 py-3 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
                   title="Copy final price"
                 >
-                  Copy Price
+                  {copied ? "Copied!" : "Copy Price"}
                 </button>
                 <button
                   type="button"
