@@ -107,6 +107,100 @@ function ShapePicker({
         Round
       </button>
     </div>
+
+    {equipOpen ? (
+      <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3">
+        <div
+          className="absolute inset-0 bg-black/40"
+          onClick={() => setEquipOpen(false)}
+        />
+        <div className="relative w-full max-w-lg rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200">
+            <div className="text-sm font-semibold text-slate-900">Equipment size (estimate)</div>
+            <button
+              type="button"
+              onClick={() => setEquipOpen(false)}
+              className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-200"
+            >
+              Close
+            </button>
+          </div>
+
+          <div className="px-4 py-4">
+            <div className="rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200 px-3 py-3">
+              <div className="text-xs text-slate-600">Using limiting airflow</div>
+              <div className="mt-1 flex items-baseline justify-between gap-3">
+                <div className="text-2xl font-extrabold tabular-nums text-slate-900">
+                  {totals.system} <span className="text-sm font-semibold text-slate-600">CFM</span>
+                </div>
+                <div className="text-right">
+                  <div className="text-xs text-slate-600">Approx tons @ 400 CFM/ton</div>
+                  <div className="text-lg font-extrabold tabular-nums text-slate-900">
+                    {totals.system > 0 ? (Math.round((totals.system / 400) * 10) / 10).toFixed(1) : "0.0"}
+                    <span className="text-sm font-semibold text-slate-600"> ton</span>
+                  </div>
+                </div>
+              </div>
+              <div className="mt-1 text-[11px] text-slate-600">
+                Rule-of-thumb only. Always verify with a proper Manual J / duct design when required.
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 gap-3">
+              <label className="block">
+                <div className="text-xs font-semibold text-slate-700">Property address (for future lookup)</div>
+                <input
+                  value={equipAddress}
+                  onChange={(e) => setEquipAddress(e.target.value)}
+                  placeholder="123 Main St, City, ST"
+                  className="mt-1 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                />
+              </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <label className="block">
+                  <div className="text-xs font-semibold text-slate-700">Approx sq ft (optional)</div>
+                  <input
+                    inputMode="decimal"
+                    value={equipSqft}
+                    onChange={(e) => setEquipSqft(e.target.value)}
+                    placeholder="e.g. 1800"
+                    className="mt-1 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                  />
+                </label>
+
+                <div className="rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200 px-3 py-3">
+                  <div className="text-xs font-semibold text-slate-700">Public assessor lookup</div>
+                  <div className="mt-1 text-xs text-slate-600">
+                    Not enabled yet (needs an API key + server route).
+                  </div>
+                </div>
+              </div>
+
+              <label className="block">
+                <div className="text-xs font-semibold text-slate-700">Notes (optional)</div>
+                <textarea
+                  value={equipNotes}
+                  onChange={(e) => setEquipNotes(e.target.value)}
+                  placeholder="Insulation, windows, exposure, existing unit size, comfort issues…"
+                  rows={3}
+                  className="mt-1 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                />
+              </label>
+
+              <button
+                type="button"
+                onClick={() => alert("Next step: wire an address → property-data lookup + sizing model. For now this modal shows a quick CFM→tons estimate.")}
+                className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
+              >
+                Run sizing (stub)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    ) : null}
+
   );
 }
 
@@ -351,6 +445,11 @@ function VelocityPicker({
 export default function Page() {
   const [returnVelocityStr, setReturnVelocityStr] = useState("700");
   const [supplyVelocityStr, setSupplyVelocityStr] = useState("700");
+
+  const [equipOpen, setEquipOpen] = useState(false);
+  const [equipAddress, setEquipAddress] = useState("");
+  const [equipSqft, setEquipSqft] = useState("");
+  const [equipNotes, setEquipNotes] = useState("");
 
 
   const [mainReturn, setMainReturn] = useState<DuctInput>({
@@ -630,19 +729,21 @@ export default function Page() {
 
               <button
                 type="button"
-                onClick={() => alert("Equipment sizing coming soon.")}
+                onClick={() => setEquipOpen(true)}
                 className="mt-4 w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-900"
               >
                 Find equipment size
               </button>
-              <div className="mt-2 text-xs opacity-70">(stub for now)</div>
+              <div className="mt-2 text-xs opacity-70">(estimate + stubbed lookup)</div>
             </div>
 
             <div className="rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
               <div className="text-sm font-semibold text-slate-900">Notes</div>
               <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
-                <li>1-way / 2-way multiplies area (useful when you know it splits).</li>
-                <li>Velocity is shared for all measurements on this page.</li>
+                <li><span className="font-semibold">1-way / 2-way</span> multiplies area (handy when you’re confident it splits).</li>
+                <li><span className="font-semibold">Return</span> and <span className="font-semibold">Supply</span> velocities are independent (quick presets: 700/800/900).</li>
+                <li><span className="font-semibold">Runs</span> don’t add to trunks—runs are a more precise alternative view.</li>
+                <li><span className="font-semibold">System CFM</span> uses the limiting side (lower of Supply vs Return) and shows the imbalance.</li>
                 <li>These are approximate numbers—use best judgment in the field.</li>
               </ul>
             </div>
