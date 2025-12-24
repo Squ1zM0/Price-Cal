@@ -466,6 +466,14 @@ export default function Page() {
               >
                 Price
               </Link>
+              <Link
+                href="/directory"
+                className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm active:scale-[0.99]"
+                title="Go to Directory"
+              >
+                Dir
+              </Link>
+
 
               <button
               type="button"
