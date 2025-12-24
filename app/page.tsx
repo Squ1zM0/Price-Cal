@@ -92,21 +92,17 @@ export default function Page() {
   }
 
   return (
-    <main className="h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8">
-      <div className="mx-auto h-full w-full max-w-xl flex flex-col gap-3">
+    <main className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8">
+      <div className="mx-auto h-full w-full max-w-3xl flex flex-col gap-3">
         <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5">
-          <div className="flex items-center gap-3 sm:gap-4">
-            <div className="relative h-10 w-40 sm:h-14 sm:w-56 shrink-0">
-              <Image src="/accutrol-header.jpeg" alt="Accutrol logo" fill className="object-contain" priority />
-            </div>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-base sm:text-xl font-semibold leading-tight truncate">Accutrol Pricing Calc</h1>
-              <p className="hidden sm:block text-sm text-slate-600">Material + labor → overhead → warranty → offset</p>
+          <div className="flex items-center justify-between gap-3">
+            <div className="relative w-full app-header-logo">
+              <Image src="/accutrol-header-wide.jpeg" alt="Accutrol" fill className="object-contain" priority />
             </div>
 
             <button
               onClick={reset}
-              className="rounded-2xl bg-slate-100 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 hover:bg-slate-200"
+              className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 hover:bg-slate-200"
               title="Clear all"
             >
               Clear
@@ -115,7 +111,8 @@ export default function Page() {
         </header>
 
         <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5 flex-1 min-h-0">
-          <div className="h-full flex flex-col gap-3">
+          <div className="h-full flex flex-col gap-3 md:grid md:grid-cols-2 md:gap-5 md:items-stretch">
+            <div className="flex flex-col gap-3 min-h-0">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-1">
                 <label className="text-xs sm:text-sm font-medium text-slate-700">Material</label>
@@ -214,20 +211,20 @@ export default function Page() {
               </div>
             </div>
 
-            <div className="flex-1 min-h-0 rounded-2xl border border-slate-200 bg-white/70 flex items-center justify-center overflow-hidden">
-              <div className="relative w-full h-full">
-                <Image
-                  src="/accutrol-header.jpeg"
-                  alt="Accutrol"
-                  fill
-                  className="object-contain"
-                  sizes="(max-width: 640px) 90vw, 520px"
-                  priority
-                />
+            <div className="flex-1 min-h-0 rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-4">
+              <div className="h-full grid grid-cols-2 gap-2 sm:gap-3 content-start">
+                <Stat label="Material (+tax)" value={money(breakdown.matWithTax)} />
+                <Stat label="Labor" value={money(breakdown.labor)} />
+                <Stat label="Subtotal" value={money(breakdown.beforeOverhead)} />
+                <Stat label="Base price" value={money(basePrice)} />
               </div>
             </div>
+            </div>
 
-            <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5 mt-auto">
+            </div>
+
+            <div className="flex flex-col gap-3 min-h-0">
+              <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <div className="text-xs sm:text-sm text-slate-600">Final price</div>
@@ -288,10 +285,21 @@ export default function Page() {
 
               
             </section>
+            </div>
           </div>
         </section>
       </div>
     </main>
+  );
+}
+
+
+function Stat({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl bg-white ring-1 ring-slate-200 px-3 py-2.5">
+      <div className="text-[11px] sm:text-xs font-medium text-slate-600">{label}</div>
+      <div className="mt-0.5 text-sm sm:text-base font-semibold text-slate-900">{value}</div>
+    </div>
   );
 }
 
