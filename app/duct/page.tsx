@@ -385,12 +385,13 @@ export default function Page() {
     [mainSupplyArea, supplyVelocity]
   );
 
-  const totals = useMemo(() => {
-    let supply = mainSupplyCfm;
-    let ret = mainReturnCfm;
+  const runsTotals = useMemo(() => {
+    let supply = 0;
+    let ret = 0;
     for (const r of runs) {
       const area = areaIn2(r.input);
-      const cfm = round1(cfmFromArea(area, r.kind === "supply" ? supplyVelocity : returnVelocity));
+      const vel = r.kind === "supply" ? supplyVelocity : returnVelocity;
+      const cfm = round1(cfmFromArea(area, vel));
       if (r.kind === "supply") supply += cfm;
       else ret += cfm;
     }
@@ -398,8 +399,24 @@ export default function Page() {
       supply: round1(supply),
       ret: round1(ret),
       combined: round1(supply + ret),
+      supplyCount: runs.filter((x) => x.kind === "supply").length,
+      returnCount: runs.filter((x) => x.kind === "return").length,
     };
-  }, [runs, supplyVelocity, returnVelocity, mainSupplyCfm, mainReturnCfm]);
+  }, [runs, supplyVelocity, returnVelocity]);
+
+  // "Available" totals: if detailed runs are entered, we treat them as the more precise measurement.
+  // Otherwise we fall back to trunk calculations.
+  const totals = useMemo(() => {
+    const supply = runsTotals.supplyCount > 0 ? runsTotals.supply : mainSupplyCfm;
+    const ret = runsTotals.returnCount > 0 ? runsTotals.ret : mainReturnCfm;
+    return {
+      supply: round1(supply),
+      ret: round1(ret),
+      combined: round1(supply + ret),
+      supplySource: runsTotals.supplyCount > 0 ? "runs" : "trunk",
+      returnSource: runsTotals.returnCount > 0 ? "runs" : "trunk",
+    };
+  }, [runsTotals, mainSupplyCfm, mainReturnCfm]);
 
   function addRun(kind: RunKind) {
     const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -570,9 +587,13 @@ export default function Page() {
             <div className="rounded-3xl bg-slate-900 p-5 text-white">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold opacity-90">Approx Totals</div>
+                  <div className="text-sm font-semibold opacity-90">Supply CFM</div>
                   <div className="mt-1 text-4xl font-extrabold tabular-nums">{totals.supply}</div>
-                  <div className="text-sm opacity-80">Total Supply CFM</div>
+                  <div className="text-sm opacity-80">
+                    {totals.supplySource === "runs" ? "From runs" : "From trunk"}
+                    <span className="opacity-70"> • </span>
+                    Trunk: {mainSupplyCfm} {runsTotals.supplyCount > 0 ? `• Runs: ${runsTotals.supply}` : ""}
+                  </div>
                 </div>
                 <div className="relative h-10 w-10 opacity-90">
                   <Image
@@ -586,8 +607,12 @@ export default function Page() {
 
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white/10 px-3 py-3">
-                  <div className="text-xs opacity-80">Total Return</div>
+                  <div className="text-xs opacity-80">Return CFM</div>
                   <div className="text-xl font-extrabold tabular-nums">{totals.ret}</div>
+                  <div className="mt-1 text-[11px] opacity-75">
+                    {totals.returnSource === "runs" ? "From runs" : "From trunk"} • Trunk: {mainReturnCfm}
+                    {runsTotals.returnCount > 0 ? ` • Runs: ${runsTotals.ret}` : ""}
+                  </div>
                 </div>
                 <div className="rounded-2xl bg-white/10 px-3 py-3">
                   <div className="text-xs opacity-80">Supply + Return</div>
