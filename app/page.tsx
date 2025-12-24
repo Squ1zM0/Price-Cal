@@ -92,7 +92,7 @@ export default function Page() {
   }
 
   return (
-    <main className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8">
+    <div role="main" className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8">
       <div className="mx-auto h-full w-full max-w-3xl flex flex-col gap-3">
         <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5">
           <div className="flex items-center justify-between gap-3">
@@ -289,7 +289,7 @@ export default function Page() {
           </div>
         </section>
       </div>
-    </main>
+    </div>
   );
 }
 
