@@ -368,7 +368,7 @@ export default function Page() {
       <div className="mx-auto w-full max-w-5xl flex flex-col gap-3">
         {/* Header */}
         <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between gap-3">
             <div className="relative h-10 w-full sm:h-12">
               <Image
                 src="/accutrol-header-wide.jpeg"
@@ -378,17 +378,15 @@ export default function Page() {
                 className="object-contain object-left"
               />
             </div>
+<div className="shrink-0 flex items-center gap-2">
+              <Link
+                href="/calculator"
+                className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm active:scale-[0.99]"
+              >
+                Price
+              </Link>
 
-            <nav className="hidden sm:flex items-center gap-2">
-              <SegLink href="/calculator" active={false}>
-                Calculator
-              </SegLink>
-              <SegLink href="/duct" active={true}>
-                Duct
-              </SegLink>
-            </nav>
-
-            <button
+              <button
               type="button"
               onClick={resetAll}
               className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200"
@@ -396,23 +394,9 @@ export default function Page() {
             >
               Clear
             </button>
+            </div>
           </div>
-
-          <nav className="mt-2 flex sm:hidden items-center gap-2">
-            <Link
-              href="/calculator"
-              className="flex-1 text-center rounded-2xl bg-white px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
-            >
-              Calculator
-            </Link>
-            <Link
-              href="/duct"
-              className="flex-1 text-center rounded-2xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-slate-900"
-            >
-              Duct
-            </Link>
-          </nav>
-        </header>
+</header>
 
         {/* Main */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
