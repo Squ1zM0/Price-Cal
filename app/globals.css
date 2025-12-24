@@ -13,21 +13,3 @@ body {
   -webkit-tap-highlight-color: transparent;
   overscroll-behavior: none;
 }
-
-
-/* Mobile-first sizing helpers (keeps everything on one screen and scales cleanly for iPad) */
-.app-shell {
-  padding-top: clamp(10px, 2.2vh, 24px);
-  padding-bottom: clamp(10px, 2.2vh, 28px);
-}
-
-.app-header-logo {
-  height: clamp(44px, 7vh, 80px);
-}
-
-@media (min-width: 768px) {
-  .app-shell {
-    padding-top: clamp(14px, 2.5vh, 32px);
-    padding-bottom: clamp(14px, 2.5vh, 36px);
-  }
-}
