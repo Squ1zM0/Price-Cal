@@ -5,3 +5,11 @@
 :root { color-scheme: light; }
 
 body { @apply bg-slate-50 text-slate-900; }
+
+
+html, body { height: 100%; }
+
+body {
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior: none;
+}
