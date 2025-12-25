@@ -124,7 +124,8 @@ export default function CalculatorPage() {
   }, [material, taxIncluded, taxRate, hours, hourlyRate]);
 
   function copyFinalPrice() {
-    const txt = moneyFmt.format(final);
+    const n = Number(final);
+    const txt = Number.isFinite(n) ? n.toFixed(2) : "";
 
     const markCopied = () => {
       setCopied(true);
