@@ -315,34 +315,29 @@ function VelocityPicker({
     <div className="mt-3">
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs font-semibold text-slate-600">{label}</div>
-        <div className="flex items-center gap-2">
-          {presets.map((p) => {
-            const active = value === p;
-            return (
-              <button
-                key={p}
-                type="button"
-                onClick={() => onChange(p)}
-                className={[
-                  "h-8 px-3 rounded-full text-xs font-semibold ring-1 transition",
-                  active
-                    ? "bg-slate-900 text-white ring-slate-900"
-                    : "bg-white text-slate-900 ring-slate-200 hover:ring-slate-300",
-                ].join(" ")}
-                aria-pressed={active}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/calculator"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Price"
               >
-                {p}
+                Price
+              </Link>
+              <Link
+                href="/directory"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Directory"
+              >
+                Dir
+              </Link>
+              <button
+                type="button"
+                onClick={resetAll}
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+              >
+                Clear
               </button>
-            );
-          })}
-          <input
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
-            inputMode="decimal"
-            className="h-8 w-20 rounded-full bg-white px-3 text-xs font-semibold text-slate-900 ring-1 ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            aria-label={`${label} custom`}
-          />
-        </div>
+            </div>
       </div>
 
       
