@@ -531,7 +531,7 @@ export default function Page() {
 
                   <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
                     <span>350</span>
-                    <span>350</span>
+                    <span>400</span>
                     <span>450</span>
                   </div>
 
