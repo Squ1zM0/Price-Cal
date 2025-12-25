@@ -308,61 +308,6 @@ export default function DuctPage() {
             {TabButtons}
           </div>
 
-          <div className="mt-3 rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-slate-900">System CFM (limiting)</div>
-                <div className="text-xs text-slate-600">
-                  Uses trunk values unless you enter runs — then it uses the run totals for that side.
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between sm:justify-end gap-3">
-                <div className="text-right">
-                  <div className="text-xs text-slate-500">System</div>
-                  <div className="text-xl font-bold tabular-nums text-slate-900">{totals.system || "—"}</div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setEquipOpen(true)}
-                  disabled={!totals.system}
-                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Equipment size
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                <div className="text-xs text-slate-500">Return CFM</div>
-                <div className="text-base font-semibold tabular-nums text-slate-900">
-                  {totals.effectiveReturn || "—"}
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  {totals.runsReturnCfm > 0 ? "From runs" : "From trunk"}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                <div className="text-xs text-slate-500">Supply CFM</div>
-                <div className="text-base font-semibold tabular-nums text-slate-900">
-                  {totals.effectiveSupply || "—"}
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  {totals.runsSupplyCfm > 0 ? "From runs" : "From trunk"}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                <div className="text-xs text-slate-500">Sizing rule</div>
-                <div className="text-base font-semibold tabular-nums text-slate-900">{cfmPerTon} CFM/ton</div>
-                <div className="text-[11px] text-slate-500">Adjust in Equipment modal</div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <DuctBlock
             title="Main return trunk"
             kind="return"
@@ -502,6 +447,63 @@ export default function DuctPage() {
             </div>
           </div>
         </section>
+
+
+          <div className="mt-3 rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-slate-900">System CFM (limiting)</div>
+                <div className="text-xs text-slate-600">
+                  Uses trunk values unless you enter runs — then it uses the run totals for that side.
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-3">
+                <div className="text-right">
+                  <div className="text-xs text-slate-500">System</div>
+                  <div className="text-xl font-bold tabular-nums text-slate-900">{totals.system || "—"}</div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setEquipOpen(true)}
+                  disabled={!totals.system}
+                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Equipment size
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Return CFM</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">
+                  {totals.effectiveReturn || "—"}
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {totals.runsReturnCfm > 0 ? "From runs" : "From trunk"}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Supply CFM</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">
+                  {totals.effectiveSupply || "—"}
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {totals.runsSupplyCfm > 0 ? "From runs" : "From trunk"}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Sizing rule</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">{cfmPerTon} CFM/ton</div>
+                <div className="text-[11px] text-slate-500">Adjust in Equipment modal</div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
         <footer className="text-center text-[11px] text-slate-400">
           Rule-of-thumb sizing is only an estimate. Always verify static pressure and system design.
