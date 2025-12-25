@@ -184,6 +184,30 @@ export default function DuctPage() {
   const [mobileMode, setMobileMode] = useState<"trunks" | "runs">("trunks");
   const [mobileTrunk, setMobileTrunk] = useState<RunKind>("return");
 
+  const [quickRunShape, setQuickRunShape] = useState<Shape>("rect");
+  const [quickRunDir, setQuickRunDir] = useState<Dir>("one");
+  const [quickRunW, setQuickRunW] = useState<string>("");
+  const [quickRunH, setQuickRunH] = useState<string>("");
+  const [quickRunD, setQuickRunD] = useState<string>("");
+
+  const quickRunReady =
+    quickRunShape === "round" ? num(quickRunD) > 0 : num(quickRunW) > 0 && num(quickRunH) > 0;
+
+  function addQuickRun() {
+    addRun(mobileTrunk, {
+      shape: quickRunShape,
+      dir: quickRunDir,
+      w: quickRunShape === "rect" ? quickRunW : "",
+      h: quickRunShape === "rect" ? quickRunH : "",
+      d: quickRunShape === "round" ? quickRunD : "",
+    });
+    // Keep shape/dir for rapid entry; clear only dimensions.
+    setQuickRunW("");
+    setQuickRunH("");
+    setQuickRunD("");
+  }
+
+
   const totals = useMemo(() => {
     const rv = num(returnVelocityStr);
     const sv = num(supplyVelocityStr);
@@ -300,13 +324,13 @@ export default function DuctPage() {
     setEquipOpen(false);
   }
 
-  function addRun(kind: RunKind) {
+  function addRun(kind: RunKind, input?: Partial<DuctInput>) {
     setRuns((prev) => [
       ...prev,
       {
         id: uid(),
         kind,
-        input: { shape: "rect", dir: "one", w: "", h: "", d: "" },
+        input: { shape: "rect", dir: "one", w: "", h: "", d: "", ...(input || {}) },
       },
     ]);
   }
@@ -583,6 +607,85 @@ export default function DuctPage() {
                 <div className="rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-inset ring-slate-200">
                   <div className="text-[11px] text-slate-500">Supply runs total</div>
                   <div className="text-sm font-semibold tabular-nums text-slate-900">{totals.runsSupplyCfm || "—"} CFM</div>
+                </div>
+              </div>
+
+
+              <div className="mt-3 rounded-2xl bg-white ring-1 ring-inset ring-slate-200 p-3">
+                <div className="text-xs font-semibold text-slate-700">Quick add run (measurements)</div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <select
+                    value={quickRunShape}
+                    onChange={(e) => {
+                      const v = e.target.value as Shape;
+                      setQuickRunShape(v);
+                      // Clear incompatible dims when switching.
+                      if (v === "round") {
+                        setQuickRunW("");
+                        setQuickRunH("");
+                      } else {
+                        setQuickRunD("");
+                      }
+                    }}
+                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  >
+                    <option value="rect">Rect</option>
+                    <option value="round">Round</option>
+                  </select>
+
+                  <select
+                    value={quickRunDir}
+                    onChange={(e) => setQuickRunDir(e.target.value as Dir)}
+                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  >
+                    <option value="one">One-way</option>
+                    <option value="two">Two-way</option>
+                  </select>
+
+                  {quickRunShape === "round" ? (
+                    <input
+                      inputMode="decimal"
+                      placeholder='Diameter (")'
+                      value={quickRunD}
+                      onChange={(e) => setQuickRunD(e.target.value)}
+                      className="col-span-2 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    />
+                  ) : (
+                    <>
+                      <input
+                        inputMode="decimal"
+                        placeholder='Width (")'
+                        value={quickRunW}
+                        onChange={(e) => setQuickRunW(e.target.value)}
+                        className="w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      />
+                      <input
+                        inputMode="decimal"
+                        placeholder='Height (")'
+                        value={quickRunH}
+                        onChange={(e) => setQuickRunH(e.target.value)}
+                        className="w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      />
+                    </>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={addQuickRun}
+                    disabled={!quickRunReady}
+                    className={
+                      "col-span-2 rounded-2xl px-4 py-3 text-sm font-semibold ring-1 ring-inset " +
+                      (quickRunReady
+                        ? "bg-slate-900 text-white ring-slate-900"
+                        : "bg-slate-100 text-slate-400 ring-slate-200")
+                    }
+                  >
+                    + Add {mobileTrunk === "return" ? "Return" : "Supply"} run
+                  </button>
+
+                  <div className="col-span-2 -mt-1 text-[11px] text-slate-500">
+                    Tip: enter measurements here, then fine-tune a run by expanding it below.
+                  </div>
                 </div>
               </div>
 
