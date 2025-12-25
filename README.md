@@ -10,3 +10,4 @@ npm run dev
 - Push this folder to GitHub
 - Import into Vercel
 - Next.js will be auto-detected
+
