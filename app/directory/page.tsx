@@ -39,12 +39,16 @@ function normalizePhone(raw?: string) {
 export default function DirectoryPage() {
   const [q, setQ] = useState("");
   const [cat, setCat] = useState<"all" | "hvac" | "appliance" | "plumbing">("all");
+  // Optional vendor/manufacturer filter. Keeping this state prevents build breaks
+  // if older variants referenced setVendor in clear/reset helpers.
+  const [vendor, setVendor] = useState("");
   const [data, setData] = useState<DirectoryIndex | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
   function clearFilters() {
     setQ("");
     setCat("all");
+    setVendor("");
   }
 
 
@@ -78,6 +82,10 @@ export default function DirectoryPage() {
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
     const list = (data?.manufacturers || []).filter((m) => {
+      if (vendor) {
+        const v = vendor.trim().toLowerCase();
+        if (m.name.toLowerCase() !== v && (m.id || "").toLowerCase() !== v) return false;
+      }
       if (cat !== "all") {
         const has = (m.categories || []).includes(cat) || (m.support || []).some((s) => s.category === cat);
         if (!has) return false;
@@ -107,7 +115,7 @@ export default function DirectoryPage() {
       });
     }
     return list;
-  }, [data, q, cat]);
+  }, [data, q, cat, vendor]);
 
   return (
     <div role="main" className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8">
