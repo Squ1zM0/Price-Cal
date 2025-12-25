@@ -42,6 +42,14 @@ export default function DirectoryPage() {
   const [data, setData] = useState<DirectoryIndex | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
+  function clearFilters() {
+    setQ("");
+    setVendor("");
+    setCategory("all");
+    setCountry("all");
+  }
+
+
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -126,24 +134,25 @@ export default function DirectoryPage() {
             <div className="flex items-center gap-2">
               <Link
                 href="/calculator"
-                className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200"
-                title="Go to Price Calculator"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Price"
               >
                 Price
               </Link>
               <Link
                 href="/duct"
-                className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200"
-                title="Go to Duct CFM"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Duct"
               >
                 Duct
               </Link>
-              <span
-                className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 opacity-60"
-                title="You are on Directory"
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
               >
-                Dir
-              </span>
+                Clear
+              </button>
             </div>
           </div>
 
