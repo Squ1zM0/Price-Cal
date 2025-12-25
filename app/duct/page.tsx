@@ -315,29 +315,6 @@ function VelocityPicker({
     <div className="mt-3">
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs font-semibold text-slate-600">{label}</div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/calculator"
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                title="Go to Price"
-              >
-                Price
-              </Link>
-              <Link
-                href="/directory"
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                title="Go to Directory"
-              >
-                Dir
-              </Link>
-              <button
-                type="button"
-                onClick={resetAll}
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-              >
-                Clear
-              </button>
-            </div>
       </div>
 
       
