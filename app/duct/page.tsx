@@ -59,6 +59,106 @@ function uid(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+// IMPORTANT: keep this component at module scope (not inside DuctPage).
+// Defining it inside DuctPage causes React to treat it as a new component
+// type on each render, which can remount inputs and make iOS/desktop lose
+// focus after a single character.
+function DuctBlock({
+  title,
+  kind,
+  value,
+  onChange,
+  velocityValue,
+  onVelocityChange,
+}: {
+  title: string;
+  kind: RunKind;
+  value: DuctInput;
+  onChange: (patch: Partial<DuctInput>) => void;
+  velocityValue: "700" | "800" | "900";
+  onVelocityChange: (v: "700" | "800" | "900") => void;
+}) {
+  const area = areaIn2(value);
+  const vel = num(velocityValue);
+  const cfm = round1(cfmFrom(area, vel));
+
+  return (
+    <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-base font-semibold text-slate-900">{title}</div>
+          <div className="mt-0.5 text-xs text-slate-500">
+            Area: <span className="font-semibold text-slate-700">{round1(area)}</span> in² • CFM:{" "}
+            <span className="font-semibold text-slate-900">{cfm || "—"}</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <select
+            value={velocityValue}
+            onChange={(e) => onVelocityChange(e.target.value as any)}
+            className="rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            aria-label={`${kind} velocity`}
+            title={`${kind} velocity (FPM)`}
+          >
+            <option value="700">700 fpm</option>
+            <option value="800">800 fpm</option>
+            <option value="900">900 fpm</option>
+          </select>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <select
+          value={value.shape}
+          onChange={(e) => onChange({ shape: e.target.value as Shape })}
+          className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+        >
+          <option value="rect">Rectangular</option>
+          <option value="round">Round</option>
+        </select>
+
+        <select
+          value={value.dir}
+          onChange={(e) => onChange({ dir: e.target.value as Dir })}
+          className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          title="One-way = single duct. Two-way = two identical ducts (doubled area)."
+        >
+          <option value="one">One-way</option>
+          <option value="two">Two-way</option>
+        </select>
+
+        {value.shape === "round" ? (
+          <input
+            value={value.d}
+            onChange={(e) => onChange({ d: e.target.value })}
+            placeholder="Diameter (in)"
+            inputMode="decimal"
+            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          />
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              value={value.w}
+              onChange={(e) => onChange({ w: e.target.value })}
+              placeholder="Width (in)"
+              inputMode="decimal"
+              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            />
+            <input
+              value={value.h}
+              onChange={(e) => onChange({ h: e.target.value })}
+              placeholder="Height (in)"
+              inputMode="decimal"
+              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export default function DuctPage() {
   // Velocities (FPM)
   const [returnVelocityStr, setReturnVelocityStr] = useState<"700" | "800" | "900">("700");
@@ -138,20 +238,26 @@ export default function DuctPage() {
   const furnaceSizing = useMemo(() => {
     const systemCfm = totals.system || 0;
     const dt = Math.max(40, Math.min(55, Number(deltaT) || 50));
-    const outputBtu = systemCfm > 0 ? 1.08 * systemCfm * dt : 0; // BTU/hr
+
+    // Heat rise method: BTU/hr ≈ 1.08 × CFM × ΔT
+    const outputBtu = systemCfm > 0 ? 1.08 * systemCfm * dt : 0;
+
     // Colorado average altitude derate factor (user-specified)
     const altitudeDerate = 0.89;
-    const ratedOutputBtu = outputBtu > 0 ? outputBtu / altitudeDerate : 0; // sea-level equivalent output needed to hit target at altitude
+    // Needed rated (sea-level) output to achieve target output at altitude
+    const ratedOutputBtu = outputBtu > 0 ? outputBtu / altitudeDerate : 0;
+
     const roundTo = (v: number, step: number) => Math.round(v / step) * step;
-    const outputRounded = roundTo(outputBtu, 1000);
+
     const input80 = ratedOutputBtu > 0 ? ratedOutputBtu / 0.8 : 0;
     const input96 = ratedOutputBtu > 0 ? ratedOutputBtu / 0.96 : 0;
+
     return {
       systemCfm,
       dt,
       altitudeDerate,
       outputBtu,
-      outputRounded,
+      outputRounded: roundTo(outputBtu, 1000),
       ratedOutputBtu,
       ratedOutputRounded: roundTo(ratedOutputBtu, 1000),
       input80,
@@ -160,7 +266,6 @@ export default function DuctPage() {
       input96Rounded: roundTo(input96, 1000),
     };
   }, [totals.system, deltaT]);
-
 
   function resetAll() {
     setReturnVelocityStr("700");
@@ -219,102 +324,6 @@ export default function DuctPage() {
       </button>
     </div>
   );
-
-  function DuctBlock({
-    title,
-    kind,
-    value,
-    onChange,
-    velocityValue,
-    onVelocityChange,
-  }: {
-    title: string;
-    kind: RunKind;
-    value: DuctInput;
-    onChange: (patch: Partial<DuctInput>) => void;
-    velocityValue: "700" | "800" | "900";
-    onVelocityChange: (v: "700" | "800" | "900") => void;
-  }) {
-    const area = areaIn2(value);
-    const vel = num(velocityValue);
-    const cfm = round1(cfmFrom(area, vel));
-
-    return (
-      <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <div className="text-base font-semibold text-slate-900">{title}</div>
-            <div className="mt-0.5 text-xs text-slate-500">
-              Area: <span className="font-semibold text-slate-700">{round1(area)}</span> in² • CFM:{" "}
-              <span className="font-semibold text-slate-900">{cfm || "—"}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <select
-              value={velocityValue}
-              onChange={(e) => onVelocityChange(e.target.value as any)}
-              className="rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              aria-label={`${kind} velocity`}
-              title={`${kind} velocity (FPM)`}
-            >
-              <option value="700">700 fpm</option>
-              <option value="800">800 fpm</option>
-              <option value="900">900 fpm</option>
-            </select>
-          </div>
-        </div>
-
-        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-          <select
-            value={value.shape}
-            onChange={(e) => onChange({ shape: e.target.value as Shape })}
-            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-          >
-            <option value="rect">Rectangular</option>
-            <option value="round">Round</option>
-          </select>
-
-          <select
-            value={value.dir}
-            onChange={(e) => onChange({ dir: e.target.value as Dir })}
-            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-            title="One-way = single duct. Two-way = two identical ducts (doubled area)."
-          >
-            <option value="one">One-way</option>
-            <option value="two">Two-way</option>
-          </select>
-
-          {value.shape === "round" ? (
-            <input
-              value={value.d}
-              onChange={(e) => onChange({ d: e.target.value })}
-              placeholder="Diameter (in)"
-              inputMode="decimal"
-              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-            />
-          ) : (
-            <div className="grid grid-cols-2 gap-2">
-              <input
-                value={value.w}
-                onChange={(e) => onChange({ w: e.target.value })}
-                placeholder="Width (in)"
-                inputMode="decimal"
-                className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              />
-              <input
-                value={value.h}
-                onChange={(e) => onChange({ h: e.target.value })}
-                placeholder="Height (in)"
-                inputMode="decimal"
-                className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              />
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
@@ -594,11 +603,17 @@ export default function DuctPage() {
                 </div>
               </div>
 
-              <div className="mt-4">
-                <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-slate-900">ΔT (heat rise)</div>
-                  <div className="text-sm font-semibold tabular-nums text-slate-700">{deltaT}°F</div>
+              <div className="mt-5 border-t border-slate-200/70 pt-4">
+                <div className="flex items-end justify-between gap-3">
+                  <div>
+                    <div className="text-sm font-semibold text-slate-900">Furnace sizing (heat rise)</div>
+                    <div className="text-[11px] text-slate-500">
+                      Uses BTU/hr = 1.08 × CFM × ΔT and Colorado altitude derate {furnaceSizing.altitudeDerate}.
+                    </div>
+                  </div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-700">ΔT {furnaceSizing.dt}°F</div>
                 </div>
+
                 <input
                   type="range"
                   min={40}
@@ -612,38 +627,23 @@ export default function DuctPage() {
                   <span>40</span>
                   <span>55</span>
                 </div>
-                <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <div className="rounded-2xl bg-white px-3 py-2 ring-1 ring-inset ring-slate-200">
-                    <div className="text-[11px] text-slate-500">Heat output</div>
-                    <div className="text-sm font-semibold tabular-nums text-slate-900">
-                      {furnaceSizing.outputRounded ? `${furnaceSizing.outputRounded} BTU/hr` : "—"}
-                    </div>
-                    <div className="text-[11px] text-slate-500">
-                      {furnaceSizing.outputBtu ? `Calc: ${Math.round(furnaceSizing.outputBtu)} BTU/hr` : ""}
-                      {furnaceSizing.ratedOutputBtu ? ` • Sea-level equiv (÷${furnaceSizing.altitudeDerate}): ${Math.round(furnaceSizing.ratedOutputBtu)} BTU/hr` : ""}
-                    </div>
+
+                <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                    <div className="text-xs text-slate-500">Heat out (BTU/hr)</div>
+                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.outputRounded || 0}</div>
+                    <div className="text-[11px] text-slate-500">Delivered heat</div>
                   </div>
-                  <div className="rounded-2xl bg-white px-3 py-2 ring-1 ring-inset ring-slate-200">
-                    <div className="text-[11px] text-slate-500">80% furnace (input)</div>
-                    <div className="text-sm font-semibold tabular-nums text-slate-900">
-                      {furnaceSizing.input80Rounded ? `${furnaceSizing.input80Rounded} BTU/hr` : "—"}
-                    </div>
-                    <div className="text-[11px] text-slate-500">
-                      {furnaceSizing.input80 ? `Calc: ${Math.round(furnaceSizing.input80)} BTU/hr` : ""}
-                    </div>
+                  <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                    <div className="text-xs text-slate-500">80% input (BTU/hr)</div>
+                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.input80Rounded || 0}</div>
+                    <div className="text-[11px] text-slate-500">Altitude-adjusted</div>
                   </div>
-                  <div className="rounded-2xl bg-white px-3 py-2 ring-1 ring-inset ring-slate-200">
-                    <div className="text-[11px] text-slate-500">96% furnace (input)</div>
-                    <div className="text-sm font-semibold tabular-nums text-slate-900">
-                      {furnaceSizing.input96Rounded ? `${furnaceSizing.input96Rounded} BTU/hr` : "—"}
-                    </div>
-                    <div className="text-[11px] text-slate-500">
-                      {furnaceSizing.input96 ? `Calc: ${Math.round(furnaceSizing.input96)} BTU/hr` : ""}
-                    </div>
+                  <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                    <div className="text-xs text-slate-500">96% input (BTU/hr)</div>
+                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.input96Rounded || 0}</div>
+                    <div className="text-[11px] text-slate-500">Altitude-adjusted</div>
                   </div>
-                </div>
-                <div className="mt-2 text-[11px] text-slate-500">
-                  Uses BTU/hr = 1.08 × CFM × ΔT. Colorado altitude derate (0.89) is applied to furnace input recommendations: input = (output ÷ 0.89) ÷ AFUE.
                 </div>
               </div>
 
