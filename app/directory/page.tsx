@@ -6,7 +6,6 @@ import { useEffect, useMemo, useState } from "react";
 
 export const dynamic = "force-static";
 
-
 type SupportEntry = {
   category?: string;
   department?: string;
@@ -38,9 +37,8 @@ function normalizePhone(raw?: string) {
 
 export default function DirectoryPage() {
   const [q, setQ] = useState("");
-  const [cat, setCat] = useState<"all" | "hvac" | "appliance" | "plumbing">("all");
-  // Optional vendor/manufacturer filter. Keeping this state prevents build breaks
-  // if older variants referenced setVendor in clear/reset helpers.
+  const [cat, setCat] = useState<string>("all");
+  // Optional vendor/manufacturer filter (kept to avoid build breaks if referenced elsewhere)
   const [vendor, setVendor] = useState("");
   const [data, setData] = useState<DirectoryIndex | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -50,7 +48,6 @@ export default function DirectoryPage() {
     setCat("all");
     setVendor("");
   }
-
 
   useEffect(() => {
     let alive = true;
@@ -75,22 +72,28 @@ export default function DirectoryPage() {
       for (const c of m.categories || []) set.add(c);
       for (const s of m.support || []) if (s.category) set.add(s.category);
     }
-    const arr = Array.from(set).sort();
-    return arr;
+    return Array.from(set).sort();
   }, [data]);
 
   const filtered = useMemo(() => {
     const query = q.trim().toLowerCase();
+    const vq = vendor.trim().toLowerCase();
+
     const list = (data?.manufacturers || []).filter((m) => {
-      if (vendor) {
-        const v = vendor.trim().toLowerCase();
-        if (m.name.toLowerCase() !== v && (m.id || "").toLowerCase() !== v) return false;
+      if (vq) {
+        const name = m.name.toLowerCase();
+        const id = (m.id || "").toLowerCase();
+        if (name !== vq && id !== vq) return false;
       }
+
       if (cat !== "all") {
-        const has = (m.categories || []).includes(cat) || (m.support || []).some((s) => s.category === cat);
+        const has =
+          (m.categories || []).includes(cat) || (m.support || []).some((s) => s.category === cat);
         if (!has) return false;
       }
+
       if (!query) return true;
+
       const hay = [
         m.name,
         ...(m.aliases || []),
@@ -101,11 +104,12 @@ export default function DirectoryPage() {
       ]
         .join(" ")
         .toLowerCase();
+
       return hay.includes(query);
     });
 
-    // Prefer exact starts-with matches
     list.sort((a, b) => a.name.localeCompare(b.name));
+
     if (query) {
       list.sort((a, b) => {
         const aScore = a.name.toLowerCase().startsWith(query) ? -1 : 0;
@@ -114,6 +118,7 @@ export default function DirectoryPage() {
         return a.name.localeCompare(b.name);
       });
     }
+
     return list;
   }, [data, q, cat, vendor]);
 
@@ -132,8 +137,12 @@ export default function DirectoryPage() {
                 priority
               />
               <div className="min-w-0">
-                <div className="text-base font-semibold leading-tight text-slate-900 truncate">Tech Support Directory</div>
-                <div className="text-xs text-slate-500 truncate">Search manufacturer tech support numbers</div>
+                <div className="text-base font-semibold leading-tight text-slate-900 truncate">
+                  Tech Support Directory
+                </div>
+                <div className="text-xs text-slate-500 truncate">
+                  Search manufacturer tech support numbers
+                </div>
               </div>
             </div>
 
@@ -172,7 +181,7 @@ export default function DirectoryPage() {
             />
             <select
               value={cat}
-              onChange={(e) => setCat(e.target.value as any)}
+              onChange={(e) => setCat(e.target.value)}
               className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
             >
               <option value="all">All categories</option>
