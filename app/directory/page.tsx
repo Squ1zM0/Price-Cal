@@ -44,9 +44,7 @@ export default function DirectoryPage() {
 
   function clearFilters() {
     setQ("");
-    setVendor("");
-    setCategory("all");
-    setCountry("all");
+    setCat("all");
   }
 
 
