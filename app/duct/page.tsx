@@ -93,7 +93,7 @@ function DuctBlock({
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <select
             value={velocityValue}
             onChange={(e) => onVelocityChange(e.target.value as any)}
@@ -179,6 +179,10 @@ export default function DuctPage() {
 
   // Equipment modal
   const [equipOpen, setEquipOpen] = useState(false);
+
+  // Mobile UX: reduce scrolling by letting users toggle between trunks and runs
+  const [mobileMode, setMobileMode] = useState<"trunks" | "runs">("trunks");
+  const [mobileTrunk, setMobileTrunk] = useState<RunKind>("return");
 
   const totals = useMemo(() => {
     const rv = num(returnVelocityStr);
@@ -345,6 +349,83 @@ export default function DuctPage() {
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
+      {/* Mobile sticky results dock (keeps key numbers + action in view without forcing scroll-to-top) */}
+      <div className="lg:hidden sticky top-2 z-40">
+        <div className="rounded-3xl bg-white/95 ring-1 ring-slate-200 shadow-sm px-4 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-xs text-slate-500">System CFM</div>
+              <div className="text-lg font-bold tabular-nums text-slate-900">{totals.system || "—"}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setEquipOpen(true)}
+              disabled={!totals.system}
+              className="shrink-0 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Equipment
+            </button>
+          </div>
+
+          {/* Mobile section switcher */}
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileMode("trunks")}
+              className={
+                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                (mobileMode === "trunks"
+                  ? "bg-slate-900 text-white ring-slate-900"
+                  : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50")
+              }
+            >
+              Trunks
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileMode("runs")}
+              className={
+                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                (mobileMode === "runs"
+                  ? "bg-slate-900 text-white ring-slate-900"
+                  : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50")
+              }
+            >
+              Runs
+            </button>
+          </div>
+
+          {mobileMode === "trunks" ? (
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setMobileTrunk("return")}
+                className={
+                  "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                  (mobileTrunk === "return"
+                    ? "bg-slate-100 text-slate-900 ring-slate-200"
+                    : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
+                }
+              >
+                Return
+              </button>
+              <button
+                type="button"
+                onClick={() => setMobileTrunk("supply")}
+                className={
+                  "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                  (mobileTrunk === "supply"
+                    ? "bg-slate-100 text-slate-900 ring-slate-200"
+                    : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
+                }
+              >
+                Supply
+              </button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+
       <div className="mx-auto w-full max-w-5xl flex flex-col gap-3">
         <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-3">
@@ -420,7 +501,8 @@ export default function DuctPage() {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+        {/* Desktop trunks */}
+        <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-3">
           <DuctBlock
             title="Main return trunk"
             kind="return"
@@ -439,7 +521,151 @@ export default function DuctPage() {
           />
         </div>
 
-        <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
+        {/* Mobile trunks / runs (driven by the sticky dock above) */}
+        <div className="lg:hidden">
+          {mobileMode === "trunks" ? (
+            <div className="mt-3">
+              {mobileTrunk === "return" ? (
+                <DuctBlock
+                  title="Main return trunk"
+                  kind="return"
+                  value={mainReturn}
+                  onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
+                  velocityValue={returnVelocityStr}
+                  onVelocityChange={setReturnVelocityStr}
+                />
+              ) : (
+                <DuctBlock
+                  title="Main supply trunk"
+                  kind="supply"
+                  value={mainSupply}
+                  onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
+                  velocityValue={supplyVelocityStr}
+                  onVelocityChange={setSupplyVelocityStr}
+                />
+              )}
+            </div>
+          ) : (
+            <section className="mt-3 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <div className="text-base font-semibold text-slate-900">Runs</div>
+                  <div className="text-xs text-slate-500">Collapsed cards to keep scrolling minimal.</div>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => addRun("return")}
+                    className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+                  >
+                    + Return
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => addRun("supply")}
+                    className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+                  >
+                    + Supply
+                  </button>
+                </div>
+              </div>
+
+              {runs.length === 0 ? (
+                <div className="mt-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-inset ring-slate-200">
+                  No runs added.
+                </div>
+              ) : (
+                <div className="mt-3 grid gap-2">
+                  {runs.map((r) => {
+                    const area = areaIn2(r.input);
+                    const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
+                    const cfm = round1(cfmFrom(area, vel));
+                    return (
+                      <details key={r.id} className="rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200">
+                        <summary className="cursor-pointer list-none px-4 py-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-slate-900">
+                                {r.kind === "return" ? "Return" : "Supply"} -{" "}
+                                <span className="tabular-nums">{cfm || "—"}</span> CFM
+                              </div>
+                              <div className="text-[11px] text-slate-500 tabular-nums">
+                                {round1(area) || "—"} in² - {vel} fpm
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                removeRun(r.id);
+                              }}
+                              className="shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-100"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </summary>
+
+                        <div className="px-4 pb-4">
+                          <div className="mt-2 grid grid-cols-1 gap-2">
+                            <select
+                              value={r.input.shape}
+                              onChange={(e) => updateRun(r.id, { shape: e.target.value as Shape })}
+                              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            >
+                              <option value="rect">Rectangular</option>
+                              <option value="round">Round</option>
+                            </select>
+
+                            <select
+                              value={r.input.dir}
+                              onChange={(e) => updateRun(r.id, { dir: e.target.value as Dir })}
+                              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            >
+                              <option value="one">One-way</option>
+                              <option value="two">Two-way</option>
+                            </select>
+
+                            {r.input.shape === "round" ? (
+                              <input
+                                value={r.input.d}
+                                onChange={(e) => updateRun(r.id, { d: e.target.value })}
+                                placeholder="Diameter (in)"
+                                inputMode="decimal"
+                                className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                              />
+                            ) : (
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  value={r.input.w}
+                                  onChange={(e) => updateRun(r.id, { w: e.target.value })}
+                                  placeholder="Width (in)"
+                                  inputMode="decimal"
+                                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                />
+                                <input
+                                  value={r.input.h}
+                                  onChange={(e) => updateRun(r.id, { h: e.target.value })}
+                                  placeholder="Height (in)"
+                                  inputMode="decimal"
+                                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </details>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+
+        {/* Desktop runs */}
+        <section className="hidden lg:block rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="min-w-0">
               <div className="text-base font-semibold text-slate-900">Optional runs (more precise)</div>
@@ -448,7 +674,7 @@ export default function DuctPage() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => addRun("return")}
