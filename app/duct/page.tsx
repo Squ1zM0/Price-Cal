@@ -399,34 +399,33 @@ export default function DuctPage() {
             <span className="font-semibold text-slate-900">Step</span>: {mobileMode === "trunks" ? "Main trunks sizing" : "Branch runs sizing"} • Use the toggle below to switch Return vs Supply.
           </div>
 
-          {mobileMode === "trunks" ? (
-            <div className="mt-2 grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => setMobileTrunk("return")}
-                className={
-                  "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
-                  (mobileTrunk === "return"
-                    ? "bg-slate-100 text-slate-900 ring-slate-200"
-                    : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
-                }
-              >
-                Return
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileTrunk("supply")}
-                className={
-                  "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
-                  (mobileTrunk === "supply"
-                    ? "bg-slate-100 text-slate-900 ring-slate-200"
-                    : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
-                }
-              >
-                Supply
-              </button>
-            </div>
-          ) : null}
+          {/* Keep Return/Supply toggle visible in BOTH modes (Trunks + Runs). */}
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileTrunk("return")}
+              className={
+                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                (mobileTrunk === "return"
+                  ? "bg-slate-100 text-slate-900 ring-slate-200"
+                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
+              }
+            >
+              Return
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileTrunk("supply")}
+              className={
+                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                (mobileTrunk === "supply"
+                  ? "bg-slate-100 text-slate-900 ring-slate-200"
+                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
+              }
+            >
+              Supply
+            </button>
+          </div>
         </div>
       </div>
 
