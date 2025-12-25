@@ -554,10 +554,10 @@ export default function DuctPage() {
                     Add room runs one side at a time — use the toggle above to switch Return / Supply.
                   </div>
                   <div className="mt-1 text-[11px] text-slate-600">
-                    Showing: <span className="font-semibold text-slate-900">{mobileRunsKind === "return" ? "Return runs" : "Supply runs"}</span>
+                    Showing: <span className="font-semibold text-slate-900">{mobileTrunk === "return" ? "Return runs" : "Supply runs"}</span>
                     {" "}• Total:{" "}
                     <span className="font-semibold text-slate-900 tabular-nums">
-                      {mobileRunsKind === "return" ? totals.runsReturnCfm || "—" : totals.runsSupplyCfm || "—"}
+                      {mobileTrunk === "return" ? totals.runsReturnCfm || "—" : totals.runsSupplyCfm || "—"}
                     </span>
                     {" "}CFM
                   </div>
@@ -565,10 +565,10 @@ export default function DuctPage() {
 
                 <button
                   type="button"
-                  onClick={() => addRun(mobileRunsKind)}
+                  onClick={() => addRun(mobileTrunk)}
                   className="shrink-0 rounded-2xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
                 >
-                  + Add {mobileRunsKind === "return" ? "Return" : "Supply"} run
+                  + Add {mobileTrunk === "return" ? "Return" : "Supply"} run
                 </button>
               </div>
 
@@ -583,13 +583,13 @@ export default function DuctPage() {
                 </div>
               </div>
 
-{runs.filter((r) => r.kind === mobileRunsKind).length === 0 ? (
+{runs.filter((r) => r.kind === mobileTrunk).length === 0 ? (
                 <div className="mt-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-inset ring-slate-200">
                   No runs added for this side yet.
                 </div>
               ) : (
                 <div className="mt-3 grid gap-2">
-                  {runs.filter((r) => r.kind === mobileRunsKind).map((r) => {
+                  {runs.filter((r) => r.kind === mobileTrunk).map((r) => {
                     const area = areaIn2(r.input);
                     const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
                     const cfm = round1(cfmFrom(area, vel));
