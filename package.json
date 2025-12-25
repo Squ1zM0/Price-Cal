@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "prebuild": "node scripts/sync-techdirect.cjs",
+    "predev": "node scripts/sync-techdirect.cjs"
   },
   "dependencies": {
     "next": "14.2.5",
