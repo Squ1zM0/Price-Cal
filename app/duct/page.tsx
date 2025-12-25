@@ -308,6 +308,9 @@ export default function DuctPage() {
             {TabButtons}
           </div>
 
+        </header>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <DuctBlock
             title="Main return trunk"
             kind="return"
@@ -449,6 +452,7 @@ export default function DuctPage() {
         </section>
 
 
+        {/* System CFM (limiting) */}
           <div className="mt-3 rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4 sm:p-5">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="min-w-0">
@@ -501,9 +505,6 @@ export default function DuctPage() {
               </div>
             </div>
           </div>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
         <footer className="text-center text-[11px] text-slate-400">
           Rule-of-thumb sizing is only an estimate. Always verify static pressure and system design.
