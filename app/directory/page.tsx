@@ -4,210 +4,260 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
-type SupportLine = { id?: string; label?: string; phone: string };
-type Manufacturer = { id: string; name: string; aliases?: string[]; support_lines?: SupportLine[] };
+type SupportEntry = {
+  category?: string;
+  department?: string;
+  phone?: string;
+  country?: string;
+  notes?: string;
+  source?: string;
+  last_verified?: string;
+};
 
-type Baseline = {
-  schema_version?: string;
-  generated_at?: string;
+type Manufacturer = {
+  id: string;
+  name: string;
+  website?: string;
+  categories?: string[];
+  aliases?: string[];
+  support?: SupportEntry[];
+};
+
+type DirectoryIndex = {
+  version?: string;
   manufacturers: Manufacturer[];
 };
 
-function normalizePhone(phone: string) {
-  return phone.replace(/[^0-9]/g, "");
-}
-
-function formatPhone(phone: string) {
-  const d = normalizePhone(phone);
-  if (d.length === 10) return `(${d.slice(0, 3)}) ${d.slice(3, 6)}-${d.slice(6)}`;
-  if (d.length === 11 && d.startsWith("1")) return `(${d.slice(1, 4)}) ${d.slice(4, 7)}-${d.slice(7)}`;
-  return phone.trim();
-}
-
-function telHref(phone: string) {
-  const d = normalizePhone(phone);
-  if (!d) return "";
-  if (d.length === 10) return `tel:+1${d}`;
-  if (d.length === 11 && d.startsWith("1")) return `tel:+${d}`;
-  return `tel:${d}`;
+function normalizePhone(raw?: string) {
+  if (!raw) return "";
+  return raw.trim();
 }
 
 export default function DirectoryPage() {
-  const [query, setQuery] = useState("");
-  const [baseline, setBaseline] = useState<Baseline | null>(null);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [q, setQ] = useState("");
+  const [cat, setCat] = useState<"all" | "hvac" | "appliance" | "plumbing">("all");
+  const [data, setData] = useState<DirectoryIndex | null>(null);
+  const [err, setErr] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let alive = true;
     (async () => {
       try {
-        const res = await fetch("/techdirect/sample_baseline.json", { cache: "no-store" });
-        const json = (await res.json()) as Baseline;
-        if (!cancelled) setBaseline(json);
-      } catch {
-        if (!cancelled) setBaseline({ manufacturers: [] });
+        const res = await fetch("/techdirect/index.min.json", { cache: "no-store" });
+        if (!res.ok) throw new Error(`Failed to load directory index (${res.status})`);
+        const json = (await res.json()) as DirectoryIndex;
+        if (alive) setData(json);
+      } catch (e: any) {
+        if (alive) setErr(e?.message || "Failed to load directory");
       }
     })();
     return () => {
-      cancelled = true;
+      alive = false;
     };
   }, []);
 
-  const manufacturers = useMemo(() => baseline?.manufacturers ?? [], [baseline]);
+  const allCats = useMemo(() => {
+    const set = new Set<string>();
+    for (const m of data?.manufacturers || []) {
+      for (const c of m.categories || []) set.add(c);
+      for (const s of m.support || []) if (s.category) set.add(s.category);
+    }
+    const arr = Array.from(set).sort();
+    return arr;
+  }, [data]);
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return manufacturers;
-    return manufacturers.filter((m) => {
+    const query = q.trim().toLowerCase();
+    const list = (data?.manufacturers || []).filter((m) => {
+      if (cat !== "all") {
+        const has = (m.categories || []).includes(cat) || (m.support || []).some((s) => s.category === cat);
+        if (!has) return false;
+      }
+      if (!query) return true;
       const hay = [
         m.name,
-        ...(m.aliases ?? []),
-        ...((m.support_lines ?? []).map((l) => l.label ?? "")),
-        ...((m.support_lines ?? []).map((l) => l.phone ?? "")),
+        ...(m.aliases || []),
+        m.id,
+        m.website || "",
+        ...(m.categories || []),
+        ...((m.support || []).map((s) => `${s.department || ""} ${s.phone || ""} ${s.notes || ""}`)),
       ]
         .join(" ")
         .toLowerCase();
-      return hay.includes(q);
+      return hay.includes(query);
     });
-  }, [manufacturers, query]);
 
-  const clearSearch = () => setQuery("");
+    // Prefer exact starts-with matches
+    list.sort((a, b) => a.name.localeCompare(b.name));
+    if (query) {
+      list.sort((a, b) => {
+        const aScore = a.name.toLowerCase().startsWith(query) ? -1 : 0;
+        const bScore = b.name.toLowerCase().startsWith(query) ? -1 : 0;
+        if (aScore !== bScore) return aScore - bScore;
+        return a.name.localeCompare(b.name);
+      });
+    }
+    return list;
+  }, [data, q, cat]);
 
   return (
-    <div role="main" className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-6">
+    <div role="main" className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8">
       <div className="mx-auto h-full w-full max-w-3xl flex flex-col gap-3">
-        {/* Header */}
         <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5">
           <div className="flex items-center justify-between gap-3">
-            <div className="relative h-10 w-[220px] sm:h-12 sm:w-[340px]">
+            <div className="flex items-center gap-3 min-w-0">
               <Image
-                src="/accutrol-header-wide.jpeg"
+                src="/accutrol-logo.jpeg"
                 alt="Accutrol"
-                fill
+                width={220}
+                height={60}
+                className="h-10 w-auto object-contain"
                 priority
-                className="object-contain object-left"
               />
+              <div className="min-w-0">
+                <div className="text-base font-semibold leading-tight text-slate-900 truncate">Tech Support Directory</div>
+                <div className="text-xs text-slate-500 truncate">Search manufacturer tech support numbers</div>
+              </div>
             </div>
 
-            <div className="shrink-0 flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <Link
                 href="/calculator"
-                className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm active:scale-[0.99]"
+                className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200"
                 title="Go to Price Calculator"
               >
                 Price
               </Link>
               <Link
                 href="/duct"
-                className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm active:scale-[0.99]"
+                className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200"
                 title="Go to Duct CFM"
               >
                 Duct
               </Link>
-              <button
-                type="button"
-                onClick={clearSearch}
-                className="rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200 active:scale-[0.99]"
-                title="Clear search"
+              <span
+                className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 opacity-60"
+                title="You are on Directory"
               >
-                Clear
-              </button>
+                Dir
+              </span>
             </div>
           </div>
 
-          <div className="mt-3 flex items-center gap-2">
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
             <input
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base font-medium text-slate-900 placeholder:text-slate-400 shadow-sm outline-none focus:ring-2 focus:ring-slate-200"
-              placeholder="Search manufacturer, alias, or support line…"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
+              value={q}
+              onChange={(e) => setQ(e.target.value)}
+              placeholder="Search (manufacturer, alias, phone, notes)…"
+              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
               inputMode="search"
-              autoCapitalize="none"
-              autoCorrect="off"
-              spellCheck={false}
             />
-          </div>
-
-          <div className="mt-2 text-xs text-slate-500">
-            {baseline?.generated_at ? `Directory updated: ${baseline.generated_at}` : "Directory"}
+            <select
+              value={cat}
+              onChange={(e) => setCat(e.target.value as any)}
+              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            >
+              <option value="all">All categories</option>
+              {allCats.map((c) => (
+                <option key={c} value={c}>
+                  {c.toUpperCase()}
+                </option>
+              ))}
+            </select>
+            <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 flex items-center justify-between">
+              <span className="text-slate-600">Results</span>
+              <span className="font-semibold text-slate-900">{filtered.length}</span>
+            </div>
           </div>
         </header>
 
-        {/* Content */}
-        <div className="min-h-0 flex-1 overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200">
-          <div className="h-full overflow-auto p-3 sm:p-4">
-            {baseline === null ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                Loading directory…
-              </div>
+        <section className="min-h-0 flex-1 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
+          <div className="h-full overflow-auto">
+            {err ? (
+              <div className="p-4 text-sm text-rose-700">{err}</div>
+            ) : !data ? (
+              <div className="p-4 text-sm text-slate-600">Loading directory…</div>
             ) : filtered.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-                No matches.
-              </div>
+              <div className="p-4 text-sm text-slate-600">No matches.</div>
             ) : (
-              <div className="flex flex-col gap-3">
-                {filtered.map((m) => {
-                  const open = !!expanded[m.id];
-                  const lines = m.support_lines ?? [];
-                  const primary = lines[0];
-                  return (
-                    <div key={m.id} className="rounded-3xl border border-slate-200 bg-white p-4 shadow-sm">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-base font-extrabold tracking-tight text-slate-900">{m.name}</div>
-                          {(m.aliases?.length ?? 0) > 0 ? (
-                            <div className="mt-1 text-xs text-slate-500">
-                              Also: {m.aliases!.slice(0, 4).join(", ")}
-                              {(m.aliases!.length ?? 0) > 4 ? "…" : ""}
-                            </div>
-                          ) : null}
-
-                          {primary?.phone ? (
-                            <a
-                              className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white active:scale-[0.99]"
-                              href={telHref(primary.phone)}
-                            >
-                              Call {primary.label ? `${primary.label}:` : ""} {formatPhone(primary.phone)}
+              <div className="divide-y divide-slate-100">
+                {filtered.slice(0, 200).map((m) => (
+                  <div key={m.id} className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-base font-semibold text-slate-900">{m.name}</div>
+                        <div className="mt-0.5 text-xs text-slate-500 break-all">
+                          {m.website ? (
+                            <a className="underline" href={m.website} target="_blank" rel="noreferrer">
+                              {m.website}
                             </a>
-                          ) : null}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() => setExpanded((p) => ({ ...p, [m.id]: !open }))}
-                          className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200 active:scale-[0.99]"
-                        >
-                          {open ? "Hide" : "Details"}
-                        </button>
-                      </div>
-
-                      {open ? (
-                        <div className="mt-3 border-t border-slate-200 pt-3">
-                          {lines.length === 0 ? (
-                            <div className="text-sm text-slate-600">No support lines in this directory entry.</div>
                           ) : (
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                              {lines.map((l, idx) => (
-                                <a
-                                  key={l.id ?? `${m.id}-${idx}`}
-                                  href={telHref(l.phone)}
-                                  className="flex items-center justify-between gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-semibold text-slate-800 hover:bg-slate-100 active:scale-[0.99]"
-                                >
-                                  <span className="truncate">{l.label ?? "Support"}</span>
-                                  <span className="tabular-nums">{formatPhone(l.phone)}</span>
-                                </a>
-                              ))}
-                            </div>
+                            <span>—</span>
                           )}
                         </div>
-                      ) : null}
+                        {m.aliases && m.aliases.length ? (
+                          <div className="mt-1 text-xs text-slate-500">
+                            AKA: <span className="text-slate-700">{m.aliases.slice(0, 4).join(", ")}</span>
+                            {m.aliases.length > 4 ? <span className="text-slate-500"> …</span> : null}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="shrink-0 text-xs text-slate-500">
+                        {(m.categories || []).slice(0, 3).map((c) => (
+                          <span
+                            key={c}
+                            className="ml-1 inline-flex items-center rounded-full bg-slate-100 px-2 py-1 ring-1 ring-inset ring-slate-200"
+                          >
+                            {c.toUpperCase()}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  );
-                })}
+
+                    <div className="mt-3 grid gap-2">
+                      {(m.support || []).map((s, idx) => {
+                        const phone = normalizePhone(s.phone);
+                        return (
+                          <div key={idx} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
+                            <div className="flex items-center justify-between gap-3">
+                              <div className="min-w-0">
+                                <div className="text-sm font-semibold text-slate-900 truncate">
+                                  {s.department || "Tech Support"}
+                                </div>
+                                <div className="text-xs text-slate-500 truncate">
+                                  {(s.category || "—").toUpperCase()} • {(s.country || "—").toUpperCase()}
+                                </div>
+                              </div>
+                              {phone ? (
+                                <a
+                                  href={`tel:${phone}`}
+                                  className="shrink-0 rounded-2xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                                  title="Tap to call"
+                                >
+                                  {phone}
+                                </a>
+                              ) : (
+                                <span className="text-xs text-slate-400">No phone</span>
+                              )}
+                            </div>
+                            {s.notes ? <div className="mt-2 text-xs text-slate-600">{s.notes}</div> : null}
+                            {s.last_verified ? (
+                              <div className="mt-1 text-[11px] text-slate-400">Verified: {s.last_verified}</div>
+                            ) : null}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
           </div>
-        </div>
+        </section>
+
+        <footer className="text-center text-[11px] text-slate-400">
+          Directory data is bundled from the TechDirect repo at build time (no runtime GitHub requests).
+        </footer>
       </div>
     </div>
   );
