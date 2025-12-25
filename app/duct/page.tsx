@@ -2,11 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState } from "react";
 
 type Shape = "rect" | "round";
 type Dir = "one" | "two";
-type RunKind = "supply" | "return";
+type RunKind = "return" | "supply";
 
 type DuctInput = {
   shape: Shape;
@@ -24,706 +24,566 @@ type Run = {
   input: DuctInput;
 };
 
-function parseNum(s: string) {
-  const v = parseFloat(String(s).replace(/[^0-9.]/g, ""));
-  return Number.isFinite(v) ? v : 0;
+function num(v: string): number {
+  const n = Number(String(v || "").trim());
+  return Number.isFinite(n) ? n : 0;
 }
 
-function round1(n: number) {
+function areaIn2(input: DuctInput): number {
+  const mult = input.dir === "two" ? 2 : 1;
+  if (input.shape === "round") {
+    const d = num(input.d);
+    if (d <= 0) return 0;
+    const r = d / 2;
+    return Math.PI * r * r * mult;
+  }
+  const w = num(input.w);
+  const h = num(input.h);
+  if (w <= 0 || h <= 0) return 0;
+  return w * h * mult;
+}
+
+function cfmFrom(areaIn2Val: number, velocityFpm: number): number {
+  if (areaIn2Val <= 0 || velocityFpm <= 0) return 0;
+  return (areaIn2Val / 144) * velocityFpm;
+}
+
+function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
-
-function areaIn2(input: DuctInput) {
-  const mult = input.dir === "two" ? 2 : 1;
-  if (input.shape === "rect") {
-    const w = parseNum(input.w);
-    const h = parseNum(input.h);
-    return w * h * mult;
-  }
-  const d = parseNum(input.d);
-  const r = d / 2;
-  return Math.PI * r * r * mult;
+function round0(n: number): number {
+  return Math.round(n);
 }
 
-function cfmFromArea(area: number, velocityFpm: number) {
-  return (area / 144) * velocityFpm;
+function uid(): string {
+  return Math.random().toString(36).slice(2, 10);
 }
 
-function SegLink({
-  href,
-  active,
-  children,
-}: {
-  href: string;
-  active: boolean;
-  children: ReactNode;
-}) {
-  return (
-    <Link
-      href={href}
-      className={[
-        "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition",
-        active
-          ? "bg-slate-900 text-white ring-slate-900"
-          : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50",
-      ].join(" ")}
-    >
-      {children}
-    </Link>
-  );
-}
+export default function DuctPage() {
+  // Velocities (FPM)
+  const [returnVelocityStr, setReturnVelocityStr] = useState<"700" | "800" | "900">("700");
+  const [supplyVelocityStr, setSupplyVelocityStr] = useState<"700" | "800" | "900">("700");
 
-function ShapePicker({
-  value,
-  onChange,
-}: {
-  value: Shape;
-  onChange: (v: Shape) => void;
-}) {
-  return (
-    <div className="flex gap-2">
-      <button
-        type="button"
-        onClick={() => onChange("rect")}
-        className={[
-          "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition",
-          value === "rect"
-            ? "bg-slate-900 text-white ring-slate-900"
-            : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50",
-        ].join(" ")}
-      >
-        Rect
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("round")}
-        className={[
-          "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition",
-          value === "round"
-            ? "bg-slate-900 text-white ring-slate-900"
-            : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50",
-        ].join(" ")}
-      >
-        Round
-      </button>
-    </div>
-  );
-}
+  // Rule-of-thumb sizing: CFM per ton
+  const [cfmPerTon, setCfmPerTon] = useState<number>(400); // default-ish; user can slide 350–450
 
-function DirPicker({
-  value,
-  onChange,
-}: {
-  value: Dir;
-  onChange: (v: Dir) => void;
-}) {
-  return (
-    <div className="flex gap-2">
-      <button
-        type="button"
-        onClick={() => onChange("one")}
-        className={[
-          "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition",
-          value === "one"
-            ? "bg-slate-900 text-white ring-slate-900"
-            : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50",
-        ].join(" ")}
-      >
-        1-way
-      </button>
-      <button
-        type="button"
-        onClick={() => onChange("two")}
-        className={[
-          "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition",
-          value === "two"
-            ? "bg-slate-900 text-white ring-slate-900"
-            : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50",
-        ].join(" ")}
-      >
-        2-way
-      </button>
-    </div>
-  );
-}
+  // Main trunks
+  const [mainReturn, setMainReturn] = useState<DuctInput>({ shape: "rect", dir: "one", w: "", h: "", d: "" });
+  const [mainSupply, setMainSupply] = useState<DuctInput>({ shape: "rect", dir: "one", w: "", h: "", d: "" });
 
-function DuctFields({
-  input,
-  onChange,
-}: {
-  input: DuctInput;
-  onChange: (next: DuctInput) => void;
-}) {
-  return (
-    <div className="grid grid-cols-2 gap-3">
-      {input.shape === "rect" ? (
-        <>
-          <div>
-            <label className="text-xs font-semibold text-slate-600">Width (in)</label>
-            <input
-              value={input.w}
-              onChange={(e) => onChange({ ...input, w: e.target.value })}
-              inputMode="decimal"
-              placeholder="0"
-              className="mt-1 w-full rounded-2xl bg-slate-50 px-3 py-3 text-base font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            />
-          </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-600">Height (in)</label>
-            <input
-              value={input.h}
-              onChange={(e) => onChange({ ...input, h: e.target.value })}
-              inputMode="decimal"
-              placeholder="0"
-              className="mt-1 w-full rounded-2xl bg-slate-50 px-3 py-3 text-base font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
-            />
-          </div>
-        </>
-      ) : (
-        <div className="col-span-2">
-          <label className="text-xs font-semibold text-slate-600">Diameter (in)</label>
-          <input
-            value={input.d}
-            onChange={(e) => onChange({ ...input, d: e.target.value })}
-            inputMode="decimal"
-            placeholder="0"
-            className="mt-1 w-full rounded-2xl bg-slate-50 px-3 py-3 text-base font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-function RunCard({
-  run,
-  velocity,
-  onChange,
-  onRemove,
-}: {
-  run: Run;
-  velocity: number;
-  onChange: (next: Run) => void;
-  onRemove: () => void;
-}) {
-  const area = useMemo(() => areaIn2(run.input), [run.input]);
-  const cfm = useMemo(() => round1(cfmFromArea(area, velocity)), [area, velocity]);
-
-  return (
-    <div className="rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
-      <div className="flex items-center justify-between gap-2">
-        <div className="text-sm font-semibold text-slate-900">
-          {run.kind === "supply" ? "Supply run" : "Return run"}
-        </div>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="rounded-2xl bg-white px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
-        >
-          Remove
-        </button>
-      </div>
-
-      <div className="mt-3 grid grid-cols-2 gap-3">
-        <div className="col-span-2">
-          <div className="text-xs font-semibold text-slate-600">Kind</div>
-          <div className="mt-1 flex gap-2">
-            <button
-              type="button"
-              onClick={() => onChange({ ...run, kind: "supply" })}
-              className={[
-                "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition",
-                run.kind === "supply"
-                  ? "bg-slate-900 text-white ring-slate-900"
-                  : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50",
-              ].join(" ")}
-            >
-              Supply
-            </button>
-            <button
-              type="button"
-              onClick={() => onChange({ ...run, kind: "return" })}
-              className={[
-                "flex-1 rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition",
-                run.kind === "return"
-                  ? "bg-slate-900 text-white ring-slate-900"
-                  : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50",
-              ].join(" ")}
-            >
-              Return
-            </button>
-          </div>
-        </div>
-
-        <div className="col-span-2">
-          <div className="text-xs font-semibold text-slate-600">Shape</div>
-          <div className="mt-1">
-            <ShapePicker
-              value={run.input.shape}
-              onChange={(shape) =>
-                onChange({
-                  ...run,
-                  input: {
-                    ...run.input,
-                    shape,
-                    // keep existing fields; UI will use the right ones
-                  },
-                })
-              }
-            />
-          </div>
-        </div>
-
-        <div className="col-span-2">
-          <div className="text-xs font-semibold text-slate-600">1-way / 2-way</div>
-          <div className="mt-1">
-            <DirPicker
-              value={run.input.dir}
-              onChange={(dir) => onChange({ ...run, input: { ...run.input, dir } })}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-3">
-        <DuctFields
-          input={run.input}
-          onChange={(input) => onChange({ ...run, input })}
-        />
-      </div>
-
-      <div className="mt-3 flex items-center justify-between gap-3">
-        <div className="text-xs font-semibold text-slate-600">Approx CFM</div>
-        <div className="text-lg font-extrabold text-slate-900 tabular-nums">{cfm}</div>
-      </div>
-    </div>
-  );
-}
-
-
-function VelocityPicker({
-  value,
-  onChange,
-  label,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  label: string;
-}) {
-  const presets = ["700", "800", "900"];
-  return (
-    <div className="mt-3">
-      <div className="flex items-center justify-between gap-3">
-        <div className="text-xs font-semibold text-slate-600">{label}</div>
-            <div className="flex items-center gap-2">
-              <Link
-                href="/calculator"
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                title="Go to Price"
-              >
-                Price
-              </Link>
-              <Link
-                href="/directory"
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                title="Go to Directory"
-              >
-                Dir
-              </Link>
-              <button
-                type="button"
-                onClick={resetAll}
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-              >
-                Clear
-              </button>
-            </div>
-      </div>
-
-      
-    </div>
-  );
-}
-
-export default function Page() {
-  const [returnVelocityStr, setReturnVelocityStr] = useState("700");
-  const [supplyVelocityStr, setSupplyVelocityStr] = useState("700");
-
-  const [equipOpen, setEquipOpen] = useState(false);
-  const [cfmPerTon, setCfmPerTon] = useState(350);
-
-
-  const [mainReturn, setMainReturn] = useState<DuctInput>({
-    shape: "rect",
-    dir: "one",
-    w: "",
-    h: "",
-    d: "",
-  });
-  const [mainSupply, setMainSupply] = useState<DuctInput>({
-    shape: "rect",
-    dir: "one",
-    w: "",
-    h: "",
-    d: "",
-  });
-
+  // Optional runs (more precise estimate)
   const [runs, setRuns] = useState<Run[]>([]);
 
-  const returnVelocity = useMemo(() => parseNum(returnVelocityStr), [returnVelocityStr]);
-  const supplyVelocity = useMemo(() => parseNum(supplyVelocityStr), [supplyVelocityStr]);
+  // Equipment modal
+  const [equipOpen, setEquipOpen] = useState(false);
 
-  const mainReturnArea = useMemo(() => areaIn2(mainReturn), [mainReturn]);
-  const mainSupplyArea = useMemo(() => areaIn2(mainSupply), [mainSupply]);
+  const totals = useMemo(() => {
+    const rv = num(returnVelocityStr);
+    const sv = num(supplyVelocityStr);
 
-  const mainReturnCfm = useMemo(
-    () => round1(cfmFromArea(mainReturnArea, returnVelocity)),
-    [mainReturnArea, returnVelocity]
-  );
-  const mainSupplyCfm = useMemo(
-    () => round1(cfmFromArea(mainSupplyArea, supplyVelocity)),
-    [mainSupplyArea, supplyVelocity]
-  );
+    const mainReturnArea = areaIn2(mainReturn);
+    const mainSupplyArea = areaIn2(mainSupply);
 
-  const runsTotals = useMemo(() => {
-    let supply = 0;
-    let ret = 0;
+    const mainReturnCfm = round1(cfmFrom(mainReturnArea, rv));
+    const mainSupplyCfm = round1(cfmFrom(mainSupplyArea, sv));
+
+    let runsReturn = 0;
+    let runsSupply = 0;
+
     for (const r of runs) {
       const area = areaIn2(r.input);
-      const vel = r.kind === "supply" ? supplyVelocity : returnVelocity;
-      const cfm = round1(cfmFromArea(area, vel));
-      if (r.kind === "supply") supply += cfm;
-      else ret += cfm;
+      const vel = r.kind === "return" ? rv : sv;
+      const cfm = cfmFrom(area, vel);
+      if (r.kind === "return") runsReturn += cfm;
+      else runsSupply += cfm;
     }
-    return {
-      supply: round1(supply),
-      ret: round1(ret),
-      combined: round1(supply + ret),
-      supplyCount: runs.filter((x) => x.kind === "supply").length,
-      returnCount: runs.filter((x) => x.kind === "return").length,
-    };
-  }, [runs, supplyVelocity, returnVelocity]);
 
-  // "Available" totals: if detailed runs are entered, we treat them as the more precise measurement.
-  // Otherwise we fall back to trunk calculations.
-  const totals = useMemo(() => {
-    const supply = runsTotals.supplyCount > 0 ? runsTotals.supply : mainSupplyCfm;
-    const ret = runsTotals.returnCount > 0 ? runsTotals.ret : mainReturnCfm;
+    const runsReturnCfm = round1(runsReturn);
+    const runsSupplyCfm = round1(runsSupply);
+
+    // If runs are entered, use them as the more precise estimate; otherwise fall back to trunks.
+    const effectiveReturn = (runsReturnCfm > 0 ? runsReturnCfm : mainReturnCfm) || 0;
+    const effectiveSupply = (runsSupplyCfm > 0 ? runsSupplyCfm : mainSupplyCfm) || 0;
+
+    const system = round1(Math.min(effectiveReturn, effectiveSupply));
+
     return {
-      supply: round1(supply),
-      ret: round1(ret),
-      system: round1(Math.min(supply, ret)),
-      limiting: supply <= ret ? "supply" : "return",
-      diff: round1(Math.abs(supply - ret)),
-      imbalancePct: round1(
-        (Math.abs(supply - ret) / Math.max(supply || 0, ret || 0, 1)) * 100
-      ),
-      supplySource: runsTotals.supplyCount > 0 ? "runs" : "trunk",
-      returnSource: runsTotals.returnCount > 0 ? "runs" : "trunk",
+      rv,
+      sv,
+      mainReturnArea,
+      mainSupplyArea,
+      mainReturnCfm,
+      mainSupplyCfm,
+      runsReturnCfm,
+      runsSupplyCfm,
+      system,
+      effectiveReturn,
+      effectiveSupply,
     };
-  }, [mainReturnCfm, mainSupplyCfm, runsTotals]);
+  }, [mainReturn, mainSupply, runs, returnVelocityStr, supplyVelocityStr]);
 
   const sizing = useMemo(() => {
     const system = totals.system || 0;
     const rule = Math.max(350, Math.min(450, Number(cfmPerTon) || 350));
     const tonsRaw = system > 0 ? system / rule : 0;
-    const tonsRounded = Math.max(0, Math.round(tonsRaw * 2) / 2); // nearest 0.5 ton
-    const btu = tonsRounded * 12000;
-    return { rule, tonsRaw, tonsRounded, btu };
+    // nearest half-ton feels right for field sizing
+    const tonsHalf = Math.round(tonsRaw * 2) / 2;
+    const btu = tonsHalf * 12000;
+    return { rule, tonsRaw, tonsHalf, btu };
   }, [totals.system, cfmPerTon]);
-
-
-  function addRun(kind: RunKind) {
-    const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    const input: DuctInput = { shape: "rect", dir: "one", w: "", h: "", d: "" };
-    setRuns((prev) => [...prev, { id, kind, input }]);
-  }
 
   function resetAll() {
     setReturnVelocityStr("700");
     setSupplyVelocityStr("700");
+    setCfmPerTon(400);
     setMainReturn({ shape: "rect", dir: "one", w: "", h: "", d: "" });
     setMainSupply({ shape: "rect", dir: "one", w: "", h: "", d: "" });
     setRuns([]);
+    setEquipOpen(false);
+  }
+
+  function addRun(kind: RunKind) {
+    setRuns((prev) => [
+      ...prev,
+      {
+        id: uid(),
+        kind,
+        input: { shape: "rect", dir: "one", w: "", h: "", d: "" },
+      },
+    ]);
+  }
+
+  function updateRun(id: string, patch: Partial<DuctInput>) {
+    setRuns((prev) =>
+      prev.map((r) => (r.id === id ? { ...r, input: { ...r.input, ...patch } } : r))
+    );
+  }
+
+  function removeRun(id: string) {
+    setRuns((prev) => prev.filter((r) => r.id !== id));
+  }
+
+  const TabButtons = (
+    <div className="shrink-0 flex items-center gap-2">
+      <Link
+        href="/calculator"
+        className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+        title="Go to Price"
+      >
+        Price
+      </Link>
+      <Link
+        href="/directory"
+        className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+        title="Go to Directory"
+      >
+        Directory
+      </Link>
+      <button
+        type="button"
+        onClick={resetAll}
+        className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+      >
+        Clear
+      </button>
+    </div>
+  );
+
+  function DuctBlock({
+    title,
+    kind,
+    value,
+    onChange,
+    velocityValue,
+    onVelocityChange,
+  }: {
+    title: string;
+    kind: RunKind;
+    value: DuctInput;
+    onChange: (patch: Partial<DuctInput>) => void;
+    velocityValue: "700" | "800" | "900";
+    onVelocityChange: (v: "700" | "800" | "900") => void;
+  }) {
+    const area = areaIn2(value);
+    const vel = num(velocityValue);
+    const cfm = round1(cfmFrom(area, vel));
+
+    return (
+      <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="text-base font-semibold text-slate-900">{title}</div>
+            <div className="mt-0.5 text-xs text-slate-500">
+              Area: <span className="font-semibold text-slate-700">{round1(area)}</span> in² • CFM:{" "}
+              <span className="font-semibold text-slate-900">{cfm || "—"}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <select
+              value={velocityValue}
+              onChange={(e) => onVelocityChange(e.target.value as any)}
+              className="rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+              aria-label={`${kind} velocity`}
+              title={`${kind} velocity (FPM)`}
+            >
+              <option value="700">700 fpm</option>
+              <option value="800">800 fpm</option>
+              <option value="900">900 fpm</option>
+            </select>
+          </div>
+        </div>
+
+        <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <select
+            value={value.shape}
+            onChange={(e) => onChange({ shape: e.target.value as Shape })}
+            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          >
+            <option value="rect">Rectangular</option>
+            <option value="round">Round</option>
+          </select>
+
+          <select
+            value={value.dir}
+            onChange={(e) => onChange({ dir: e.target.value as Dir })}
+            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            title="One-way = single duct. Two-way = two identical ducts (doubled area)."
+          >
+            <option value="one">One-way</option>
+            <option value="two">Two-way</option>
+          </select>
+
+          {value.shape === "round" ? (
+            <input
+              value={value.d}
+              onChange={(e) => onChange({ d: e.target.value })}
+              placeholder="Diameter (in)"
+              inputMode="decimal"
+              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            />
+          ) : (
+            <div className="grid grid-cols-2 gap-2">
+              <input
+                value={value.w}
+                onChange={(e) => onChange({ w: e.target.value })}
+                placeholder="Width (in)"
+                inputMode="decimal"
+                className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+              />
+              <input
+                value={value.h}
+                onChange={(e) => onChange({ h: e.target.value })}
+                placeholder="Height (in)"
+                inputMode="decimal"
+                className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+              />
+            </div>
+          )}
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
       <div className="mx-auto w-full max-w-5xl flex flex-col gap-3">
-        {/* Header */}
         <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center justify-between gap-3">
-            <div className="relative h-10 w-full sm:h-12">
-              <Image
-                src="/accutrol-header-wide.jpeg"
-                alt="Accutrol"
-                fill
-                priority
-                className="object-contain object-left"
-              />
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="relative h-10 w-44 sm:h-12 sm:w-56">
+                <Image
+                  src="/accutrol-header-wide.jpeg"
+                  alt="Accutrol"
+                  fill
+                  priority
+                  className="object-contain object-left"
+                />
+              </div>
+              <div className="min-w-0">
+                <div className="text-base font-semibold leading-tight text-slate-900 truncate">Duct CFM</div>
+                <div className="text-xs text-slate-500 truncate">Area ÷ 144 × Velocity = Approx. CFM</div>
+              </div>
             </div>
-<div className="shrink-0 flex items-center gap-2">
-              <Link
-                href="/calculator"
-                className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 shadow-sm active:scale-[0.99]"
-              >
-                Price
-              </Link>
+            {TabButtons}
+          </div>
 
-              
-            <Link href="/calculator" className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200" title="Go to Price">
-              Price
-            </Link>
-            <Link href="/duct" className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200 opacity-60 pointer-events-none" title="Go to Duct">
-              Duct
-            </Link>
-            <Link href="/directory" className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200" title="Go to Dir">
-              Dir
-            </Link>
-            <button
-              type="button"
-              onClick={resetAll}
-              className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200"
-              title="Clear all"
-            >
-              Clear
-            </button>
+          <div className="mt-3 rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-slate-900">System CFM (limiting)</div>
+                <div className="text-xs text-slate-600">
+                  Uses trunk values unless you enter runs — then it uses the run totals for that side.
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-3">
+                <div className="text-right">
+                  <div className="text-xs text-slate-500">System</div>
+                  <div className="text-xl font-bold tabular-nums text-slate-900">{totals.system || "—"}</div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setEquipOpen(true)}
+                  disabled={!totals.system}
+                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Equipment size
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Return CFM</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">
+                  {totals.effectiveReturn || "—"}
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {totals.runsReturnCfm > 0 ? "From runs" : "From trunk"}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Supply CFM</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">
+                  {totals.effectiveSupply || "—"}
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {totals.runsSupplyCfm > 0 ? "From runs" : "From trunk"}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Sizing rule</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">{cfmPerTon} CFM/ton</div>
+                <div className="text-[11px] text-slate-500">Adjust in Equipment modal</div>
+              </div>
             </div>
           </div>
-</header>
+        </header>
 
-        {/* Main */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-          {/* Inputs */}
-          <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 flex flex-col gap-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <div className="text-sm font-semibold text-slate-900">Duct Calculator</div>
-                <div className="text-xs text-slate-600">Area (in²) ÷ 144 × velocity = approx CFM</div>
+          <DuctBlock
+            title="Main return trunk"
+            kind="return"
+            value={mainReturn}
+            onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
+            velocityValue={returnVelocityStr}
+            onVelocityChange={setReturnVelocityStr}
+          />
+          <DuctBlock
+            title="Main supply trunk"
+            kind="supply"
+            value={mainSupply}
+            onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
+            velocityValue={supplyVelocityStr}
+            onVelocityChange={setSupplyVelocityStr}
+          />
+        </div>
+
+        <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-base font-semibold text-slate-900">Optional runs (more precise)</div>
+              <div className="text-xs text-slate-500">
+                Add individual supplies/returns when you can measure them. These replace the trunk estimate on that side.
               </div>
-              </div>
+            </div>
 
-            {/* Main trunks */}
-            
-              <div className="grid gap-3">
-                <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-900">Rule-of-thumb airflow per ton</div>
-                      <div className="text-xs text-slate-600">
-                        Slide between <span className="font-semibold">350–450 CFM</span> per ton.
-                      </div>
-                    </div>
-                    <div className="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-200">
-                      {cfmPerTon} CFM/ton
-                    </div>
-                  </div>
-
-                  <input
-                    type="range"
-                    min={350}
-                    max={450}
-                    step={5}
-                    value={cfmPerTon}
-                    onChange={(e) => setCfmPerTon(parseInt(e.target.value || "350", 10))}
-                    className="mt-3 w-full accent-slate-900"
-                  />
-
-                  <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-                    <span>350</span>
-                    <span>350</span>
-                    <span>450</span>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {[350, 375, 400, 425, 450].map((v) => (
-                      <button
-                        key={v}
-                        type="button"
-                        onClick={() => setCfmPerTon(v)}
-                        className={`rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition ${
-                          cfmPerTon === v ? "bg-slate-900 text-white ring-slate-900" : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50"
-                        }`}
-                      >
-                        {v}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-</div>
-
-              <div className="mt-4 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-white/10 px-3 py-3">
-                  <div className="text-xs opacity-80">Return CFM</div>
-                  <div className="text-xl font-extrabold tabular-nums">{totals.ret}</div>
-                  <div className="mt-1 text-[11px] opacity-75">
-                    {totals.returnSource === "runs" ? "From runs" : "From trunk"} • Trunk: {mainReturnCfm}
-                    {runsTotals.returnCount > 0 ? ` • Runs: ${runsTotals.ret}` : ""}
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-white/10 px-3 py-3">
-                  <div className="text-xs opacity-80">System CFM (limiting)</div>
-                  <div className="text-xl font-extrabold tabular-nums">{totals.system}</div>
-                  <div className="mt-1 text-[11px] opacity-75">
-                    Limited by {totals.limiting} • Δ {totals.diff} ({totals.imbalancePct}%)
-                  </div>
-                </div>
-              </div>
-
+            <div className="flex items-center gap-2">
               <button
                 type="button"
-                onClick={() => setEquipOpen(true)}
-                className="mt-4 w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold text-slate-900"
+                onClick={() => addRun("return")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
               >
-                Find equipment size
+                + Return run
               </button>
-              <div className="mt-2 text-xs opacity-70">(estimate + stubbed lookup)</div>
+              <button
+                type="button"
+                onClick={() => addRun("supply")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+              >
+                + Supply run
+              </button>
             </div>
+          </div>
 
-            <div className="rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
-              <div className="text-sm font-semibold text-slate-900">Notes</div>
-              <ul className="mt-2 list-disc pl-5 text-sm text-slate-700 space-y-1">
-                <li><span className="font-semibold">1-way / 2-way</span> multiplies area (handy when you’re confident it splits).</li>
-                <li><span className="font-semibold">Return</span> and <span className="font-semibold">Supply</span> velocities are independent (quick presets: 700/800/900).</li>
-                <li><span className="font-semibold">Runs</span> don’t add to trunks—runs are a more precise alternative view.</li>
-                <li><span className="font-semibold">System CFM</span> uses the limiting side (lower of Supply vs Return) and shows the imbalance.</li>
-                <li>These are approximate numbers—use best judgment in the field.</li>
-              </ul>
+          {runs.length === 0 ? (
+            <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-inset ring-slate-200">
+              No runs added.
             </div>
-          </aside>
-        </div>
+          ) : (
+            <div className="mt-4 grid gap-2">
+              {runs.map((r) => {
+                const area = areaIn2(r.input);
+                const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
+                const cfm = round1(cfmFrom(area, vel));
+                return (
+                  <div key={r.id} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-900">
+                          {r.kind === "return" ? "Return run" : "Supply run"} • CFM{" "}
+                          <span className="tabular-nums">{cfm || "—"}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          Area: {round1(area) || "—"} in² • Velocity: {vel} fpm
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeRun(r.id)}
+                        className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-100"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <select
+                        value={r.input.shape}
+                        onChange={(e) => updateRun(r.id, { shape: e.target.value as Shape })}
+                        className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      >
+                        <option value="rect">Rectangular</option>
+                        <option value="round">Round</option>
+                      </select>
+
+                      <select
+                        value={r.input.dir}
+                        onChange={(e) => updateRun(r.id, { dir: e.target.value as Dir })}
+                        className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      >
+                        <option value="one">One-way</option>
+                        <option value="two">Two-way</option>
+                      </select>
+
+                      {r.input.shape === "round" ? (
+                        <input
+                          value={r.input.d}
+                          onChange={(e) => updateRun(r.id, { d: e.target.value })}
+                          placeholder="Diameter (in)"
+                          inputMode="decimal"
+                          className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        />
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            value={r.input.w}
+                            onChange={(e) => updateRun(r.id, { w: e.target.value })}
+                            placeholder="Width (in)"
+                            inputMode="decimal"
+                            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          />
+                          <input
+                            value={r.input.h}
+                            onChange={(e) => updateRun(r.id, { h: e.target.value })}
+                            placeholder="Height (in)"
+                            inputMode="decimal"
+                            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+              <div className="text-xs text-slate-500">Runs return total</div>
+              <div className="text-base font-semibold tabular-nums text-slate-900">{totals.runsReturnCfm || 0}</div>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+              <div className="text-xs text-slate-500">Runs supply total</div>
+              <div className="text-base font-semibold tabular-nums text-slate-900">{totals.runsSupplyCfm || 0}</div>
+            </div>
+          </div>
+        </section>
+
+        <footer className="text-center text-[11px] text-slate-400">
+          Rule-of-thumb sizing is only an estimate. Always verify static pressure and system design.
+        </footer>
       </div>
 
       {equipOpen ? (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setEquipOpen(false)}
-          />
-          <div className="relative w-full max-w-lg rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 overflow-hidden">
-            <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-slate-200">
-              <div className="text-sm font-semibold text-slate-900">Equipment size (estimate)</div>
+          <div className="absolute inset-0 bg-black/40" onClick={() => setEquipOpen(false)} />
+          <div className="relative w-full max-w-lg rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 p-4 sm:p-6">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-base font-semibold text-slate-900">Equipment size (rule of thumb)</div>
+                <div className="text-xs text-slate-500">
+                  Uses limiting System CFM ÷ CFM per ton.
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={() => setEquipOpen(false)}
-                className="rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 ring-1 ring-inset ring-slate-200"
+                className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
                 Close
               </button>
             </div>
 
-            <div className="px-4 py-4">
-              <div className="rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200 px-3 py-3">
-                <div className="text-xs text-slate-600">Using limiting airflow</div>
-                <div className="mt-1 flex items-baseline justify-between gap-3">
-                  <div className="text-2xl font-extrabold tabular-nums text-slate-900">
-                    {totals.system} <span className="text-sm font-semibold text-slate-600">CFM</span>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-slate-600">Approx tons @ {cfmPerTon} CFM/ton</div>
-                    <div className="text-lg font-extrabold tabular-nums text-slate-900">
-                      {totals.system > 0 ? (Math.round((totals.system / cfmPerTon) * 10) / 10).toFixed(1) : "0.0"}
-                      <span className="text-sm font-semibold text-slate-600"> ton</span>
-                    </div>
-                  </div>
+            <div className="mt-4 rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <div className="text-xs text-slate-500">System CFM</div>
+                  <div className="text-xl font-bold tabular-nums text-slate-900">{totals.system || 0}</div>
                 </div>
-                <div className="mt-1 text-[11px] text-slate-600">
-                  Rule-of-thumb only. Always verify with a proper Manual J / duct design when required.
+                <div className="text-right">
+                  <div className="text-xs text-slate-500">Recommended</div>
+                  <div className="text-xl font-bold tabular-nums text-slate-900">
+                    {sizing.tonsHalf ? `${sizing.tonsHalf} ton` : "—"}
+                  </div>
+                  <div className="text-xs text-slate-500 tabular-nums">{sizing.btu ? `${sizing.btu} BTU/hr` : ""}</div>
                 </div>
               </div>
 
-              
-              <div className="mt-4 grid grid-cols-1 gap-3">
-                <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-900">Rule-of-thumb sizing</div>
-                      <div className="mt-1 text-xs text-slate-600">
-                        Uses the <span className="font-semibold">limiting system CFM</span> and a configurable CFM/ton rule of thumb.
-                      </div>
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <div className="text-xs text-slate-500">Limiting CFM</div>
-                      <div className="text-lg font-extrabold text-slate-900">{round0(totals.system)}</div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3">
-                    <div className="flex items-center justify-between">
-                      <div className="text-xs font-semibold text-slate-700">CFM per ton</div>
-                      <div className="rounded-xl bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-200">
-                        {cfmPerTon} CFM/ton
-                      </div>
-                    </div>
-
-                    <input
-                      type="range"
-                      min={350}
-                      max={450}
-                      step={5}
-                      value={cfmPerTon}
-                      onChange={(e) => setCfmPerTon(parseInt(e.target.value || "350", 10))}
-                      className="mt-2 w-full accent-slate-900"
-                    />
-
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {[350, 375, 400, 425, 450].map((v) => (
-                        <button
-                          key={v}
-                          type="button"
-                          onClick={() => setCfmPerTon(v)}
-                          className={`rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition ${
-                            cfmPerTon === v ? "bg-slate-900 text-white ring-slate-900" : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50"
-                          }`}
-                        >
-                          {v}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="mt-3 grid grid-cols-2 gap-2">
-                    <div className="rounded-2xl bg-white p-3 ring-1 ring-inset ring-slate-200">
-                      <div className="text-[11px] text-slate-500">Estimated tons (raw)</div>
-                      <div className="text-base font-extrabold text-slate-900">{sizing.tonsRaw.toFixed(2)}</div>
-                    </div>
-                    <div className="rounded-2xl bg-white p-3 ring-1 ring-inset ring-slate-200">
-                      <div className="text-[11px] text-slate-500">Suggested size</div>
-                      <div className="text-base font-extrabold text-slate-900">
-                        {sizing.tonsRounded.toFixed(1)} ton
-                        <span className="text-xs font-semibold text-slate-500"> • {Math.round(sizing.btu)} BTU/h</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-2 text-xs text-slate-500">
-                    This is a quick rule-of-thumb estimator. It does not replace a full Manual J / design calc.
-                  </div>
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold text-slate-900">CFM per ton</div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-700">{cfmPerTon}</div>
                 </div>
-
-                <div className="flex items-center justify-between gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setEquipOpen(false)}
-                    className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                  >
-                    Close
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      // Stub: future flow could use additional inputs, property data, etc.
-                      // For now, the sizing recommendation is computed live above.
-                    }}
-                    className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99] transition"
-                    title="Stub for future advanced sizing workflow"
-                  >
-                    Find best unit size (stub)
-                  </button>
+                <input
+                  type="range"
+                  min={350}
+                  max={450}
+                  step={5}
+                  value={cfmPerTon}
+                  onChange={(e) => setCfmPerTon(Number(e.target.value))}
+                  className="mt-2 w-full"
+                />
+                <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+                  <span>350</span>
+                  <span>450</span>
                 </div>
               </div>
->
+
+              <div className="mt-4 text-xs text-slate-600">
+                Raw tons: <span className="font-semibold tabular-nums text-slate-800">{round1(sizing.tonsRaw)}</span>{" "}
+                (rounded to nearest 0.5 ton)
+              </div>
+            </div>
+
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={resetAll}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+              >
+                Reset
+              </button>
+              <button
+                type="button"
+                onClick={() => setEquipOpen(false)}
+                className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+              >
+                Done
+              </button>
             </div>
           </div>
         </div>
