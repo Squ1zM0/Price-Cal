@@ -395,6 +395,10 @@ export default function DuctPage() {
             </button>
           </div>
 
+          <div className="mt-2 text-[11px] text-slate-600">
+            <span className="font-semibold text-slate-900">Step</span>: {mobileMode === "trunks" ? "Main trunks sizing" : "Branch runs sizing"} • Use the toggle below to switch Return vs Supply.
+          </div>
+
           {mobileMode === "trunks" ? (
             <div className="mt-2 grid grid-cols-2 gap-2">
               <button
@@ -549,7 +553,7 @@ export default function DuctPage() {
             <section className="mt-3 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-base font-semibold text-slate-900">Runs</div>
+                  <div className="text-base font-semibold text-slate-900">Branch Runs</div>
                   <div className="text-xs text-slate-500">
                     Add room runs one side at a time — use the toggle above to switch Return / Supply.
                   </div>
