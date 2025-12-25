@@ -555,7 +555,8 @@ export default function DuctPage() {
                   step={5}
                   value={cfmPerTon}
                   onChange={(e) => setCfmPerTon(Number(e.target.value))}
-                  className="mt-2 w-full"
+                  className="mt-2 w-full h-2 rounded-full bg-slate-200 accent-slate-900"
+                  style={{ accentColor: "#0f172a" }}
                 />
                 <div className="mt-1 flex justify-between text-[11px] text-slate-500">
                   <span>350</span>
