@@ -421,7 +421,7 @@ export default function Page() {
       supplySource: runsTotals.supplyCount > 0 ? "runs" : "trunk",
       returnSource: runsTotals.returnCount > 0 ? "runs" : "trunk",
     };
-  }
+  }, [mainReturnCfm, mainSupplyCfm, runsTotals]);
 
   const sizing = useMemo(() => {
     const system = totals.system || 0;
