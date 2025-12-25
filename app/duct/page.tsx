@@ -315,6 +315,29 @@ function VelocityPicker({
     <div className="mt-3">
       <div className="flex items-center justify-between gap-3">
         <div className="text-xs font-semibold text-slate-600">{label}</div>
+            <div className="flex items-center gap-2">
+              <Link
+                href="/calculator"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Price"
+              >
+                Price
+              </Link>
+              <Link
+                href="/directory"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Directory"
+              >
+                Dir
+              </Link>
+              <button
+                type="button"
+                onClick={resetAll}
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+              >
+                Clear
+              </button>
+            </div>
       </div>
 
       
@@ -327,9 +350,7 @@ export default function Page() {
   const [supplyVelocityStr, setSupplyVelocityStr] = useState("700");
 
   const [equipOpen, setEquipOpen] = useState(false);
-  const [equipAddress, setEquipAddress] = useState("");
-  const [equipSqft, setEquipSqft] = useState("");
-  const [equipNotes, setEquipNotes] = useState("");
+  const [cfmPerTon, setCfmPerTon] = useState(350);
 
 
   const [mainReturn, setMainReturn] = useState<DuctInput>({
@@ -400,7 +421,17 @@ export default function Page() {
       supplySource: runsTotals.supplyCount > 0 ? "runs" : "trunk",
       returnSource: runsTotals.returnCount > 0 ? "runs" : "trunk",
     };
-  }, [runsTotals, mainSupplyCfm, mainReturnCfm]);
+  }
+
+  const sizing = useMemo(() => {
+    const system = totals.system || 0;
+    const rule = Math.max(350, Math.min(450, Number(cfmPerTon) || 350));
+    const tonsRaw = system > 0 ? system / rule : 0;
+    const tonsRounded = Math.max(0, Math.round(tonsRaw * 2) / 2); // nearest 0.5 ton
+    const btu = tonsRounded * 12000;
+    return { rule, tonsRaw, tonsRounded, btu };
+  }, [totals.system, cfmPerTon]);
+, [runsTotals, mainSupplyCfm, mainReturnCfm]);
 
   function addRun(kind: RunKind) {
     const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -473,131 +504,54 @@ export default function Page() {
               </div>
 
             {/* Main trunks */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div className="rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
-                <div className="text-sm font-semibold text-slate-900">Main Return Trunk</div>
-                <VelocityPicker value={returnVelocityStr} onChange={setReturnVelocityStr} label="Return Velocity (FPM)" />
-                <div className="mt-3">
-                  <div className="text-xs font-semibold text-slate-600">Shape</div>
-                  <div className="mt-1">
-                    <ShapePicker
-                      value={mainReturn.shape}
-                      onChange={(shape) => setMainReturn((p) => ({ ...p, shape }))}
-                    />
+            
+              <div className="grid gap-3">
+                <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-slate-900">Rule-of-thumb airflow per ton</div>
+                      <div className="text-xs text-slate-600">
+                        Slide between <span className="font-semibold">350–450 CFM</span> per ton.
+                      </div>
+                    </div>
+                    <div className="shrink-0 rounded-xl bg-white px-3 py-2 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-200">
+                      {cfmPerTon} CFM/ton
+                    </div>
                   </div>
-                </div>
-                <div className="mt-3">
-                  <div className="text-xs font-semibold text-slate-600">1-way / 2-way</div>
-                  <div className="mt-1">
-                    <DirPicker value={mainReturn.dir} onChange={(dir) => setMainReturn((p) => ({ ...p, dir }))} />
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <DuctFields input={mainReturn} onChange={setMainReturn} />
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <div className="text-xs font-semibold text-slate-600">Approx CFM</div>
-                  <div className="text-lg font-extrabold text-slate-900 tabular-nums">{mainReturnCfm}</div>
-                </div>
-              </div>
 
-              <div className="rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
-                <div className="text-sm font-semibold text-slate-900">Main Supply Trunk</div>
-                <VelocityPicker value={supplyVelocityStr} onChange={setSupplyVelocityStr} label="Supply Velocity (FPM)" />
-                <div className="mt-3">
-                  <div className="text-xs font-semibold text-slate-600">Shape</div>
-                  <div className="mt-1">
-                    <ShapePicker
-                      value={mainSupply.shape}
-                      onChange={(shape) => setMainSupply((p) => ({ ...p, shape }))}
-                    />
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <div className="text-xs font-semibold text-slate-600">1-way / 2-way</div>
-                  <div className="mt-1">
-                    <DirPicker value={mainSupply.dir} onChange={(dir) => setMainSupply((p) => ({ ...p, dir }))} />
-                  </div>
-                </div>
-                <div className="mt-3">
-                  <DuctFields input={mainSupply} onChange={setMainSupply} />
-                </div>
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <div className="text-xs font-semibold text-slate-600">Approx CFM</div>
-                  <div className="text-lg font-extrabold text-slate-900 tabular-nums">{mainSupplyCfm}</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Optional runs */}
-            <div className="rounded-3xl bg-white ring-1 ring-inset ring-slate-200 p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold text-slate-900">Optional individual runs</div>
-                  <div className="text-xs text-slate-600">Add supply/return runs if you want more detail.</div>
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => addRun("return")}
-                    className="rounded-2xl bg-white px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
-                  >
-                    + Return
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => addRun("supply")}
-                    className="rounded-2xl bg-slate-900 px-3 py-2 text-sm font-semibold text-white ring-1 ring-inset ring-slate-900"
-                  >
-                    + Supply
-                  </button>
-                </div>
-              </div>
-
-              {runs.length === 0 ? (
-                <div className="mt-3 rounded-2xl bg-slate-50 px-3 py-3 text-sm text-slate-600 ring-1 ring-inset ring-slate-200">
-                  No runs added.
-                </div>
-              ) : (
-                <div className="mt-3 flex flex-col gap-3">
-                  {runs.map((r) => (
-                    <RunCard
-                      key={r.id}
-                      run={r}
-                      velocity={r.kind === "supply" ? supplyVelocity : returnVelocity}
-                      onChange={(next) =>
-                        setRuns((prev) => prev.map((x) => (x.id === r.id ? next : x)))
-                      }
-                      onRemove={() => setRuns((prev) => prev.filter((x) => x.id !== r.id))}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Results */}
-          <aside className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 flex flex-col gap-4">
-            <div className="rounded-3xl bg-slate-900 p-5 text-white">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <div className="text-sm font-semibold opacity-90">Supply CFM</div>
-                  <div className="mt-1 text-4xl font-extrabold tabular-nums">{totals.supply}</div>
-                  <div className="text-sm opacity-80">
-                    {totals.supplySource === "runs" ? "From runs" : "From trunk"}
-                    <span className="opacity-70"> • </span>
-                    Trunk: {mainSupplyCfm} {runsTotals.supplyCount > 0 ? `• Runs: ${runsTotals.supply}` : ""}
-                  </div>
-                </div>
-                <div className="relative h-10 w-10 opacity-90">
-                  <Image
-                    src="/accutrol-icon.jpeg"
-                    alt="Accutrol"
-                    fill
-                    className="object-contain"
+                  <input
+                    type="range"
+                    min={350}
+                    max={450}
+                    step={5}
+                    value={cfmPerTon}
+                    onChange={(e) => setCfmPerTon(parseInt(e.target.value || "350", 10))}
+                    className="mt-3 w-full accent-slate-900"
                   />
+
+                  <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
+                    <span>350</span>
+                    <span>350</span>
+                    <span>450</span>
+                  </div>
+
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {[350, 375, 400, 425, 450].map((v) => (
+                      <button
+                        key={v}
+                        type="button"
+                        onClick={() => setCfmPerTon(v)}
+                        className={`rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition ${
+                          cfmPerTon === v ? "bg-slate-900 text-white ring-slate-900" : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50"
+                        }`}
+                      >
+                        {v}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
+</div>
 
               <div className="mt-4 grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-white/10 px-3 py-3">
@@ -667,9 +621,9 @@ export default function Page() {
                     {totals.system} <span className="text-sm font-semibold text-slate-600">CFM</span>
                   </div>
                   <div className="text-right">
-                    <div className="text-xs text-slate-600">Approx tons @ 400 CFM/ton</div>
+                    <div className="text-xs text-slate-600">Approx tons @ {cfmPerTon} CFM/ton</div>
                     <div className="text-lg font-extrabold tabular-nums text-slate-900">
-                      {totals.system > 0 ? (Math.round((totals.system / 400) * 10) / 10).toFixed(1) : "0.0"}
+                      {totals.system > 0 ? (Math.round((totals.system / cfmPerTon) * 10) / 10).toFixed(1) : "0.0"}
                       <span className="text-sm font-semibold text-slate-600"> ton</span>
                     </div>
                   </div>
@@ -679,58 +633,97 @@ export default function Page() {
                 </div>
               </div>
 
+              
               <div className="mt-4 grid grid-cols-1 gap-3">
-                <label className="block">
-                  <div className="text-xs font-semibold text-slate-700">Property address (for future lookup)</div>
-                  <input
-                    value={equipAddress}
-                    onChange={(e) => setEquipAddress(e.target.value)}
-                    placeholder="123 Main St, City, ST"
-                    className="mt-1 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
-                  />
-                </label>
+                <div className="rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-sm font-semibold text-slate-900">Rule-of-thumb sizing</div>
+                      <div className="mt-1 text-xs text-slate-600">
+                        Uses the <span className="font-semibold">limiting system CFM</span> and a configurable CFM/ton rule of thumb.
+                      </div>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <div className="text-xs text-slate-500">Limiting CFM</div>
+                      <div className="text-lg font-extrabold text-slate-900">{round0(totals.system)}</div>
+                    </div>
+                  </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <label className="block">
-                    <div className="text-xs font-semibold text-slate-700">Approx sq ft (optional)</div>
+                  <div className="mt-3">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-semibold text-slate-700">CFM per ton</div>
+                      <div className="rounded-xl bg-white px-3 py-1.5 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-200">
+                        {cfmPerTon} CFM/ton
+                      </div>
+                    </div>
+
                     <input
-                      inputMode="decimal"
-                      value={equipSqft}
-                      onChange={(e) => setEquipSqft(e.target.value)}
-                      placeholder="e.g. 1800"
-                      className="mt-1 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
+                      type="range"
+                      min={350}
+                      max={450}
+                      step={5}
+                      value={cfmPerTon}
+                      onChange={(e) => setCfmPerTon(parseInt(e.target.value || "350", 10))}
+                      className="mt-2 w-full accent-slate-900"
                     />
-                  </label>
 
-                  <div className="rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200 px-3 py-3">
-                    <div className="text-xs font-semibold text-slate-700">Public assessor lookup</div>
-                    <div className="mt-1 text-xs text-slate-600">Not enabled yet (needs an API key + server route).</div>
+                    <div className="mt-2 flex flex-wrap gap-2">
+                      {[350, 375, 400, 425, 450].map((v) => (
+                        <button
+                          key={v}
+                          type="button"
+                          onClick={() => setCfmPerTon(v)}
+                          className={`rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition ${
+                            cfmPerTon === v ? "bg-slate-900 text-white ring-slate-900" : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50"
+                          }`}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <div className="rounded-2xl bg-white p-3 ring-1 ring-inset ring-slate-200">
+                      <div className="text-[11px] text-slate-500">Estimated tons (raw)</div>
+                      <div className="text-base font-extrabold text-slate-900">{sizing.tonsRaw.toFixed(2)}</div>
+                    </div>
+                    <div className="rounded-2xl bg-white p-3 ring-1 ring-inset ring-slate-200">
+                      <div className="text-[11px] text-slate-500">Suggested size</div>
+                      <div className="text-base font-extrabold text-slate-900">
+                        {sizing.tonsRounded.toFixed(1)} ton
+                        <span className="text-xs font-semibold text-slate-500"> • {Math.round(sizing.btu)} BTU/h</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-2 text-xs text-slate-500">
+                    This is a quick rule-of-thumb estimator. It does not replace a full Manual J / design calc.
                   </div>
                 </div>
 
-                <label className="block">
-                  <div className="text-xs font-semibold text-slate-700">Notes (optional)</div>
-                  <textarea
-                    value={equipNotes}
-                    onChange={(e) => setEquipNotes(e.target.value)}
-                    placeholder="Insulation, windows, exposure, existing unit size, comfort issues…"
-                    rows={3}
-                    className="mt-1 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-900/20"
-                  />
-                </label>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    alert(
-                      "Next step: wire an address → property-data lookup + sizing model. For now this modal shows a quick CFM→tons estimate."
-                    )
-                  }
-                  className="w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white"
-                >
-                  Run sizing (stub)
-                </button>
+                <div className="flex items-center justify-between gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEquipOpen(false)}
+                    className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                  >
+                    Close
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Stub: future flow could use additional inputs, property data, etc.
+                      // For now, the sizing recommendation is computed live above.
+                    }}
+                    className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99] transition"
+                    title="Stub for future advanced sizing workflow"
+                  >
+                    Find best unit size (stub)
+                  </button>
+                </div>
               </div>
+>
             </div>
           </div>
         </div>
