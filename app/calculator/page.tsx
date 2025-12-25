@@ -213,23 +213,27 @@ export default function CalculatorPage() {
 
 
             
-            <Link href="/calculator" className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200 opacity-60 pointer-events-none" title="Go to Price">
-              Price
-            </Link>
-            <Link href="/duct" className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200" title="Go to Duct">
-              Duct
-            </Link>
-            <Link href="/directory" className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200" title="Go to Dir">
-              Dir
-            </Link>
-            <button
-              type="button"
-              onClick={resetAll}
-              className="shrink-0 rounded-2xl bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-200"
-              title="Clear all"
-            >
-              Clear
-            </button>
+              <Link
+                href="/duct"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Duct"
+              >
+                Duct
+              </Link>
+              <Link
+                href="/directory"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Directory"
+              >
+                Dir
+              </Link>
+              <button
+                type="button"
+                onClick={resetAll}
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+              >
+                Clear
+              </button>
           </div>
         </header>
 
