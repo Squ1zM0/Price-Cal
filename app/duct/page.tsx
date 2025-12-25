@@ -431,7 +431,7 @@ export default function Page() {
     const btu = tonsRounded * 12000;
     return { rule, tonsRaw, tonsRounded, btu };
   }, [totals.system, cfmPerTon]);
-, [runsTotals, mainSupplyCfm, mainReturnCfm]);
+
 
   function addRun(kind: RunKind) {
     const id = `${Date.now()}_${Math.random().toString(16).slice(2)}`;
@@ -531,7 +531,7 @@ export default function Page() {
 
                   <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
                     <span>350</span>
-                    <span>400</span>
+                    <span>350</span>
                     <span>450</span>
                   </div>
 
