@@ -67,6 +67,9 @@ export default function DuctPage() {
   // Rule-of-thumb sizing: CFM per ton
   const [cfmPerTon, setCfmPerTon] = useState<number>(400); // default-ish; user can slide 350–450
 
+  // Heat rise method: ΔT (temperature rise) used to estimate furnace BTU from airflow
+  const [deltaT, setDeltaT] = useState<number>(50); // adjustable 40–55°F
+
   // Main trunks
   const [mainReturn, setMainReturn] = useState<DuctInput>({ shape: "rect", dir: "one", w: "", h: "", d: "" });
   const [mainSupply, setMainSupply] = useState<DuctInput>({ shape: "rect", dir: "one", w: "", h: "", d: "" });
@@ -132,10 +135,38 @@ export default function DuctPage() {
     return { rule, tonsRaw, tonsHalf, btu };
   }, [totals.system, cfmPerTon]);
 
+  const furnaceSizing = useMemo(() => {
+    const systemCfm = totals.system || 0;
+    const dt = Math.max(40, Math.min(55, Number(deltaT) || 50));
+    const outputBtu = systemCfm > 0 ? 1.08 * systemCfm * dt : 0; // BTU/hr
+    // Colorado average altitude derate factor (user-specified)
+    const altitudeDerate = 0.89;
+    const ratedOutputBtu = outputBtu > 0 ? outputBtu / altitudeDerate : 0; // sea-level equivalent output needed to hit target at altitude
+    const roundTo = (v: number, step: number) => Math.round(v / step) * step;
+    const outputRounded = roundTo(outputBtu, 1000);
+    const input80 = ratedOutputBtu > 0 ? ratedOutputBtu / 0.8 : 0;
+    const input96 = ratedOutputBtu > 0 ? ratedOutputBtu / 0.96 : 0;
+    return {
+      systemCfm,
+      dt,
+      altitudeDerate,
+      outputBtu,
+      outputRounded,
+      ratedOutputBtu,
+      ratedOutputRounded: roundTo(ratedOutputBtu, 1000),
+      input80,
+      input80Rounded: roundTo(input80, 1000),
+      input96,
+      input96Rounded: roundTo(input96, 1000),
+    };
+  }, [totals.system, deltaT]);
+
+
   function resetAll() {
     setReturnVelocityStr("700");
     setSupplyVelocityStr("700");
     setCfmPerTon(400);
+    setDeltaT(50);
     setMainReturn({ shape: "rect", dir: "one", w: "", h: "", d: "" });
     setMainSupply({ shape: "rect", dir: "one", w: "", h: "", d: "" });
     setRuns([]);
@@ -308,6 +339,58 @@ export default function DuctPage() {
             {TabButtons}
           </div>
 
+          <div className="mt-3 rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4 sm:p-5">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-slate-900">System CFM (limiting)</div>
+                <div className="text-xs text-slate-600">
+                  Uses trunk values unless you enter runs — then it uses the run totals for that side.
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between sm:justify-end gap-3">
+                <div className="text-right">
+                  <div className="text-xs text-slate-500">System</div>
+                  <div className="text-xl font-bold tabular-nums text-slate-900">{totals.system || "—"}</div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setEquipOpen(true)}
+                  disabled={!totals.system}
+                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Equipment size
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Return CFM</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">
+                  {totals.effectiveReturn || "—"}
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {totals.runsReturnCfm > 0 ? "From runs" : "From trunk"}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Supply CFM</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">
+                  {totals.effectiveSupply || "—"}
+                </div>
+                <div className="text-[11px] text-slate-500">
+                  {totals.runsSupplyCfm > 0 ? "From runs" : "From trunk"}
+                </div>
+              </div>
+              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+                <div className="text-xs text-slate-500">Sizing rule</div>
+                <div className="text-base font-semibold tabular-nums text-slate-900">{cfmPerTon} CFM/ton</div>
+                <div className="text-[11px] text-slate-500">Adjust in Equipment modal</div>
+              </div>
+            </div>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -451,61 +534,6 @@ export default function DuctPage() {
           </div>
         </section>
 
-
-        {/* System CFM (limiting) */}
-          <div className="mt-3 rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4 sm:p-5">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-sm font-semibold text-slate-900">System CFM (limiting)</div>
-                <div className="text-xs text-slate-600">
-                  Uses trunk values unless you enter runs — then it uses the run totals for that side.
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between sm:justify-end gap-3">
-                <div className="text-right">
-                  <div className="text-xs text-slate-500">System</div>
-                  <div className="text-xl font-bold tabular-nums text-slate-900">{totals.system || "—"}</div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => setEquipOpen(true)}
-                  disabled={!totals.system}
-                  className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  Equipment size
-                </button>
-              </div>
-            </div>
-
-            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                <div className="text-xs text-slate-500">Return CFM</div>
-                <div className="text-base font-semibold tabular-nums text-slate-900">
-                  {totals.effectiveReturn || "—"}
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  {totals.runsReturnCfm > 0 ? "From runs" : "From trunk"}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                <div className="text-xs text-slate-500">Supply CFM</div>
-                <div className="text-base font-semibold tabular-nums text-slate-900">
-                  {totals.effectiveSupply || "—"}
-                </div>
-                <div className="text-[11px] text-slate-500">
-                  {totals.runsSupplyCfm > 0 ? "From runs" : "From trunk"}
-                </div>
-              </div>
-              <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                <div className="text-xs text-slate-500">Sizing rule</div>
-                <div className="text-base font-semibold tabular-nums text-slate-900">{cfmPerTon} CFM/ton</div>
-                <div className="text-[11px] text-slate-500">Adjust in Equipment modal</div>
-              </div>
-            </div>
-          </div>
-
         <footer className="text-center text-[11px] text-slate-400">
           Rule-of-thumb sizing is only an estimate. Always verify static pressure and system design.
         </footer>
@@ -558,12 +586,64 @@ export default function DuctPage() {
                   step={5}
                   value={cfmPerTon}
                   onChange={(e) => setCfmPerTon(Number(e.target.value))}
-                  className="mt-2 w-full h-2 rounded-full bg-slate-200 accent-slate-900"
-                  style={{ accentColor: "#0f172a" }}
+                  className="mt-2 w-full"
                 />
                 <div className="mt-1 flex justify-between text-[11px] text-slate-500">
                   <span>350</span>
                   <span>450</span>
+                </div>
+              </div>
+
+              <div className="mt-4">
+                <div className="flex items-center justify-between">
+                  <div className="text-sm font-semibold text-slate-900">ΔT (heat rise)</div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-700">{deltaT}°F</div>
+                </div>
+                <input
+                  type="range"
+                  min={40}
+                  max={55}
+                  step={1}
+                  value={deltaT}
+                  onChange={(e) => setDeltaT(Number(e.target.value))}
+                  className="mt-2 w-full"
+                />
+                <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+                  <span>40</span>
+                  <span>55</span>
+                </div>
+                <div className="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <div className="rounded-2xl bg-white px-3 py-2 ring-1 ring-inset ring-slate-200">
+                    <div className="text-[11px] text-slate-500">Heat output</div>
+                    <div className="text-sm font-semibold tabular-nums text-slate-900">
+                      {furnaceSizing.outputRounded ? `${furnaceSizing.outputRounded} BTU/hr` : "—"}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      {furnaceSizing.outputBtu ? `Calc: ${Math.round(furnaceSizing.outputBtu)} BTU/hr` : ""}
+                      {furnaceSizing.ratedOutputBtu ? ` • Sea-level equiv (÷${furnaceSizing.altitudeDerate}): ${Math.round(furnaceSizing.ratedOutputBtu)} BTU/hr` : ""}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl bg-white px-3 py-2 ring-1 ring-inset ring-slate-200">
+                    <div className="text-[11px] text-slate-500">80% furnace (input)</div>
+                    <div className="text-sm font-semibold tabular-nums text-slate-900">
+                      {furnaceSizing.input80Rounded ? `${furnaceSizing.input80Rounded} BTU/hr` : "—"}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      {furnaceSizing.input80 ? `Calc: ${Math.round(furnaceSizing.input80)} BTU/hr` : ""}
+                    </div>
+                  </div>
+                  <div className="rounded-2xl bg-white px-3 py-2 ring-1 ring-inset ring-slate-200">
+                    <div className="text-[11px] text-slate-500">96% furnace (input)</div>
+                    <div className="text-sm font-semibold tabular-nums text-slate-900">
+                      {furnaceSizing.input96Rounded ? `${furnaceSizing.input96Rounded} BTU/hr` : "—"}
+                    </div>
+                    <div className="text-[11px] text-slate-500">
+                      {furnaceSizing.input96 ? `Calc: ${Math.round(furnaceSizing.input96)} BTU/hr` : ""}
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-2 text-[11px] text-slate-500">
+                  Uses BTU/hr = 1.08 × CFM × ΔT. Colorado altitude derate (0.89) is applied to furnace input recommendations: input = (output ÷ 0.89) ÷ AFUE.
                 </div>
               </div>
 
