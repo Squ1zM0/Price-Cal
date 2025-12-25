@@ -249,6 +249,22 @@ export default function DuctPage() {
 
     const roundTo = (v: number, step: number) => Math.round(v / step) * step;
 
+    const furnaceBuckets = [40000, 60000, 80000, 100000, 120000];
+    const roundToFurnaceBucket = (v: number) => {
+      if (!v || v <= 0) return 0;
+      // Choose the closest standard size; if exactly between, choose the larger size.
+      let best = furnaceBuckets[0];
+      let bestDiff = Math.abs(v - best);
+      for (const b of furnaceBuckets) {
+        const diff = Math.abs(v - b);
+        if (diff < bestDiff || (diff === bestDiff && b > best)) {
+          best = b;
+          bestDiff = diff;
+        }
+      }
+      return best;
+    };
+
     const input80 = ratedOutputBtu > 0 ? ratedOutputBtu / 0.8 : 0;
     const input96 = ratedOutputBtu > 0 ? ratedOutputBtu / 0.96 : 0;
 
@@ -262,8 +278,10 @@ export default function DuctPage() {
       ratedOutputRounded: roundTo(ratedOutputBtu, 1000),
       input80,
       input80Rounded: roundTo(input80, 1000),
+      input80Bucket: roundToFurnaceBucket(input80),
       input96,
       input96Rounded: roundTo(input96, 1000),
+      input96Bucket: roundToFurnaceBucket(input96),
     };
   }, [totals.system, deltaT]);
 
@@ -636,13 +654,13 @@ export default function DuctPage() {
                   </div>
                   <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
                     <div className="text-xs text-slate-500">80% input (BTU/hr)</div>
-                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.input80Rounded || 0}</div>
-                    <div className="text-[11px] text-slate-500">Altitude-adjusted</div>
+                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.input80Bucket || 0}</div>
+                    <div className="text-[11px] text-slate-500">Closest standard size • Calc: {furnaceSizing.input80Rounded || 0}</div>
                   </div>
                   <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
                     <div className="text-xs text-slate-500">96% input (BTU/hr)</div>
-                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.input96Rounded || 0}</div>
-                    <div className="text-[11px] text-slate-500">Altitude-adjusted</div>
+                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.input96Bucket || 0}</div>
+                    <div className="text-[11px] text-slate-500">Closest standard size • Calc: {furnaceSizing.input96Rounded || 0}</div>
                   </div>
                 </div>
               </div>
