@@ -155,7 +155,9 @@ export default function SupplyPage() {
           if (all.length >= maxBranches) break;
 
           try {
-            const stateIndexRel = String(st.indconst stIdx = await fetchJsonWithFallback<StateIndex>(stateIndexRel);
+            const stateIndexRel = String(st.index || "").replace(/^\/?/, "");
+            if (!stateIndexRel) continue;
+            const stIdx = await fetchJsonWithFallback<StateIndex>(stateIndexRel);
 
             // Collect metro files from the state's primary metros plus any trade indexes (hvac/plumbing/electrical).
             const metroFiles = new Set<string>();
