@@ -98,6 +98,7 @@ export default function SupplyPage() {
   const [debug, setDebug] = useState<string | null>(null);
 
   const [q, setQ] = useState("");
+  const [trade, setTrade] = useState<"all" | "hvac" | "plumbing" | "electrical">("all");
   const [showDetails, setShowDetails] = useState(false);
   const [driveTimes, setDriveTimes] = useState<Record<string, { min: number; ts: number }>>({});
 
@@ -194,11 +195,30 @@ export default function SupplyPage() {
     };
   }, []);
 
+  
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
-    if (!s) return branches;
 
-    return branches.filter((b) => {
+    const tradeFiltered = trade === "all"
+      ? branches
+      : branches.filter((b) => {
+          const text = [
+            (b.brandsRep || []).join(" "),
+            (b.partsFor || []).join(" "),
+            (b.tags || []).join(" "),
+          ]
+            .join(" ")
+            .toLowerCase();
+
+          if (trade === "hvac") return text.includes("hvac");
+          if (trade === "plumbing") return text.includes("plumb");
+          if (trade === "electrical") return text.includes("elect");
+          return true;
+        });
+
+    if (!s) return tradeFiltered;
+
+    return tradeFiltered.filter((b) => {
       const hay = [
         b.name,
         b.chain,
@@ -215,9 +235,8 @@ export default function SupplyPage() {
         .toLowerCase();
       return hay.includes(s);
     });
-  }, [branches, q]);
-
-  const sorted = useMemo(() => {
+  }, [branches, q, trade]);
+const sorted = useMemo(() => {
     if (!pos) return filtered;
     return [...filtered].sort(
       (a, b) =>
@@ -290,6 +309,20 @@ export default function SupplyPage() {
               placeholder='Try "Johnstone", "Trane", "Denver", "parts"...'
               className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-2 focus:ring-slate-900/20"
             />
+          </div>
+
+          <div className="w-full sm:w-56">
+            <label className="block text-sm font-semibold text-slate-800 mb-1">Trade</label>
+            <select
+              value={trade}
+              onChange={(e) => setTrade(e.target.value as "all" | "hvac" | "plumbing" | "electrical")}
+              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-slate-900/20"
+            >
+              <option value="all">All</option>
+              <option value="hvac">HVAC</option>
+              <option value="plumbing">Plumbing</option>
+              <option value="electrical">Electrical</option>
+            </select>
           </div>
 
           <div className="flex items-end gap-2">
