@@ -82,55 +82,6 @@ async function fetchJsonWithFallback<T>(rel: string): Promise<{ data: T; url: st
 }
 
 function Chip({ children }: { children: React.ReactNode }) {
-  
-  // Fetch drive times (minutes) for the nearest N items to display alongside miles.
-  useEffect(() => {
-    if (!pos) return;
-
-    let cancelled = false;
-
-    const run = async () => {
-      const N = 15; // keep light for public routing service
-      const candidates = [...sorted].slice(0, N);
-
-      for (const b of candidates) {
-        if (cancelled) return;
-        if (!b?.id || !Number.isFinite(b.lat) || !Number.isFinite(b.lon)) continue;
-
-        const existing = driveTimes[b.id];
-        // refresh every 10 minutes
-        if (existing && Date.now() - existing.ts < 10 * 60 * 1000) continue;
-
-        try {
-          const url = `/api/drive-time?olat=${encodeURIComponent(String(pos.lat))}&olon=${encodeURIComponent(
-            String(pos.lon)
-          )}&dlat=${encodeURIComponent(String(b.lat))}&dlon=${encodeURIComponent(String(b.lon))}`;
-
-          const res = await fetch(url, { cache: "no-store" });
-          if (!res.ok) continue;
-          const data = await res.json();
-          const sec = Number(data?.durationSec);
-          if (!Number.isFinite(sec) || sec <= 0) continue;
-          const min = Math.max(1, Math.round(sec / 60));
-
-          if (cancelled) return;
-          setDriveTimes((prev) => ({ ...prev, [b.id]: { min, ts: Date.now() } }));
-        } catch {
-          // ignore
-        }
-
-        // small pacing to avoid burst requests
-        await new Promise((r) => setTimeout(r, 120));
-      }
-    };
-
-    run();
-
-    return () => {
-      cancelled = true;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pos?.lat, pos?.lon, sorted.length]);
 
 return (
     <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
@@ -274,6 +225,56 @@ export default function SupplyPage() {
         haversineMiles(pos.lat, pos.lon, b.lat, b.lon)
     );
   }, [filtered, pos]);
+
+  // Fetch drive times (minutes) for the nearest N items to display alongside miles.
+  useEffect(() => {
+    if (!pos) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      const N = 15; // keep light for public routing service
+      const candidates = [...sorted].slice(0, N);
+
+      for (const b of candidates) {
+        if (cancelled) return;
+        if (!b?.id || !Number.isFinite(b.lat) || !Number.isFinite(b.lon)) continue;
+
+        const existing = driveTimes[b.id];
+        // refresh every 10 minutes
+        if (existing && Date.now() - existing.ts < 10 * 60 * 1000) continue;
+
+        try {
+          const url = `/api/drive-time?olat=${encodeURIComponent(String(pos.lat))}&olon=${encodeURIComponent(
+            String(pos.lon)
+          )}&dlat=${encodeURIComponent(String(b.lat))}&dlon=${encodeURIComponent(String(b.lon))}`;
+
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) continue;
+          const data = await res.json();
+          const sec = Number(data?.durationSec);
+          if (!Number.isFinite(sec) || sec <= 0) continue;
+          const min = Math.max(1, Math.round(sec / 60));
+
+          if (cancelled) return;
+          setDriveTimes((prev) => ({ ...prev, [b.id]: { min, ts: Date.now() } }));
+        } catch {
+          // ignore
+        }
+
+        // small pacing to avoid burst requests
+        await new Promise((r) => setTimeout(r, 120));
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pos?.lat, pos?.lon, sorted.length]);
+
 
   return (
     <main className="max-w-3xl mx-auto p-4 space-y-4">
