@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useMemo, useState } from "react";
 
 type JobType = "residential" | "commercial";
@@ -74,7 +73,6 @@ function StatRow({ label, value }: { label: string; value: string }) {
 }
 
 export default function CalculatorPage() {
-  const pathname = usePathname();
   const [materialStr, setMaterialStr] = useState("");
   const [hoursStr, setHoursStr] = useState("");
 
@@ -126,8 +124,7 @@ export default function CalculatorPage() {
   }, [material, taxIncluded, taxRate, hours, hourlyRate]);
 
   function copyFinalPrice() {
-    const n = Number(final);
-    const txt = Number.isFinite(n) ? n.toFixed(2) : "";
+    const txt = moneyFmt.format(final);
 
     const markCopied = () => {
       setCopied(true);
@@ -190,27 +187,46 @@ export default function CalculatorPage() {
                 fill
                 priority
                 className="object-contain object-left"
-              /{/* Top nav (shows the other two tabs) */}
-            <nav className="flex items-center gap-2">
-              {[
-                { href: "/", label: "Price", title: "Go to Price" },
-                { href: "/duct", label: "Duct", title: "Go to Duct" },
-                { href: "/directory", label: "Dir", title: "Go to Directory" },
-              ]
-                .filter((t) => t.href !== pathname)
-                .map((t) => (
-                  <Link
-                    key={t.href}
-                    href={t.href}
-                    className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                    title={t.title}
-                  >
-                    {t.label}
-                  </Link>
-                ))}
-            </nav>
+              />
+            </div>
 
-                        </Link>
+            <Link
+
+
+              href="/duct"
+
+
+              className="shrink-0 rounded-2xl bg-white px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
+
+
+              title="Go to Duct CFM Calculator"
+
+
+            >
+
+
+              Duct
+
+
+            </Link>
+
+
+
+            
+              <Link
+                href="/duct"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Duct"
+              >
+                Duct
+              </Link>
+              <Link
+                href="/directory"
+                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+                title="Go to Directory"
+              >
+                Dir
+              </Link>
               <button
                 type="button"
                 onClick={resetAll}
