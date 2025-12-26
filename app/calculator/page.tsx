@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { AppHeader } from "../components/AppHeader";
 
 type JobType = "residential" | "commercial";
 type Crew = "x1" | "x2";
@@ -178,64 +179,8 @@ export default function CalculatorPage() {
     <div className="min-h-[100dvh] bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
       <div className="mx-auto h-full w-full max-w-5xl flex flex-col gap-3">
         {/* Header */}
-        <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:px-6 sm:py-4">
-          <div className="flex items-center gap-3">
-            <div className="relative h-10 w-full sm:h-12">
-              <Image
-                src="/accutrol-header-wide.jpeg"
-                alt="Accutrol"
-                fill
-                priority
-                className="object-contain object-left"
-              />
-            </div>
-
-            <Link
-
-
-              href="/duct"
-
-
-              className="shrink-0 rounded-2xl bg-white px-3 py-2 text-sm font-semibold text-slate-800 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
-
-
-              title="Go to Duct CFM Calculator"
-
-
-            >
-
-
-              Duct
-
-
-            </Link>
-
-
-
-            
-              <Link
-                href="/duct"
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                title="Go to Duct"
-              >
-                Duct
-              </Link>
-              <Link
-                href="/directory"
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                title="Go to Directory"
-              >
-                Dir
-              </Link>
-              <button
-                type="button"
-                onClick={resetAll}
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-              >
-                Clear
-              </button>
-          </div>
-        </header>
+        <AppHeader title="Pricing Calculator"
+        subtitle="Fast HVAC job pricing" />
 
         {/* Main */}
         <div className="w-full">
