@@ -30,6 +30,10 @@ type CountryIndex = {
   states: { code: string; name: string; index: string }[];
 };
 
+type TradeIndex = {
+  metros: { id: string; name: string; file: string }[];
+};
+
 type StateIndex = {
   metros: { id: string; name: string; file: string }[];
   trades?: {
@@ -148,7 +152,13 @@ export default function SupplyPage() {
         const country = await fetchJsonWithFallback<CountryIndex>("us/index.json");
 
         const all: Branch[] = [];
-        const seenIds = new Set<string>();
+        const byId = new Map<string, Branch>();
+        const addBranch = (b: any) => {
+          if (!b?.id) return;
+          if (byId.has(b.id)) return;
+          byId.set(b.id, b as Branch);
+          all.push(b as Branch);
+        };
         const maxBranches = 8000;
 
         for (const st of country.data.states || []) {
@@ -156,49 +166,47 @@ export default function SupplyPage() {
 
           try {
             const stateIndexRel = String(st.index || "").replace(/^\/?/, "");
-            if (!stateIndexRel) continue;
             const stIdx = await fetchJsonWithFallback<StateIndex>(stateIndexRel);
 
             // Collect metro files from the state's primary metros plus any trade indexes (hvac/plumbing/electrical).
             const metroFiles = new Set<string>();
+
             for (const m of stIdx.data.metros || []) {
-              const rel = String(m.file || "").replace(/^\/?/, "");
-              if (rel) metroFiles.add(rel);
+              const metroRel = String(m.file || "").replace(/^\/?/, "");
+              if (metroRel) metroFiles.add(metroRel);
             }
 
             const tradeKeys: Array<keyof NonNullable<StateIndex["trades"]>> = ["hvac", "plumbing", "electrical"];
             for (const tk of tradeKeys) {
-              const tradeIndexRel = stIdx.data.trades?.[tk]?.index;
-              if (!tradeIndexRel) continue;
-
+              const tIndexRel = String(stIdx.data.trades?.[tk]?.index || "").replace(/^\/?/, "");
+              if (!tIndexRel) continue;
               try {
-                const tradeIdx = await fetchJsonWithFallback<StateIndex>(String(tradeIndexRel).replace(/^\/?/, ""));
-                for (const m of tradeIdx.data.metros || []) {
-                  const rel = String(m.file || "").replace(/^\/?/, "");
-                  if (rel) metroFiles.add(rel);
+                const tIdx = await fetchJsonWithFallback<TradeIndex>(tIndexRel);
+                for (const tm of tIdx.data.metros || []) {
+                  const metroRel = String(tm.file || "").replace(/^\/?/, "");
+                  if (metroRel) metroFiles.add(metroRel);
                 }
               } catch {
                 // keep going
               }
             }
 
-            for (const metroRel of metroFiles) {
+            for (const metroRel of Array.from(metroFiles)) {
               if (all.length >= maxBranches) break;
 
               try {
                 const metro = await fetchJsonWithFallback<MetroFile>(metroRel);
                 const bs = Array.isArray(metro.data.branches) ? metro.data.branches : [];
                 for (const b of bs) {
-                  if (!b?.id) continue;
-                  if (seenIds.has(b.id)) continue;
-                  seenIds.add(b.id);
-                  all.push(b);
+                  addBranch(b);
                   if (all.length >= maxBranches) break;
                 }
               } catch {
                 // keep going
               }
-            }// keep going
+            }
+          } catch {
+                // keep going
               }
             }
           } catch {
