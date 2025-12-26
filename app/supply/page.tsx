@@ -251,7 +251,7 @@ export default function SupplyPage() {
 
           if (trade === "hvac") return /\bhvac\b/.test(text);
           if (trade === "plumbing") return /\bplumb(ing|er)?\b/.test(text);
-          if (trade === "electrical") return /\belectric(al)?\b/.test(text);
+          if (trade === "electrical") return /\belectric(al|ian)?\b/.test(text);
           return true;
         });
 
