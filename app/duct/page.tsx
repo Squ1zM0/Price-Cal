@@ -374,9 +374,12 @@ export default function DuctPage() {
 
   return (
     <div className="min-h-[100dvh] bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
-      {/* Mobile sticky results dock (keeps key numbers + action in view without forcing scroll-to-top) */}
-      <div className="lg:hidden sticky top-2 z-40">
-        <div className="rounded-3xl bg-white/95 ring-1 ring-slate-200 shadow-sm px-4 py-3 backdrop-blur supports-[backdrop-filter]:backdrop-blur">
+      <div className="mx-auto w-full max-w-5xl flex flex-col gap-3">
+        <AppHeader title="Ductulator"
+        subtitle="Quick airflow + duct sizing" />
+
+        {/* Mobile mode + trunk selector (now inline under the header, not an overlay) */}
+        <div className="lg:hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="min-w-0">
               <div className="text-xs text-slate-500">System CFM</div>
@@ -385,14 +388,12 @@ export default function DuctPage() {
             <button
               type="button"
               onClick={() => setEquipOpen(true)}
-              disabled={!totals.system}
-              className="shrink-0 rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="shrink-0 rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99] transition"
             >
               Equipment
             </button>
           </div>
 
-          {/* Mobile section switcher */}
           <div className="mt-3 grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -401,7 +402,7 @@ export default function DuctPage() {
                 "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
                 (mobileMode === "trunks"
                   ? "bg-slate-900 text-white ring-slate-900"
-                  : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50")
+                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
               }
             >
               Trunks
@@ -413,18 +414,13 @@ export default function DuctPage() {
                 "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
                 (mobileMode === "runs"
                   ? "bg-slate-900 text-white ring-slate-900"
-                  : "bg-white text-slate-800 ring-slate-200 hover:bg-slate-50")
+                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
               }
             >
               Runs
             </button>
           </div>
 
-          <div className="mt-2 text-[11px] text-slate-600">
-            <span className="font-semibold text-slate-900">Step</span>: {mobileMode === "trunks" ? "Main trunks sizing" : "Branch runs sizing"} • Use the toggle below to switch Return vs Supply.
-          </div>
-
-          {/* Keep Return/Supply toggle visible in BOTH modes (Trunks + Runs). */}
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -452,11 +448,7 @@ export default function DuctPage() {
             </button>
           </div>
         </div>
-      </div>
 
-      <div className="mx-auto w-full max-w-5xl flex flex-col gap-3">
-        <AppHeader title="Ductulator"
-        subtitle="Quick airflow + duct sizing" />
 
         {/* Desktop trunks */}
         <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -478,7 +470,7 @@ export default function DuctPage() {
           />
         </div>
 
-        {/* Mobile trunks / runs (driven by the sticky dock above) */}
+        {/* Mobile trunks / runs (controlled by the selector above) */}
         <div className="lg:hidden">
           {mobileMode === "trunks" ? (
             <div className="mt-3">
