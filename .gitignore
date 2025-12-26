@@ -1,1 +1,29 @@
+# Dependencies
+node_modules/
+package-lock.json
 
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Synced content
+public/techdirect/
+
+# Environment and config
+.env
+.env.local
+.env.production.local
+.env.development.local
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# ESLint
+.eslintrc.json
