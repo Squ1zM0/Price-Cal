@@ -129,6 +129,59 @@ export default function DirectoryPage() {
         <AppHeader title="Tech Directory"
         subtitle="Manufacturer tech support" />
 
+        {/* Filters (restored) */}
+        <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            <div className="sm:col-span-2">
+              <label className="block text-sm font-semibold text-slate-800 mb-1">Search</label>
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder='Search manufacturer, number, notes…'
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-2 focus:ring-slate-900/20"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-slate-800 mb-1">Type</label>
+              <select
+                value={cat}
+                onChange={(e) => setCat(e.target.value)}
+                className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-2 focus:ring-slate-900/20"
+              >
+                <option value="all">All</option>
+                {allCats.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-3">
+            <div className="text-sm text-slate-600">
+              {data ? (
+                <>
+                  Showing <span className="font-semibold text-slate-900">{filtered.length}</span> of{" "}
+                  <span className="font-semibold text-slate-900">{data.manufacturers.length}</span>
+                </>
+              ) : (
+                "Loading…"
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={clearFilters}
+              className="rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-200"
+            >
+              Clear
+            </button>
+          </div>
+        </section>
+
+
         <section className="min-h-0 flex-1 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
           <div className="h-full overflow-auto">
             {err ? (
