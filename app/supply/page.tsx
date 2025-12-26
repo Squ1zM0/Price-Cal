@@ -153,6 +153,7 @@ export default function SupplyPage() {
 
         const all: Branch[] = [];
         const byId = new Map<string, Branch>();
+        const loadErrors: string[] = [];
         const addBranch = (b: any) => {
           if (!b?.id) return;
           if (byId.has(b.id)) return;
@@ -186,8 +187,8 @@ export default function SupplyPage() {
                   const metroRel = String(tm.file || "").replace(/^\/?/, "");
                   if (metroRel) metroFiles.add(metroRel);
                 }
-              } catch {
-                // keep going
+              } catch (e: any) {
+                loadErrors.push(`Trade index ${String(tk)} failed: ${e?.message || String(e)}`);
               }
             }
 
@@ -201,19 +202,20 @@ export default function SupplyPage() {
                   addBranch(b);
                   if (all.length >= maxBranches) break;
                 }
-              } catch {
-                // keep going
+              } catch (e: any) {
+                loadErrors.push(`Trade index ${String(tk)} failed: ${e?.message || String(e)}`);
               }
             }
-          } catch {
-            // keep going
+          } catch (e: any) {
+            loadErrors.push(`State index failed: ${e?.message || String(e)}`);
           }
         }
 
         if (!alive) return;
 
         setBranches(all);
-        setDebug(`Loaded ${all.length} branches from SupplyFind. Tip: on iOS, allow Precise Location for best accuracy.`);
+        if (loadErrors.length) console.warn('[SupplyFind loadErrors]', loadErrors);
+        setDebug(`Loaded ${all.length} branches from SupplyFind.` + (loadErrors.length ? `\nMissing/failed fetches: ${loadErrors.slice(0,6).join(' | ')}${loadErrors.length>6?' | ...':''}` : ``));
 
         if (all.length === 0) {
           setErr("No branches found in SupplyFind yet.");
