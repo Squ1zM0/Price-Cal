@@ -206,10 +206,6 @@ export default function SupplyPage() {
               }
             }
           } catch {
-                // keep going
-              }
-            }
-          } catch {
             // keep going
           }
         }
