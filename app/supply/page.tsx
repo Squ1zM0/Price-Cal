@@ -249,9 +249,9 @@ export default function SupplyPage() {
             .join(" ")
             .toLowerCase();
 
-          if (trade === "hvac") return text.includes("hvac");
-          if (trade === "plumbing") return text.includes("plumb");
-          if (trade === "electrical") return text.includes("elect");
+          if (trade === "hvac") return /\bhvac\b/.test(text);
+          if (trade === "plumbing") return /\bplumb(ing|er)?\b/.test(text);
+          if (trade === "electrical") return /\belectric(al|ian)?\b/.test(text);
           return true;
         });
 
