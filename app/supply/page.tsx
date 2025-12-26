@@ -82,7 +82,57 @@ async function fetchJsonWithFallback<T>(rel: string): Promise<{ data: T; url: st
 }
 
 function Chip({ children }: { children: React.ReactNode }) {
-  return (
+  
+  // Fetch drive times (minutes) for the nearest N items to display alongside miles.
+  useEffect(() => {
+    if (!pos) return;
+
+    let cancelled = false;
+
+    const run = async () => {
+      const N = 15; // keep light for public routing service
+      const candidates = [...sorted].slice(0, N);
+
+      for (const b of candidates) {
+        if (cancelled) return;
+        if (!b?.id || !Number.isFinite(b.lat) || !Number.isFinite(b.lon)) continue;
+
+        const existing = driveTimes[b.id];
+        // refresh every 10 minutes
+        if (existing && Date.now() - existing.ts < 10 * 60 * 1000) continue;
+
+        try {
+          const url = `/api/drive-time?olat=${encodeURIComponent(String(pos.lat))}&olon=${encodeURIComponent(
+            String(pos.lon)
+          )}&dlat=${encodeURIComponent(String(b.lat))}&dlon=${encodeURIComponent(String(b.lon))}`;
+
+          const res = await fetch(url, { cache: "no-store" });
+          if (!res.ok) continue;
+          const data = await res.json();
+          const sec = Number(data?.durationSec);
+          if (!Number.isFinite(sec) || sec <= 0) continue;
+          const min = Math.max(1, Math.round(sec / 60));
+
+          if (cancelled) return;
+          setDriveTimes((prev) => ({ ...prev, [b.id]: { min, ts: Date.now() } }));
+        } catch {
+          // ignore
+        }
+
+        // small pacing to avoid burst requests
+        await new Promise((r) => setTimeout(r, 120));
+      }
+    };
+
+    run();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pos?.lat, pos?.lon, sorted.length]);
+
+return (
     <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
       {children}
     </span>
@@ -91,21 +141,42 @@ function Chip({ children }: { children: React.ReactNode }) {
 
 export default function SupplyPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
-  const [pos, setPos] = useState<{ lat: number; lon: number } | null>(null);
+  const [pos, setPos] = useState<{ lat: number; lon: number; accuracyM: number | null; ts: number } | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [debug, setDebug] = useState<string | null>(null);
 
   const [q, setQ] = useState("");
   const [showDetails, setShowDetails] = useState(false);
+  const [driveTimes, setDriveTimes] = useState<Record<string, { min: number; ts: number }>>({});
 
   useEffect(() => {
-    if (typeof navigator !== "undefined" && navigator.geolocation?.getCurrentPosition) {
-      navigator.geolocation.getCurrentPosition(
-        (p) => setPos({ lat: p.coords.latitude, lon: p.coords.longitude }),
-        () => {}
-      );
-    }
+    if (typeof navigator === "undefined" || !navigator.geolocation) return;
+
+    const opts: PositionOptions = {
+      enableHighAccuracy: true,
+      maximumAge: 0,
+      timeout: 12000,
+    };
+
+    let watchId: number | null = null;
+
+    const onPos = (p: GeolocationPosition) => {
+      const lat = Number(p.coords.latitude);
+      const lon = Number(p.coords.longitude);
+      const acc = Number(p.coords.accuracy); // meters
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        setPos({ lat, lon, accuracyM: Number.isFinite(acc) ? acc : null, ts: Date.now() });
+      }
+    };
+
+    // One-shot first, then watch for updates (better on mobile)
+    navigator.geolocation.getCurrentPosition(onPos, () => {}, opts);
+    watchId = navigator.geolocation.watchPosition(onPos, () => {}, opts);
+
+    return () => {
+      if (watchId != null) navigator.geolocation.clearWatch(watchId);
+    };
   }, []);
 
   useEffect(() => {
@@ -153,7 +224,7 @@ export default function SupplyPage() {
         if (!alive) return;
 
         setBranches(all);
-        setDebug(`Loaded ${all.length} branches from SupplyFind.`);
+        setDebug(`Loaded ${all.length} branches from SupplyFind. Tip: on iOS, allow Precise Location for best accuracy.`);
 
         if (all.length === 0) {
           setErr("No branches found in SupplyFind yet.");
@@ -241,9 +312,19 @@ export default function SupplyPage() {
         {err ? <div className="text-red-600 font-semibold">{err}</div> : null}
         {loading ? <div className="text-slate-600">Loading…</div> : null}
 
+        
         <div className="flex flex-wrap items-center gap-2 text-sm">
           <Chip>{sorted.length} results</Chip>
-          {pos ? <Chip>Location enabled</Chip> : <Chip>Location off (still works)</Chip>}
+          {pos ? (
+            <>
+              <Chip>Location enabled</Chip>
+              {pos.accuracyM != null ? (
+                <Chip>±{Math.round(pos.accuracyM)} m</Chip>
+              ) : null}
+            </>
+          ) : (
+            <Chip>Location off (still works)</Chip>
+          )}
         </div>
 
         {showDetails && debug ? (
@@ -266,8 +347,15 @@ export default function SupplyPage() {
                   <div className="text-sm font-semibold text-slate-600">{b.chain}</div>
                 </div>
                 {dist != null ? (
-                  <div className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
-                    {dist.toFixed(1)} mi
+                  <div className="shrink-0 flex items-center gap-2">
+                    <div className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+                      {dist.toFixed(1)} mi
+                    </div>
+                    {driveTimes[b.id]?.min ? (
+                      <div className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+                        {driveTimes[b.id].min} min
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
               </div>
