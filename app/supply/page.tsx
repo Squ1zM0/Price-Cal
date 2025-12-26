@@ -54,6 +54,37 @@ const BASES = [
   "https://cdn.jsdelivr.net/gh/Squ1zM0/SupplyFind@main",
 ];
 
+
+type GithubTree = { tree: { path: string; type: string }[] };
+
+async function fetchGithubTree(): Promise<GithubTree | null> {
+  const url = "https://api.github.com/repos/Squ1zM0/SupplyFind/git/trees/main?recursive=1";
+  try {
+    const res = await fetch(url, { headers: { Accept: "application/vnd.github+json" } });
+    if (!res.ok) return null;
+    return (await res.json()) as GithubTree;
+  } catch {
+    return null;
+  }
+}
+
+function guessStateJsonFilesFromTree(tree: GithubTree, stateCode: string): string[] {
+  const code = stateCode.trim().toLowerCase();
+  const prefix = `dist/us/${code}/`;
+  const out: string[] = [];
+  for (const n of tree.tree || []) {
+    if (n.type !== "blob") continue;
+    const p = String(n.path || "");
+    if (!p.startsWith(prefix)) continue;
+    if (!p.endsWith(".json")) continue;
+    // skip known index files
+    if (p.endsWith("/index.json")) continue;
+    if (p.includes("/_")) continue;
+    out.push(p);
+  }
+  return out;
+}
+
 function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R_km = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -153,7 +184,6 @@ export default function SupplyPage() {
 
         const all: Branch[] = [];
         const byId = new Map<string, Branch>();
-        const loadErrors: string[] = [];
         const addBranch = (b: any) => {
           if (!b?.id) return;
           if (byId.has(b.id)) return;
@@ -161,6 +191,9 @@ export default function SupplyPage() {
           all.push(b as Branch);
         };
         const maxBranches = 8000;
+
+        // As a safety net (in case an index misses metro files), also read the repo tree and pull all JSON files under each state's dist folder.
+        const ghTree = await fetchGithubTree();
 
         for (const st of country.data.states || []) {
           if (all.length >= maxBranches) break;
@@ -187,8 +220,16 @@ export default function SupplyPage() {
                   const metroRel = String(tm.file || "").replace(/^\/?/, "");
                   if (metroRel) metroFiles.add(metroRel);
                 }
-              } catch (e: any) {
-                loadErrors.push(`Trade index ${String(tk)} failed: ${e?.message || String(e)}`);
+              } catch {
+                // keep going
+              }
+            }
+
+            // If the state index is incomplete, fall back to scanning the repo tree for this state.
+            if (ghTree) {
+              for (const p of guessStateJsonFilesFromTree(ghTree, st.code || "")) {
+                const rel = String(p || "").replace(/^\/?/, "");
+                if (rel) metroFiles.add(rel);
               }
             }
 
@@ -202,20 +243,19 @@ export default function SupplyPage() {
                   addBranch(b);
                   if (all.length >= maxBranches) break;
                 }
-              } catch (e: any) {
-                loadErrors.push(`Trade index ${String(tk)} failed: ${e?.message || String(e)}`);
+              } catch {
+                // keep going
               }
             }
-          } catch (e: any) {
-            loadErrors.push(`State index failed: ${e?.message || String(e)}`);
+          } catch {
+            // keep going
           }
         }
 
         if (!alive) return;
 
         setBranches(all);
-        if (loadErrors.length) console.warn('[SupplyFind loadErrors]', loadErrors);
-        setDebug(`Loaded ${all.length} branches from SupplyFind.` + (loadErrors.length ? `\nMissing/failed fetches: ${loadErrors.slice(0,6).join(' | ')}${loadErrors.length>6?' | ...':''}` : ``));
+        setDebug(`Loaded ${all.length} branches from SupplyFind. Tip: on iOS, allow Precise Location for best accuracy.`);
 
         if (all.length === 0) {
           setErr("No branches found in SupplyFind yet.");
