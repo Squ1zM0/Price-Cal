@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { AppHeader } from "../components/AppHeader";
 
 export const dynamic = "force-static";
 
@@ -125,78 +126,8 @@ export default function DirectoryPage() {
   return (
     <div role="main" className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8">
       <div className="mx-auto h-full w-full max-w-3xl flex flex-col gap-3">
-        <header className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 px-4 py-3 sm:p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-3 min-w-0">
-              <Image
-                src="/accutrol-logo.jpeg"
-                alt="Accutrol"
-                width={220}
-                height={60}
-                className="h-10 w-auto object-contain"
-                priority
-              />
-              <div className="min-w-0">
-                <div className="text-base font-semibold leading-tight text-slate-900 truncate">
-                  Tech Support Directory
-                </div>
-                <div className="text-xs text-slate-500 truncate">
-                  Search manufacturer tech support numbers
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Link
-                href="/calculator"
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                title="Go to Price"
-              >
-                Price
-              </Link>
-              <Link
-                href="/duct"
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-                title="Go to Duct"
-              >
-                Duct
-              </Link>
-              <button
-                type="button"
-                onClick={clearFilters}
-                className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
-              >
-                Clear
-              </button>
-            </div>
-          </div>
-
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search (manufacturer, alias, phone, notes)…"
-              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              inputMode="search"
-            />
-            <select
-              value={cat}
-              onChange={(e) => setCat(e.target.value)}
-              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-            >
-              <option value="all">All categories</option>
-              {allCats.map((c) => (
-                <option key={c} value={c}>
-                  {c.toUpperCase()}
-                </option>
-              ))}
-            </select>
-            <div className="rounded-2xl bg-slate-50 px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 flex items-center justify-between">
-              <span className="text-slate-600">Results</span>
-              <span className="font-semibold text-slate-900">{filtered.length}</span>
-            </div>
-          </div>
-        </header>
+        <AppHeader title="Tech Directory"
+        subtitle="Manufacturer tech support" />
 
         <section className="min-h-0 flex-1 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 overflow-hidden">
           <div className="h-full overflow-auto">
