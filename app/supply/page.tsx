@@ -24,6 +24,8 @@ type Branch = {
   notes?: string;
   source?: string;
   last_verified?: string;
+  trades?: string[];
+  primaryTrade?: string;
 };
 
 type CountryIndex = {
@@ -241,6 +243,16 @@ export default function SupplyPage() {
     const tradeFiltered = trade === "all"
       ? branches
       : branches.filter((b) => {
+          // Prioritize structured 'trades' field if available
+          if (b.trades && Array.isArray(b.trades) && b.trades.length > 0) {
+            const tradesLower = b.trades.map(t => t.toLowerCase());
+            if (trade === "hvac") return tradesLower.includes("hvac");
+            if (trade === "plumbing") return tradesLower.includes("plumbing");
+            if (trade === "electrical") return tradesLower.includes("electrical");
+            return false;
+          }
+
+          // Fallback to text-based matching for branches without 'trades' field
           const text = [
             (b.brandsRep || []).join(" "),
             (b.partsFor || []).join(" "),
