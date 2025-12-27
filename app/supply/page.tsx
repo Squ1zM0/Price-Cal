@@ -87,6 +87,21 @@ function getRoutingCoordinates(branch: Branch): { lat: number; lon: number } {
   return { lat, lon };
 }
 
+/**
+ * Format branch address as a string for Google Maps.
+ * Returns a formatted address string suitable for Google Maps search API.
+ */
+function formatAddress(branch: Branch): string {
+  const parts = [
+    branch.address1,
+    branch.address2,
+    branch.city,
+    branch.state,
+    branch.zip
+  ].filter(Boolean);
+  return parts.join(", ");
+}
+
 async function fetchJsonWithFallback<T>(rel: string): Promise<{ data: T; url: string }> {
   let lastErr: any = null;
 
@@ -447,8 +462,16 @@ const sorted = useMemo(() => {
               ? haversineMiles(pos.lat, pos.lon, b.lat, b.lon)
               : null;
 
-          // Use arrival coordinates for navigation when available, fallback to display coordinates
-          const navCoords = getRoutingCoordinates(b);
+          // Format address for Google Maps navigation
+          const address = formatAddress(b);
+          
+          // Build Google Maps URL - prefer address, fallback to coordinates if address is missing
+          const mapsUrl = address
+            ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+            : (() => {
+                const navCoords = getRoutingCoordinates(b);
+                return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${navCoords.lat},${navCoords.lon}`)}`;
+              })();
 
           return (
             <div key={b.id} className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
@@ -485,7 +508,7 @@ const sorted = useMemo(() => {
                 </a>
 
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${navCoords.lat},${navCoords.lon}`)}`}
+                  href={mapsUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-200"
