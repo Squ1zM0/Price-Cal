@@ -42,6 +42,7 @@ type StateIndex = {
     hvac?: { index: string };
     plumbing?: { index: string };
     electrical?: { index: string };
+    filter?: { index: string };
   };
 };
 
@@ -109,7 +110,7 @@ export default function SupplyPage() {
   const [debug, setDebug] = useState<string | null>(null);
 
   const [q, setQ] = useState("");
-  const [trade, setTrade] = useState<"all" | "hvac" | "plumbing" | "electrical">("all");
+  const [trade, setTrade] = useState<"all" | "hvac" | "plumbing" | "electrical" | "filter">("all");
   const [showDetails, setShowDetails] = useState(false);
   const [driveTimes, setDriveTimes] = useState<Record<string, { min: number; ts: number }>>({});
 
@@ -179,7 +180,7 @@ export default function SupplyPage() {
               if (metroRel) metroFiles.add(metroRel);
             }
 
-            const tradeKeys: Array<keyof NonNullable<StateIndex["trades"]>> = ["hvac", "plumbing", "electrical"];
+            const tradeKeys: Array<keyof NonNullable<StateIndex["trades"]>> = ["hvac", "plumbing", "electrical", "filter"];
             for (const tk of tradeKeys) {
               const tIndexRel = String(stIdx.data.trades?.[tk]?.index || "").replace(/^\/?/, "");
               if (!tIndexRel) continue;
@@ -249,6 +250,7 @@ export default function SupplyPage() {
             if (trade === "hvac") return tradesLower.includes("hvac");
             if (trade === "plumbing") return tradesLower.includes("plumbing");
             if (trade === "electrical") return tradesLower.includes("electrical");
+            if (trade === "filter") return tradesLower.includes("filter");
             return false;
           }
 
@@ -264,6 +266,7 @@ export default function SupplyPage() {
           if (trade === "hvac") return /\bhvac\b/.test(text);
           if (trade === "plumbing") return /\bplumb(ing|er)?\b/.test(text);
           if (trade === "electrical") return /\belectric(al|ian)?\b/.test(text);
+          if (trade === "filter") return /\bfilter(s|ation)?\b/.test(text);
           return true;
         });
 
@@ -366,13 +369,14 @@ const sorted = useMemo(() => {
             <label className="block text-sm font-semibold text-slate-800 mb-1">Trade</label>
             <select
               value={trade}
-              onChange={(e) => setTrade(e.target.value as "all" | "hvac" | "plumbing" | "electrical")}
+              onChange={(e) => setTrade(e.target.value as "all" | "hvac" | "plumbing" | "electrical" | "filter")}
               className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-slate-900/20"
             >
               <option value="all">All</option>
               <option value="hvac">HVAC</option>
               <option value="plumbing">Plumbing</option>
               <option value="electrical">Electrical</option>
+              <option value="filter">Filter</option>
             </select>
           </div>
 
