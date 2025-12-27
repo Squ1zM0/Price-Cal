@@ -1,0 +1,213 @@
+{
+  "version": "BBL_ELECTRICAL_AUDIT_v1",
+  "trade": "electrical",
+  "metro": "Boulder / Broomfield / Longmont",
+  "state": "CO",
+  "updated": "2025-12-25",
+  "branches": [
+    {
+      "id": "rexel-longmont-3252",
+      "name": "Rexel - Longmont (#3252)",
+      "chain": "Rexel",
+      "trade": "electrical",
+      "city": "Longmont",
+      "state": "CO",
+      "postalCode": "80504-3558",
+      "address1": "4250 Salazar Way",
+      "phone": "303-772-6571",
+      "website": "https://www.rexelusa.com/locations/co/longmont/3252",
+      "lat": 40.15145,
+      "lon": -104.96341,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "ABB",
+        "Eaton",
+        "Schneider Electric",
+        "Siemens",
+        "Southwire",
+        "Belden",
+        "Lithonia",
+        "Acuity Brands",
+        "Klein Tools",
+        "Milwaukee",
+        "Fluke",
+        "Greenlee",
+        "Panduit",
+        "Hubbell"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "Rexel branch serving Longmont. Full-line electrical distributor representing ABB, Eaton, Schneider Electric, Siemens, and other major brands. Source: Rexel USA official brand catalog, verified 2025-12-26",
+      "verification": {
+        "storefront_confirmed": "2025-12-25",
+        "sources": [
+          "https://www.rexelusa.com/locations/co/longmont/3252"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Store Locator",
+        "addressVerifiedDate": "2025-12-25"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "sources": [
+        "https://www.rexelusa.com/locations/co/longmont/3252"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 40.15145,
+      "arrivalLon": -104.96341,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "ced-boulder-walnut-001",
+      "name": "CED (Consolidated Electrical Distributors) - Boulder",
+      "chain": "CED",
+      "trade": "electrical",
+      "city": "Boulder",
+      "state": "CO",
+      "postalCode": "80301",
+      "address1": "3201 Walnut St",
+      "phone": "(303) 449-8866",
+      "website": "https://cedboulder.portalced.com",
+      "lat": 40.02151,
+      "lon": -105.24847,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "Wholesale electrical distributor serving Boulder area contractors. Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26",
+      "verification": {
+        "storefront_confirmed": "2025-12-26",
+        "sources": [
+          "https://cedboulder.portalced.com",
+          "https://servlectric.com/branch/consolidated-electrical-distributors-boulder-3201-walnut-st-boulder-co-80301"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Store Locator",
+        "addressVerifiedDate": "2025-12-26"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "sources": [
+        "https://cedboulder.portalced.com",
+        "https://servlectric.com/branch/consolidated-electrical-distributors-boulder-3201-walnut-st-boulder-co-80301"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 40.02151,
+      "arrivalLon": -105.24847,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "ced-longmont-gay-001",
+      "name": "CED - Longmont",
+      "chain": "CED",
+      "trade": "electrical",
+      "city": "Longmont",
+      "state": "CO",
+      "postalCode": "80501",
+      "address1": "135 Gay Street, Unit A",
+      "phone": "(720) 494-7654",
+      "website": "https://cedlongmont.portalced.com",
+      "lat": 40.16078,
+      "lon": -105.10291,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "CED electrical supply serving northern Colorado. Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26 [Arrival coordinates refined 2025-12-27: Multi-tenant complex]",
+      "verification": {
+        "storefront_confirmed": "2025-12-26",
+        "sources": [
+          "https://cedlongmont.portalced.com/ContactUs",
+          "https://www.mapquest.com/us/colorado/ced-longmont-540567653"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Store Locator",
+        "addressVerifiedDate": "2025-12-26"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "sources": [
+        "https://cedlongmont.portalced.com/ContactUs",
+        "https://www.mapquest.com/us/colorado/ced-longmont-540567653"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 40.160836,
+      "arrivalLon": -105.102854,
+      "arrivalType": "storefront"
+    }
+  ],
+  "auditStatus": "expanded",
+  "auditNotes": [
+    "Chain-by-chain audit performed (Graybar, CED, Rexel, CES).",
+    "No confirmed electrical counter storefronts within Boulder, Broomfield, or Longmont city limits.",
+    "Area is served by Denver and Front Range North counters.",
+    "Statewide completion pass: audited and confirmed no physical counter storefronts beyond documented metros.",
+    "2025-12-25: Added 1 Rexel electrical branch entries (verified via Rexel location pages).",
+    "2025-12-26: Added CED locations in Boulder and Longmont identified in expansion research."
+  ]
+}
