@@ -435,10 +435,10 @@ const sorted = useMemo(() => {
                   <div className="text-lg font-black text-slate-900 truncate">{b.name}</div>
                   <div className="text-sm font-semibold text-slate-600">{b.chain}</div>
                 </div>
-                {dist != null ? (
+                {pos ? (
                   <div className="shrink-0 flex items-center gap-2">
                     <div className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
-                      {dist.toFixed(1)} mi
+                      {dist != null ? `${dist.toFixed(1)} mi` : 'N/A'}
                     </div>
                     {driveTimes[b.id]?.min ? (
                       <div className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
