@@ -1,0 +1,646 @@
+{
+  "version": "audited_zero_v1",
+  "trade": "electrical",
+  "metro": "Western Slope",
+  "state": "CO",
+  "branches": [
+    {
+      "id": "co-durango-ced-1",
+      "name": "CED Durango",
+      "chain": "CED",
+      "trade": "electrical",
+      "address1": "56 Stewart St",
+      "address2": "",
+      "city": "Durango",
+      "state": "CO",
+      "postalCode": "81303",
+      "phone": "970-259-1530",
+      "website": "",
+      "lat": 37.248569,
+      "lon": -107.880653,
+      "coverage": "metro",
+      "verified": "needs_verification",
+      "verifiedDate": "",
+      "notes": "Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26",
+      "tags": [
+        "electrical",
+        "wholesale"
+      ],
+      "partsFor": [
+        "Electrical"
+      ],
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "services": [],
+      "sources": [
+        "https://www.google.com/maps/place/CED+Durango",
+        "https://www.mapquest.com/us/colorado/consolidated-electrical-distributors-10111472"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "coordsStatus": "verified",
+      "verification": {
+        "addressVerified": true,
+        "addressSource": "Google Business Profile & MapQuest Verified",
+        "addressVerifiedDate": "2025-12-27",
+        "storefront_confirmed": "2025-12-27",
+        "sources": [
+          "https://www.google.com/maps/place/CED+Durango",
+          "https://www.mapquest.com/us/colorado/consolidated-electrical-distributors-10111472"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Google Maps verified coordinates"
+      },
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "Google Maps pin",
+      "arrivalLat": 37.248569,
+      "arrivalLon": -107.880653,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "co-grand-junction-ced-1",
+      "name": "CED Grand Junction",
+      "chain": "CED",
+      "trade": "electrical",
+      "address1": "310 S 12th St",
+      "address2": "",
+      "city": "Grand Junction",
+      "state": "CO",
+      "postalCode": "81501",
+      "phone": "970-243-1430",
+      "website": "",
+      "lat": 39.063842,
+      "lon": -108.553675,
+      "coverage": "metro",
+      "verified": "needs_verification",
+      "verifiedDate": "",
+      "notes": "Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26",
+      "tags": [
+        "electrical",
+        "wholesale"
+      ],
+      "partsFor": [
+        "Electrical"
+      ],
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "services": [],
+      "sources": [
+        "https://gjced.portalced.com/ContactUs",
+        "https://www.google.com/maps/place/CED+Grand+Junction"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "coordsStatus": "verified",
+      "verification": {
+        "addressVerified": true,
+        "addressSource": "Google Business Profile & Official CED Portal",
+        "addressVerifiedDate": "2025-12-27",
+        "storefront_confirmed": "2025-12-27",
+        "sources": [
+          "https://gjced.portalced.com/ContactUs",
+          "https://www.google.com/maps/place/CED+Grand+Junction"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Google Maps verified coordinates"
+      },
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "Google Maps pin",
+      "arrivalLat": 39.063842,
+      "arrivalLon": -108.553675,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "co-grand-junction-city-electric-supply-1",
+      "name": "City Electric Supply",
+      "chain": "City Electric Supply",
+      "trade": "electrical",
+      "address1": "1005 Pitkin Ave",
+      "address2": "",
+      "city": "Grand Junction",
+      "state": "CO",
+      "postalCode": "81501",
+      "phone": "970-986-6126",
+      "website": "",
+      "lat": 39.0672,
+      "lon": -108.5572,
+      "coverage": "metro",
+      "verified": "needs_verification",
+      "verifiedDate": "",
+      "notes": "Full-line electrical distributor carrying Southwire, Siemens, Eaton, Square D, Philips lighting, RAB, and other major brands. Source: City Electric Supply official line card, verified 2025-12-26",
+      "tags": [
+        "electrical",
+        "wholesale"
+      ],
+      "partsFor": [
+        "Electrical"
+      ],
+      "brandsRep": [
+        "Southwire",
+        "Siemens",
+        "Eaton",
+        "Square D",
+        "Schneider Electric",
+        "Philips",
+        "Acuity",
+        "RAB Lighting",
+        "Lutron",
+        "Klein Tools",
+        "Fluke",
+        "Milwaukee",
+        "Hubbell",
+        "Leviton"
+      ],
+      "services": [],
+      "sources": [
+        "https://www.google.com/maps/place/City+Electric+Supply+Grand+Junction",
+        "https://www.engproducts.com/distributor/grand-junction/co/city-electric-supply-grand-junction"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "coordsStatus": "verified",
+      "verification": {
+        "addressVerified": true,
+        "addressSource": "Google Business Profile & Official Company Directory",
+        "addressVerifiedDate": "2025-12-27",
+        "storefront_confirmed": "2025-12-27",
+        "sources": [
+          "https://www.google.com/maps/place/City+Electric+Supply+Grand+Junction",
+          "https://www.engproducts.com/distributor/grand-junction/co/city-electric-supply-grand-junction"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Google Maps verified coordinates"
+      },
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "Google Maps pin",
+      "arrivalLat": 39.0672,
+      "arrivalLon": -108.5572,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "rexel-glenwood-springs-3204",
+      "name": "Rexel - Glenwood Springs (#3204)",
+      "chain": "Rexel",
+      "trade": "electrical",
+      "city": "Glenwood Springs",
+      "state": "CO",
+      "postalCode": "81601",
+      "address1": "7910 SH-82 W",
+      "phone": "970-945-8265",
+      "website": "https://www.rexelusa.com/locations/co/glenwood-springs/3204",
+      "lat": 39.5464,
+      "lon": -107.3984,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "ABB",
+        "Eaton",
+        "Schneider Electric",
+        "Siemens",
+        "Southwire",
+        "Belden",
+        "Lithonia",
+        "Acuity Brands",
+        "Klein Tools",
+        "Milwaukee",
+        "Fluke",
+        "Greenlee",
+        "Panduit",
+        "Hubbell"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "Rexel branch serving Glenwood Springs / Roaring Fork Valley. Full-line electrical distributor representing ABB, Eaton, Schneider Electric, Siemens, and other major brands. Source: Rexel USA official brand catalog, verified 2025-12-26",
+      "verification": {
+        "storefront_confirmed": "2025-12-25",
+        "sources": [
+          "https://www.rexelusa.com/locations/co/glenwood-springs/3204"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Store Locator",
+        "addressVerifiedDate": "2025-12-25"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "sources": [
+        "https://www.rexelusa.com/locations/co/glenwood-springs/3204"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 39.5464,
+      "arrivalLon": -107.3984,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "ced-glenwoodsprings-cr154-001",
+      "name": "CED - Glenwood Springs",
+      "chain": "CED",
+      "trade": "electrical",
+      "city": "Glenwood Springs",
+      "state": "CO",
+      "postalCode": "81601",
+      "address1": "5392 County Road 154",
+      "phone": "(970) 945-8265",
+      "website": "https://cedcareers.com/",
+      "lat": 39.473915,
+      "lon": -107.271553,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "CED electrical supply serving Roaring Fork Valley. Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26",
+      "verification": {
+        "addressVerified": true,
+        "addressSource": "Google Business Profile & Official Directory",
+        "addressVerifiedDate": "2025-12-27",
+        "storefront_confirmed": "2025-12-27",
+        "sources": [
+          "https://www.google.com/maps/place/CED+Glenwood+Springs",
+          "https://start.cortera.com/company/research/k3m1srs4o/consolidated-electrical-distributors-inc/"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Google Maps verified coordinates"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "sources": [
+        "https://www.google.com/maps/place/CED+Glenwood+Springs",
+        "https://start.cortera.com/company/research/k3m1srs4o/consolidated-electrical-distributors-inc/"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "Google Maps pin",
+      "arrivalLat": 39.473915,
+      "arrivalLon": -107.271553,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "ced-montrose-ngrand-001",
+      "name": "CED - Montrose",
+      "chain": "CED",
+      "trade": "electrical",
+      "city": "Montrose",
+      "state": "CO",
+      "postalCode": "81401",
+      "address1": "910 North Grand Ave",
+      "phone": "(970) 249-2281",
+      "website": "https://cedcareers.com/",
+      "lat": 38.4908,
+      "lon": -107.8762,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "CED electrical supply serving Montrose area. Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26",
+      "verification": {
+        "storefront_confirmed": "2025-12-26",
+        "sources": [
+          "https://www.loc8nearme.com/colorado/montrose/consolidated-electrical-distribution/3246381/",
+          "https://www.chamberofcommerce.com/united-states/colorado/montrose/electric-utility-company/31328644-consolidated-electrical-distributors"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Store Locator",
+        "addressVerifiedDate": "2025-12-26"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "sources": [
+        "https://www.loc8nearme.com/colorado/montrose/consolidated-electrical-distribution/3246381/",
+        "https://www.chamberofcommerce.com/united-states/colorado/montrose/electric-utility-company/31328644-consolidated-electrical-distributors"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 38.4908,
+      "arrivalLon": -107.8762,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "ced-gunnison-s10th-001",
+      "name": "CED - Gunnison",
+      "chain": "CED",
+      "trade": "electrical",
+      "city": "Gunnison",
+      "state": "CO",
+      "postalCode": "81230",
+      "address1": "318 S 10th St",
+      "phone": "(970) 641-0107",
+      "website": "https://cedcareers.com/",
+      "lat": 38.542377,
+      "lon": -106.924796,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "CED electrical supply serving Gunnison County. Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26",
+      "verification": {
+        "storefront_confirmed": "2025-12-26",
+        "sources": [
+          "https://www.mapquest.com/us/colorado/consolidated-electrical-distributors-gunnison-401341063"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Store Locator",
+        "addressVerifiedDate": "2025-12-26"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "sources": [
+        "https://www.mapquest.com/us/colorado/consolidated-electrical-distributors-gunnison-401341063"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 38.542377,
+      "arrivalLon": -106.924796,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "ced-craig-001",
+      "name": "CED - Craig",
+      "chain": "CED",
+      "trade": "electrical",
+      "city": "Craig",
+      "state": "CO",
+      "postalCode": "81625",
+      "address1": "165 W 16th St",
+      "phone": "970-824-4471",
+      "website": "https://www.portalced.com",
+      "lat": 40.511965,
+      "lon": -107.554471,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Eaton",
+        "Hubbell",
+        "Leviton",
+        "Cooper Industries",
+        "Lithonia Lighting"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "CED Craig branch. Serves northwestern Colorado electrical contractors. Verified 2025-12-26",
+      "verification": {
+        "storefront_confirmed": "2025-12-26",
+        "sources": [
+          "https://cedcraig.portalced.com/ContactUs",
+          "https://www.yellowpages.com/craig-co/mip/consolidated-electrical-distributors-7039976"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Website",
+        "addressVerifiedDate": "2025-12-26"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 40.511965,
+      "arrivalLon": -107.554471,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "ced-steamboat-springs-001",
+      "name": "CED - Steamboat Springs",
+      "chain": "CED",
+      "trade": "electrical",
+      "city": "Steamboat Springs",
+      "state": "CO",
+      "postalCode": "80487",
+      "address1": "1955 Bridge Lane, Ste. 1100",
+      "phone": "970-879-9751",
+      "website": "https://www.portalced.com",
+      "lat": 40.48275,
+      "lon": -106.8372,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Eaton",
+        "Hubbell",
+        "Leviton",
+        "Cooper Industries",
+        "Lithonia Lighting"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "CED Steamboat Springs branch. Serves northwestern Colorado resort area electrical contractors. Verified 2025-12-26",
+      "verification": {
+        "storefront_confirmed": "2025-12-26",
+        "sources": [
+          "https://cedstmbt.portalced.com/",
+          "https://www.steamboatchamber.com/listing/ced-consolidated-electrical-distributors-inc/2417/"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Website",
+        "addressVerifiedDate": "2025-12-26"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 40.48275,
+      "arrivalLon": -106.8372,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "rexel-montrose-001",
+      "name": "Rexel - Montrose",
+      "chain": "Rexel",
+      "trade": "electrical",
+      "city": "Montrose",
+      "state": "CO",
+      "postalCode": "81401",
+      "address1": "3410 N Townsend Ave",
+      "phone": "970-615-6200",
+      "website": "https://www.rexelusa.com",
+      "lat": 38.31827,
+      "lon": -107.87478,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Eaton",
+        "Square D",
+        "Schneider Electric",
+        "Hubbell",
+        "Legrand",
+        "Leviton",
+        "ABB"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "Rexel Montrose branch. Serves western Colorado electrical contractors for commercial, industrial, and residential projects. Verified 2025-12-26 [Arrival coordinates refined 2025-12-27: Industrial/warehouse location]",
+      "verification": {
+        "storefront_confirmed": "2025-12-26",
+        "sources": [
+          "https://www.rexelusa.com/locations/co/montrose/3228",
+          "https://www.yellowpages.com/montrose-co/mip/rexel-579075374"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Store Locator",
+        "addressVerifiedDate": "2025-12-26"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 38.318326,
+      "arrivalLon": -107.874724,
+      "arrivalType": "storefront"
+    }
+  ],
+  "auditStatus": "expanded",
+  "auditNotes": [
+    "Statewide completion pass: audited and confirmed no physical counter storefronts beyond documented metros.",
+    "2025-12-25: Added 1 Rexel electrical branch entries (verified via Rexel location pages).",
+    "2025-12-26: Added CED locations in Glenwood Springs, Montrose, and Gunnison identified in expansion research.",
+    "2025-12-26: Comprehensive expansion - Added CED Craig, CED Steamboat Springs, and Rexel Montrose branches. All verified via official sources and business directories."
+  ],
+  "updated": "2025-12-27"
+}

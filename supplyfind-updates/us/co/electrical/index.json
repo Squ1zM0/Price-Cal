@@ -1,0 +1,42 @@
+{
+  "trade": "electrical",
+  "state": "CO",
+  "updated": "2025-12-25",
+  "metros": [
+    {
+      "id": "denver-metro",
+      "name": "Denver Metro",
+      "file": "us/co/electrical/denver-metro.json"
+    },
+    {
+      "id": "colorado-springs-metro",
+      "name": "Colorado Springs Metro",
+      "file": "us/co/electrical/colorado-springs-metro.json"
+    },
+    {
+      "id": "front-range-north",
+      "name": "Front Range North (Fort Collins / Loveland / Greeley)",
+      "file": "us/co/electrical/front-range-north.json"
+    },
+    {
+      "id": "pueblo-south",
+      "name": "Pueblo / South Colorado",
+      "file": "us/co/electrical/pueblo-south.json"
+    },
+    {
+      "id": "boulder-broomfield-longmont",
+      "name": "Boulder / Broomfield / Longmont",
+      "file": "us/co/electrical/boulder-broomfield-longmont.json"
+    },
+    {
+      "id": "western-slope",
+      "name": "Western Slope",
+      "file": "us/co/electrical/western-slope.json"
+    },
+    {
+      "id": "eastern-plains",
+      "name": "Eastern Plains",
+      "file": "us/co/electrical/eastern-plains.json"
+    }
+  ]
+}

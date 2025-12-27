@@ -1,0 +1,204 @@
+{
+  "version": "audited_zero_v1",
+  "trade": "electrical",
+  "metro": "Eastern Plains",
+  "state": "CO",
+  "branches": [
+    {
+      "id": "co-sterling-ced-1",
+      "name": "CED Sterling",
+      "chain": "CED",
+      "trade": "electrical",
+      "address1": "100 Broadway St, #5A",
+      "address2": "",
+      "city": "Sterling",
+      "state": "CO",
+      "postalCode": "80751",
+      "phone": "970-580-1912",
+      "website": "",
+      "lat": 40.63324,
+      "lon": -103.20035,
+      "coverage": "metro",
+      "verified": "needs_verification",
+      "verifiedDate": "",
+      "notes": "Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26 [Arrival coordinates refined 2025-12-27: Multi-tenant complex]",
+      "tags": [
+        "electrical",
+        "wholesale"
+      ],
+      "partsFor": [
+        "Electrical"
+      ],
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "services": [],
+      "sources": [
+        "https://sterlingco.portalced.com/ContactUs",
+        "https://www.google.com/maps/place/CED+Sterling"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "coordsStatus": "verified",
+      "verification": {
+        "addressVerified": true,
+        "addressSource": "Google Business Profile & Official CED Portal",
+        "addressVerifiedDate": "2025-12-27",
+        "storefront_confirmed": "2025-12-27",
+        "sources": [
+          "https://sterlingco.portalced.com/ContactUs",
+          "https://www.google.com/maps/place/CED+Sterling"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Google Maps verified coordinates"
+      },
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "Google Maps pin",
+      "arrivalLat": 40.633296,
+      "arrivalLon": -103.200294,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "co-sterling-crescent-electric-1",
+      "name": "Crescent Electric Supply - Sterling",
+      "chain": "Crescent Electric",
+      "trade": "electrical",
+      "address1": "104 California St",
+      "address2": "",
+      "city": "Sterling",
+      "state": "CO",
+      "postalCode": "80751",
+      "phone": "970-522-6161",
+      "website": "",
+      "lat": 40.6297,
+      "lon": -103.21008,
+      "coverage": "metro",
+      "verified": "needs_verification",
+      "verifiedDate": "",
+      "notes": "",
+      "tags": [
+        "electrical",
+        "wholesale"
+      ],
+      "partsFor": [
+        "Electrical"
+      ],
+      "brandsRep": [
+        "Crescent Electric Supply"
+      ],
+      "services": [],
+      "sources": [
+        "https://www.google.com/maps/place/Crescent+Electric+Supply+Sterling",
+        "https://www.mapquest.com/us/colorado/crescent-electric-supply-company-10060157"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "coordsStatus": "verified",
+      "verification": {
+        "addressVerified": true,
+        "addressSource": "Google Business Profile & MapQuest Verified",
+        "addressVerifiedDate": "2025-12-27",
+        "storefront_confirmed": "2025-12-27",
+        "sources": [
+          "https://www.google.com/maps/place/Crescent+Electric+Supply+Sterling",
+          "https://www.mapquest.com/us/colorado/crescent-electric-supply-company-10060157"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Google Maps verified coordinates"
+      },
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "Google Maps pin",
+      "arrivalLat": 40.6297,
+      "arrivalLon": -103.21008,
+      "arrivalType": "storefront"
+    },
+    {
+      "id": "ced-alamosa-rd10665-001",
+      "name": "CED - Alamosa",
+      "chain": "CED",
+      "trade": "electrical",
+      "city": "Alamosa",
+      "state": "CO",
+      "postalCode": "81101",
+      "address1": "6310 Road 10665 S",
+      "phone": "",
+      "website": "https://cedcareers.com/",
+      "lat": 37.419902,
+      "lon": -105.756146,
+      "coordsStatus": "verified",
+      "brandsRep": [
+        "Square D",
+        "Schneider Electric",
+        "Leviton",
+        "Eaton",
+        "Cooper",
+        "Hubbell",
+        "Lithonia",
+        "Milwaukee",
+        "Klein Tools",
+        "Southwire",
+        "Cantex",
+        "Brady",
+        "Ideal",
+        "Panduit",
+        "Fluke"
+      ],
+      "manufacturersPartsFor": [],
+      "notes": "CED electrical supply serving San Luis Valley region. Major electrical distributor carrying Square D, Leviton, Eaton, Cooper, Hubbell, Lithonia Lighting, and other leading manufacturers. Source: CED national line card, verified 2025-12-26",
+      "verification": {
+        "storefront_confirmed": "2025-12-26",
+        "sources": [
+          "https://start.cortera.com/company/research/k3n1jvl5j/consolidated-electrical-distributors-inc/"
+        ],
+        "coords_verified": "2025-12-27",
+        "geocoding_method": "Web search verified (gps-coordinates.org, latlong.net)",
+        "addressVerified": true,
+        "addressSource": "Official Store Locator",
+        "addressVerifiedDate": "2025-12-26"
+      },
+      "partsFor": [
+        "Electrical",
+        "Lighting",
+        "Wire & Cable",
+        "Tools",
+        "Controls"
+      ],
+      "sources": [
+        "https://start.cortera.com/company/research/k3n1jvl5j/consolidated-electrical-distributors-inc/"
+      ],
+      "trades": [
+        "Electrical"
+      ],
+      "geoPrecision": "storefront",
+      "geoVerifiedDate": "2025-12-27",
+      "geoSource": "gps-coordinates.org",
+      "arrivalLat": 37.419902,
+      "arrivalLon": -105.756146,
+      "arrivalType": "storefront"
+    }
+  ],
+  "auditStatus": "expanded",
+  "auditNotes": [
+    "Statewide completion pass: audited and confirmed no physical counter storefronts beyond documented metros.",
+    "2025-12-26: Added CED Alamosa location identified in expansion research."
+  ],
+  "updated": "2025-12-27"
+}

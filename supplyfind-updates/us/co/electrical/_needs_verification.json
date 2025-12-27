@@ -1,0 +1,74 @@
+{
+  "trade": "electrical",
+  "state": "CO",
+  "created": "2025-12-25",
+  "status": "denver_metro_audit_started",
+  "candidatesByMetro": {
+    "denver-metro": [
+      {
+        "chain": "Platt Electric Supply",
+        "reason": "Confirm whether Platt currently operates any Colorado storefronts; official locator did not surface CO in initial scan."
+      },
+      {
+        "chain": "City Electric Supply (CES) satellites",
+        "reason": "Verify additional Denver-area CES branches (Commerce City, Stapleton, etc.) and capture addresses/phones from official branch pages."
+      },
+      {
+        "chain": "Border States (Brighton address variant)",
+        "reason": "Reconcile Brighton vs Denver branch addressing/phone; keep Denver Joliet storefront as confirmed."
+      }
+    ],
+    "colorado-springs-metro": [
+      {
+        "chain": "Graybar",
+        "reason": "Verify Colorado Springs counter locations"
+      },
+      {
+        "chain": "Rexel / Platt",
+        "reason": "Verify Colorado Springs branches"
+      },
+      {
+        "chain": "CED (Consolidated Electrical Distributors)",
+        "reason": "Verify Colorado Springs branches"
+      },
+      {
+        "chain": "City Electric Supply (CES)",
+        "reason": "Verify Colorado Springs branches"
+      }
+    ],
+    "front-range-north": [
+      {
+        "chain": "Graybar",
+        "reason": "Verify Fort Collins / Greeley counter locations"
+      },
+      {
+        "chain": "Rexel / Platt",
+        "reason": "Verify Fort Collins / Greeley branches"
+      },
+      {
+        "chain": "CED (Consolidated Electrical Distributors)",
+        "reason": "Verify Fort Collins / Greeley branches"
+      }
+    ],
+    "pueblo-south": [
+      {
+        "chain": "Graybar",
+        "reason": "Verify Pueblo counter locations"
+      },
+      {
+        "chain": "CED (Consolidated Electrical Distributors)",
+        "reason": "Verify Pueblo branches"
+      }
+    ],
+    "boulder-broomfield-longmont": [
+      {
+        "chain": "Graybar",
+        "reason": "Verify Boulder/Broomfield/Longmont area counters (may be served by Denver)"
+      },
+      {
+        "chain": "CED (Consolidated Electrical Distributors)",
+        "reason": "Verify Boulder/Broomfield/Longmont area branches"
+      }
+    ]
+  }
+}
