@@ -77,6 +77,16 @@ function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: number) 
   return km * 0.621371;
 }
 
+/**
+ * Get routing coordinates for a branch, preferring arrival coordinates when available.
+ * Falls back to display coordinates (lat/lon) if arrival coordinates are not set.
+ */
+function getRoutingCoordinates(branch: Branch): { lat: number; lon: number } {
+  const lat = Number.isFinite(branch.arrivalLat) ? branch.arrivalLat! : branch.lat;
+  const lon = Number.isFinite(branch.arrivalLon) ? branch.arrivalLon! : branch.lon;
+  return { lat, lon };
+}
+
 async function fetchJsonWithFallback<T>(rel: string): Promise<{ data: T; url: string }> {
   let lastErr: any = null;
 
@@ -324,13 +334,12 @@ const sorted = useMemo(() => {
         if (existing && Date.now() - existing.ts < 10 * 60 * 1000) continue;
 
         // Use arrival coordinates for routing when available, fallback to display coordinates
-        const destLat = Number.isFinite(b.arrivalLat) ? b.arrivalLat : b.lat;
-        const destLon = Number.isFinite(b.arrivalLon) ? b.arrivalLon : b.lon;
+        const dest = getRoutingCoordinates(b);
 
         try {
           const url = `/api/drive-time?olat=${encodeURIComponent(String(pos.lat))}&olon=${encodeURIComponent(
             String(pos.lon)
-          )}&dlat=${encodeURIComponent(String(destLat))}&dlon=${encodeURIComponent(String(destLon))}`;
+          )}&dlat=${encodeURIComponent(String(dest.lat))}&dlon=${encodeURIComponent(String(dest.lon))}`;
 
           const res = await fetch(url, { cache: "no-store" });
           if (!res.ok) continue;
@@ -439,8 +448,7 @@ const sorted = useMemo(() => {
               : null;
 
           // Use arrival coordinates for navigation when available, fallback to display coordinates
-          const navLat = Number.isFinite(b.arrivalLat) ? b.arrivalLat : b.lat;
-          const navLon = Number.isFinite(b.arrivalLon) ? b.arrivalLon : b.lon;
+          const navCoords = getRoutingCoordinates(b);
 
           return (
             <div key={b.id} className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
@@ -477,7 +485,7 @@ const sorted = useMemo(() => {
                 </a>
 
                 <a
-                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${navLat},${navLon}`)}`}
+                  href={`https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${navCoords.lat},${navCoords.lon}`)}`}
                   target="_blank"
                   rel="noreferrer"
                   className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-200"
