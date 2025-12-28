@@ -84,7 +84,7 @@ function DuctBlock({
   const cfm = round1(cfmFrom(area, vel));
 
   return (
-    <div className="rounded-3xl bg-white shadow-md ring-1 ring-slate-300 p-4 hover:shadow-lg transition-shadow">
+    <div>
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="min-w-0">
           <div className="text-sm font-semibold text-slate-900">{title}</div>
@@ -98,7 +98,7 @@ function DuctBlock({
         <select
           value={velocityValue}
           onChange={(e) => onVelocityChange(e.target.value as any)}
-          className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="w-full rounded-2xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           aria-label={`${kind} velocity`}
           title={`${kind} velocity (FPM)`}
         >
@@ -112,7 +112,7 @@ function DuctBlock({
         <select
           value={value.shape}
           onChange={(e) => onChange({ shape: e.target.value as Shape })}
-          className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="w-full rounded-2xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
         >
           <option value="rect">Rectangular</option>
           <option value="round">Round</option>
@@ -121,7 +121,7 @@ function DuctBlock({
         <select
           value={value.dir}
           onChange={(e) => onChange({ dir: e.target.value as Dir })}
-          className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="w-full rounded-2xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           title="One-way = single duct. Two-way = two identical ducts (doubled area)."
         >
           <option value="one">One-way</option>
@@ -180,7 +180,7 @@ function RunsPills({
   }, 0);
 
   return (
-    <div className="rounded-3xl bg-white shadow-md ring-1 ring-slate-300 p-4 hover:shadow-lg transition-shadow">
+    <div>
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="min-w-0">
           <div className="text-sm font-semibold text-slate-900">
@@ -444,85 +444,88 @@ export default function DuctPage() {
 
         {/* Desktop: Quadrant layout with central circle */}
         <div className="hidden lg:block">
-          <div className="relative grid grid-cols-2 gap-4 p-6">
-            {/* Top-left: Supply Trunk */}
-            <div className="pr-12 pb-12 relative">
-              <DuctBlock
-                title="Supply trunk"
-                kind="supply"
-                value={mainSupply}
-                onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
-                velocityValue={supplyVelocityStr}
-                onVelocityChange={setSupplyVelocityStr}
-              />
-            </div>
+          {/* Unified container with border containing all quadrants */}
+          <div className="relative rounded-3xl border-2 border-slate-200 bg-white shadow-lg overflow-hidden">
+            <div className="relative grid grid-cols-2">
+              {/* Top-left: Supply Trunk */}
+              <div className="p-6 border-r border-b border-slate-200">
+                <DuctBlock
+                  title="Supply trunk"
+                  kind="supply"
+                  value={mainSupply}
+                  onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
+                  velocityValue={supplyVelocityStr}
+                  onVelocityChange={setSupplyVelocityStr}
+                />
+              </div>
 
-            {/* Top-right: Return Trunk */}
-            <div className="pl-12 pb-12 relative">
-              <DuctBlock
-                title="Return trunk"
-                kind="return"
-                value={mainReturn}
-                onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
-                velocityValue={returnVelocityStr}
-                onVelocityChange={setReturnVelocityStr}
-              />
-            </div>
+              {/* Top-right: Return Trunk */}
+              <div className="p-6 border-b border-slate-200">
+                <DuctBlock
+                  title="Return trunk"
+                  kind="return"
+                  value={mainReturn}
+                  onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
+                  velocityValue={returnVelocityStr}
+                  onVelocityChange={setReturnVelocityStr}
+                />
+              </div>
 
-            {/* Bottom-left: Supply Runs */}
-            <div className="pr-12 pt-12 relative">
-              <RunsPills
-                runs={runs}
-                kind="supply"
-                velocity={num(supplyVelocityStr)}
-                onAdd={() => {
-                  setQuickAddKind("supply");
-                  setQuickAddOpen(true);
-                }}
-                onRemove={removeRun}
-              />
-            </div>
+              {/* Bottom-left: Supply Runs */}
+              <div className="p-6 border-r border-slate-200">
+                <RunsPills
+                  runs={runs}
+                  kind="supply"
+                  velocity={num(supplyVelocityStr)}
+                  onAdd={() => {
+                    setQuickAddKind("supply");
+                    setQuickAddOpen(true);
+                  }}
+                  onRemove={removeRun}
+                />
+              </div>
 
-            {/* Bottom-right: Return Runs */}
-            <div className="pl-12 pt-12 relative">
-              <RunsPills
-                runs={runs}
-                kind="return"
-                velocity={num(returnVelocityStr)}
-                onAdd={() => {
-                  setQuickAddKind("return");
-                  setQuickAddOpen(true);
-                }}
-                onRemove={removeRun}
-              />
-            </div>
+              {/* Bottom-right: Return Runs */}
+              <div className="p-6">
+                <RunsPills
+                  runs={runs}
+                  kind="return"
+                  velocity={num(returnVelocityStr)}
+                  onAdd={() => {
+                    setQuickAddKind("return");
+                    setQuickAddOpen(true);
+                  }}
+                  onRemove={removeRun}
+                />
+              </div>
 
-            {/* Central Circle - responsive sizing, nested cleanly within quadrants */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
-              <div 
-                className="rounded-full bg-white shadow-2xl ring-2 ring-slate-200 flex flex-col"
-                style={{ 
-                  width: 'min(24vw, 16rem)',
-                  height: 'min(24vw, 16rem)'
-                }}
-              >
-                {/* Top half: CFM display */}
-                <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
-                  <div className="text-xs text-slate-500 mb-1">System CFM</div>
-                  <div className="text-2xl font-bold tabular-nums text-slate-900">
-                    {totals.system || "—"}
+              {/* Central Circle - naturally nested within the unified quadrant container */}
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+                <div 
+                  className="rounded-full bg-white shadow-2xl ring-2 ring-slate-300 flex flex-col"
+                  style={{ 
+                    width: 'min(22vw, 14rem)',
+                    height: 'min(22vw, 14rem)'
+                  }}
+                >
+                  {/* Top half: CFM display */}
+                  <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
+                    <div className="text-xs text-slate-500 mb-1">System CFM</div>
+                    <div className="text-2xl font-bold tabular-nums text-slate-900">
+                      {totals.system || "—"}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Bottom half: Equipment button */}
-                <div className="flex-1 flex items-center justify-center px-4">
-                  <button
-                    type="button"
-                    onClick={() => setEquipOpen(true)}
-                    className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition"
-                  >
-                    Equipment
-                  </button>
+                  
+                  {/* Bottom half: Equipment button */}
+                  <div className="flex-1 flex items-center justify-center px-4">
+                    <button
+                      type="button"
+                      onClick={() => setEquipOpen(true)}
+                      className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition pointer-events-auto"
+                    >
+                      Equipment
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
