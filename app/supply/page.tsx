@@ -442,7 +442,7 @@ const sorted = useMemo(() => {
 
   return (
     <main className="max-w-3xl mx-auto p-4 space-y-4">
-      <AppHeader title="Supply Houses" subtitle="Near me + searchable (repo-backed)" />
+      <AppHeader title="Supply Houses" subtitle="Find the closest branch" />
 
       <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
