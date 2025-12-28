@@ -203,12 +203,12 @@ function RunsPills({
       {filteredRuns.length === 0 ? (
         <div className="text-xs text-slate-500 text-center py-3">No runs</div>
       ) : (
-        <div className="relative min-h-[60px]">
+        <div className="relative" style={{ minHeight: `${Math.max(60, filteredRuns.length * 40 + 40)}px` }}>
           {filteredRuns.map((r, idx) => {
             const area = areaIn2(r.input);
             const cfm = round1(cfmFrom(area, velocity));
             const zIndex = filteredRuns.length - idx;
-            const offset = idx * 8;
+            const offset = idx * 12;
             
             return (
               <div
