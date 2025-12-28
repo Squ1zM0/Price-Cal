@@ -498,9 +498,10 @@ const sorted = useMemo(() => {
                 href={(() => {
                   const coords = getRoutingCoordinates(mapModalBranch);
                   const addr = formatAddress(mapModalBranch);
-                  return addr
-                    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`
-                    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${coords.lat},${coords.lon}`)}&travelmode=driving`;
+                  // Prefer coordinates for more precise routing, fall back to address
+                  return Number.isFinite(coords.lat) && Number.isFinite(coords.lon)
+                    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${coords.lat},${coords.lon}`)}&travelmode=driving`
+                    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
                 })()}
                 target="_blank"
                 rel="noreferrer"
@@ -514,8 +515,13 @@ const sorted = useMemo(() => {
               </a>
 
               <button
-                onClick={() => {
-                  navigator.clipboard.writeText(formatAddress(mapModalBranch));
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(formatAddress(mapModalBranch));
+                  } catch (err) {
+                    // Fallback or silent fail - clipboard API might be restricted
+                    console.warn("Failed to copy address:", err);
+                  }
                 }}
                 className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-white ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
               >
