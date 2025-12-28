@@ -710,6 +710,18 @@ export default function DuctPage() {
                           <span className="text-xs text-slate-600">
                             {round1(totalCfm)} CFM
                           </span>
+                          {groupRuns.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                removeRun(groupRuns[0].id);
+                              }}
+                              className="ml-1 text-slate-500 hover:text-slate-700"
+                              title="Remove one"
+                            >
+                              −
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => {
@@ -895,6 +907,18 @@ export default function DuctPage() {
                                   <span className="text-xs text-slate-600">
                                     {round1(totalCfm)} CFM
                                   </span>
+                                  {groupRuns.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        removeRun(groupRuns[0].id);
+                                      }}
+                                      className="ml-1 text-slate-500 hover:text-slate-700"
+                                      title="Remove one"
+                                    >
+                                      −
+                                    </button>
+                                  )}
                                   <button
                                     type="button"
                                     onClick={() => {
@@ -955,6 +979,18 @@ export default function DuctPage() {
                                   <span className="text-xs text-slate-600">
                                     {round1(totalCfm)} CFM
                                   </span>
+                                  {groupRuns.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        removeRun(groupRuns[0].id);
+                                      }}
+                                      className="ml-1 text-slate-500 hover:text-slate-700"
+                                      title="Remove one"
+                                    >
+                                      −
+                                    </button>
+                                  )}
                                   <button
                                     type="button"
                                     onClick={() => {
