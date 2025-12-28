@@ -84,7 +84,7 @@ function DuctBlock({
   const cfm = round1(cfmFrom(area, vel));
 
   return (
-    <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
+    <div className="rounded-3xl bg-white shadow-md ring-1 ring-slate-300 p-4 hover:shadow-lg transition-shadow">
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="min-w-0">
           <div className="text-sm font-semibold text-slate-900">{title}</div>
@@ -180,7 +180,7 @@ function RunsPills({
   }, 0);
 
   return (
-    <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
+    <div className="rounded-3xl bg-white shadow-md ring-1 ring-slate-300 p-4 hover:shadow-lg transition-shadow">
       <div className="flex items-start justify-between gap-2 mb-3">
         <div className="min-w-0">
           <div className="text-sm font-semibold text-slate-900">
@@ -446,7 +446,7 @@ export default function DuctPage() {
         <div className="hidden lg:block">
           <div className="relative grid grid-cols-2 gap-6 p-4">
             {/* Top-left: Supply Trunk */}
-            <div className="pr-16 pb-8">
+            <div className="pr-16 pb-8 relative z-20">
               <DuctBlock
                 title="Supply trunk"
                 kind="supply"
@@ -458,7 +458,7 @@ export default function DuctPage() {
             </div>
 
             {/* Top-right: Return Trunk */}
-            <div className="pl-16 pb-8">
+            <div className="pl-16 pb-8 relative z-20">
               <DuctBlock
                 title="Return trunk"
                 kind="return"
@@ -470,7 +470,7 @@ export default function DuctPage() {
             </div>
 
             {/* Bottom-left: Supply Runs */}
-            <div className="pr-16 pt-8">
+            <div className="pr-16 pt-8 relative z-20">
               <RunsPills
                 runs={runs}
                 kind="supply"
@@ -484,7 +484,7 @@ export default function DuctPage() {
             </div>
 
             {/* Bottom-right: Return Runs */}
-            <div className="pl-16 pt-8">
+            <div className="pl-16 pt-8 relative z-20">
               <RunsPills
                 runs={runs}
                 kind="return"
@@ -497,9 +497,25 @@ export default function DuctPage() {
               />
             </div>
 
-            {/* Central Circle */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
-              <div className="w-48 h-48 rounded-full bg-white shadow-xl ring-2 ring-slate-200 flex flex-col pointer-events-auto">
+            {/* Connecting lines from center to quadrants (axis lines) */}
+            {/* Horizontal line - left */}
+            <div className="absolute top-1/2 left-0 w-[calc(50%-min(12vw,8rem))] h-0.5 bg-gradient-to-r from-transparent via-slate-300 to-slate-400 -translate-y-1/2 z-0" />
+            {/* Horizontal line - right */}
+            <div className="absolute top-1/2 right-0 w-[calc(50%-min(12vw,8rem))] h-0.5 bg-gradient-to-l from-transparent via-slate-300 to-slate-400 -translate-y-1/2 z-0" />
+            {/* Vertical line - top */}
+            <div className="absolute left-1/2 top-0 h-[calc(50%-min(12vw,8rem))] w-0.5 bg-gradient-to-b from-transparent via-slate-300 to-slate-400 -translate-x-1/2 z-0" />
+            {/* Vertical line - bottom */}
+            <div className="absolute left-1/2 bottom-0 h-[calc(50%-min(12vw,8rem))] w-0.5 bg-gradient-to-t from-transparent via-slate-300 to-slate-400 -translate-x-1/2 z-0" />
+
+            {/* Central Circle - responsive sizing */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+              <div 
+                className="rounded-full bg-white shadow-2xl ring-2 ring-slate-300 flex flex-col"
+                style={{ 
+                  width: 'min(24vw, 16rem)',
+                  height: 'min(24vw, 16rem)'
+                }}
+              >
                 {/* Top half: CFM display */}
                 <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
                   <div className="text-xs text-slate-500 mb-1">System CFM</div>
@@ -527,7 +543,13 @@ export default function DuctPage() {
         <div className="lg:hidden flex flex-col gap-3">
           {/* Central Circle - prominent at top for mobile */}
           <div className="flex justify-center">
-            <div className="w-48 h-48 rounded-full bg-white shadow-xl ring-2 ring-slate-200 flex flex-col">
+            <div 
+              className="rounded-full bg-white shadow-xl ring-2 ring-slate-300 flex flex-col"
+              style={{ 
+                width: 'min(48vw, 12rem)',
+                height: 'min(48vw, 12rem)'
+              }}
+            >
               <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
                 <div className="text-xs text-slate-500 mb-1">System CFM</div>
                 <div className="text-2xl font-bold tabular-nums text-slate-900">
