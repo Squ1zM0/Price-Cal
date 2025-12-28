@@ -140,16 +140,22 @@ return (
 /**
  * Determine location accuracy tier based on GPS accuracy in meters.
  * Returns 'high', 'moderate', or 'poor' based on predefined thresholds.
+ * 
+ * @param accuracyMeters - GPS accuracy in meters (must be non-negative)
  */
 function getAccuracyTier(accuracyMeters: number): 'high' | 'moderate' | 'poor' {
-  if (accuracyMeters <= ACCURACY_THRESHOLD_HIGH) return 'high';
-  if (accuracyMeters <= ACCURACY_THRESHOLD_MODERATE) return 'moderate';
+  const accuracy = Math.max(0, accuracyMeters);
+  if (accuracy <= ACCURACY_THRESHOLD_HIGH) return 'high';
+  if (accuracy <= ACCURACY_THRESHOLD_MODERATE) return 'moderate';
   return 'poor';
 }
 
 /**
  * Display tiered location accuracy indicator with appropriate styling.
  * Uses pastel colors and human-readable text instead of raw meter values.
+ * 
+ * @param props - Component props
+ * @param props.accuracyMeters - GPS accuracy in meters (expected to be non-negative)
  */
 function AccuracyIndicator({ accuracyMeters }: { accuracyMeters: number }) {
   const tier = getAccuracyTier(accuracyMeters);
