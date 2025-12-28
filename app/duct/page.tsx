@@ -1022,42 +1022,42 @@ export default function DuctPage() {
       {equipOpen ? (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3">
           <div className="absolute inset-0 bg-black/40" onClick={() => setEquipOpen(false)} />
-          <div className="relative w-full max-w-lg rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 p-4 sm:p-6">
+          <div className="relative w-full max-w-lg rounded-3xl bg-white dark:bg-slate-800 shadow-xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 sm:p-6">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <div className="text-base font-semibold text-slate-900">Equipment size (rule of thumb)</div>
-                <div className="text-xs text-slate-500">
+                <div className="text-base font-semibold text-slate-900 dark:text-white">Equipment size (rule of thumb)</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
                   Uses limiting System CFM ÷ CFM per ton.
                 </div>
               </div>
               <button
                 type="button"
                 onClick={() => setEquipOpen(false)}
-                className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-600"
               >
                 Close
               </button>
             </div>
 
-            <div className="mt-4 rounded-3xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
+            <div className="mt-4 rounded-3xl bg-slate-50 dark:bg-slate-700 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 p-4">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <div className="text-xs text-slate-500">System CFM</div>
-                  <div className="text-xl font-bold tabular-nums text-slate-900">{totals.system || 0}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400">System CFM</div>
+                  <div className="text-xl font-bold tabular-nums text-slate-900 dark:text-white">{totals.system || 0}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-xs text-slate-500">Recommended</div>
-                  <div className="text-xl font-bold tabular-nums text-slate-900">
+                  <div className="text-xs text-slate-500 dark:text-slate-400">Recommended</div>
+                  <div className="text-xl font-bold tabular-nums text-slate-900 dark:text-white">
                     {sizing.tonsHalf ? `${sizing.tonsHalf} ton` : "—"}
                   </div>
-                  <div className="text-xs text-slate-500 tabular-nums">{sizing.btu ? `${sizing.btu} BTU/hr` : ""}</div>
+                  <div className="text-xs text-slate-500 dark:text-slate-400 tabular-nums">{sizing.btu ? `${sizing.btu} BTU/hr` : ""}</div>
                 </div>
               </div>
 
               <div className="mt-4">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm font-semibold text-slate-900">CFM per ton</div>
-                  <div className="text-sm font-semibold tabular-nums text-slate-700">{cfmPerTon}</div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white">CFM per ton</div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-300">{cfmPerTon}</div>
                 </div>
                 <input
                   type="range"
@@ -1068,21 +1068,21 @@ export default function DuctPage() {
                   onChange={(e) => setCfmPerTon(Number(e.target.value))}
                   className="mt-2 w-full"
                 />
-                <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+                <div className="mt-1 flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
                   <span>350</span>
                   <span>450</span>
                 </div>
               </div>
 
-              <div className="mt-5 border-t border-slate-200/70 pt-4">
+              <div className="mt-5 border-t border-slate-200/70 dark:border-slate-600/70 pt-4">
                 <div className="flex items-end justify-between gap-3">
                   <div>
-                    <div className="text-sm font-semibold text-slate-900">Furnace sizing (heat rise)</div>
-                    <div className="text-[11px] text-slate-500">
+                    <div className="text-sm font-semibold text-slate-900 dark:text-white">Furnace sizing (heat rise)</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">
                       Uses BTU/hr = 1.08 × CFM × ΔT and Colorado altitude derate {furnaceSizing.altitudeDerate}.
                     </div>
                   </div>
-                  <div className="text-sm font-semibold tabular-nums text-slate-700">ΔT {furnaceSizing.dt}°F</div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-700 dark:text-slate-300">ΔT {furnaceSizing.dt}°F</div>
                 </div>
 
                 <input
@@ -1094,32 +1094,32 @@ export default function DuctPage() {
                   onChange={(e) => setDeltaT(Number(e.target.value))}
                   className="mt-2 w-full"
                 />
-                <div className="mt-1 flex justify-between text-[11px] text-slate-500">
+                <div className="mt-1 flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
                   <span>40</span>
                   <span>55</span>
                 </div>
 
                 <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
-                  <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                    <div className="text-xs text-slate-500">Heat out (BTU/hr)</div>
-                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.outputRounded || 0}</div>
-                    <div className="text-[11px] text-slate-500">Delivered heat</div>
+                  <div className="rounded-2xl bg-white dark:bg-slate-600 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600">
+                    <div className="text-xs text-slate-500 dark:text-slate-400">Heat out (BTU/hr)</div>
+                    <div className="text-base font-semibold tabular-nums text-slate-900 dark:text-white">{furnaceSizing.outputRounded || 0}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">Delivered heat</div>
                   </div>
-                  <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                    <div className="text-xs text-slate-500">80% input (BTU/hr)</div>
-                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.input80Bucket || 0}</div>
-                    <div className="text-[11px] text-slate-500">Closest standard size • Calc: {furnaceSizing.input80Rounded || 0}</div>
+                  <div className="rounded-2xl bg-white dark:bg-slate-600 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600">
+                    <div className="text-xs text-slate-500 dark:text-slate-400">80% input (BTU/hr)</div>
+                    <div className="text-base font-semibold tabular-nums text-slate-900 dark:text-white">{furnaceSizing.input80Bucket || 0}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">Closest standard size • Calc: {furnaceSizing.input80Rounded || 0}</div>
                   </div>
-                  <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-                    <div className="text-xs text-slate-500">96% input (BTU/hr)</div>
-                    <div className="text-base font-semibold tabular-nums text-slate-900">{furnaceSizing.input96Bucket || 0}</div>
-                    <div className="text-[11px] text-slate-500">Closest standard size • Calc: {furnaceSizing.input96Rounded || 0}</div>
+                  <div className="rounded-2xl bg-white dark:bg-slate-600 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600">
+                    <div className="text-xs text-slate-500 dark:text-slate-400">96% input (BTU/hr)</div>
+                    <div className="text-base font-semibold tabular-nums text-slate-900 dark:text-white">{furnaceSizing.input96Bucket || 0}</div>
+                    <div className="text-[11px] text-slate-500 dark:text-slate-400">Closest standard size • Calc: {furnaceSizing.input96Rounded || 0}</div>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-4 text-xs text-slate-600">
-                Raw tons: <span className="font-semibold tabular-nums text-slate-800">{round1(sizing.tonsRaw)}</span>{" "}
+              <div className="mt-4 text-xs text-slate-600 dark:text-slate-400">
+                Raw tons: <span className="font-semibold tabular-nums text-slate-800 dark:text-slate-200">{round1(sizing.tonsRaw)}</span>{" "}
                 (rounded to nearest 0.5 ton)
               </div>
             </div>
@@ -1128,14 +1128,14 @@ export default function DuctPage() {
               <button
                 type="button"
                 onClick={resetAll}
-                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50"
+                className="rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-800 dark:text-slate-200 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-600"
               >
                 Reset
               </button>
               <button
                 type="button"
                 onClick={() => setEquipOpen(false)}
-                className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
+                className="rounded-2xl bg-slate-900 dark:bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 dark:hover:bg-blue-500"
               >
                 Done
               </button>
