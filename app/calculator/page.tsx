@@ -188,19 +188,47 @@ export default function CalculatorPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             {/* Controls */}
             <section className="min-h-0 rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 sm:p-5 flex flex-col gap-4 transition-all duration-300">
-              <div className="grid grid-cols-2 gap-3">
-                <div className="col-span-2 sm:col-span-1">
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Material Cost</label>
-                  <input
-                    value={materialStr}
-                    onChange={(e) => setMaterialStr(e.target.value)}
-                    inputMode="decimal"
-                    placeholder="0.00"
-                    className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
-                  />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {/* Material input + Tax toggle (stacked in left column on desktop) */}
+                <div className="flex flex-col gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Material Cost</label>
+                    <input
+                      value={materialStr}
+                      onChange={(e) => setMaterialStr(e.target.value)}
+                      inputMode="decimal"
+                      placeholder="0.00"
+                      className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 dark:text-white">
+                        {taxIncluded ? "Tax included" : "Tax not included"}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setTaxIncluded((v) => !v)}
+                      className={[
+                        "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
+                        taxIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
+                      ].join(" ")}
+                      aria-pressed={taxIncluded}
+                    >
+                      <div
+                        className={[
+                          "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
+                          taxIncluded ? "translate-x-6" : "translate-x-0",
+                        ].join(" ")}
+                      />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="col-span-2 sm:col-span-1">
+                {/* Hours input (right column on desktop) */}
+                <div>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Hours</label>
                   <input
                     value={hoursStr}
@@ -212,33 +240,9 @@ export default function CalculatorPage() {
                 </div>
               </div>
 
-              <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
-                <div>
-                  <div className="text-xs font-bold text-slate-900 dark:text-white">
-                    {taxIncluded ? "Tax included" : "Tax not included"}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setTaxIncluded((v) => !v)}
-                  className={[
-                    "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
-                    taxIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
-                  ].join(" ")}
-                  aria-pressed={taxIncluded}
-                >
-                  <div
-                    className={[
-                      "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
-                      taxIncluded ? "translate-x-6" : "translate-x-0",
-                    ].join(" ")}
-                  />
-                </button>
-              </div>
-
               {!taxIncluded ? (
-                <div className="grid grid-cols-2 gap-3 items-end">
-                  <div className="col-span-2 sm:col-span-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
+                  <div>
                     <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Tax Rate (%)</label>
                     <input
                       value={taxRateStr}
@@ -248,7 +252,7 @@ export default function CalculatorPage() {
                       className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
                     />
                   </div>
-                  <div className="col-span-2 sm:col-span-1 text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                  <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                     Material w/ tax: <span className="font-semibold text-slate-900 dark:text-white">{moneyFmt.format(breakdown.matWithTax)}</span>
                   </div>
                 </div>
