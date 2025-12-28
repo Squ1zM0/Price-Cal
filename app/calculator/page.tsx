@@ -374,11 +374,11 @@ export default function CalculatorPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => setWigglePct(null)}
+                  onClick={resetAll}
                   className="rounded-2xl bg-white px-3 py-3 text-sm font-semibold text-slate-900 ring-1 ring-inset ring-slate-200 hover:bg-slate-50"
-                  title="Reset to base"
+                  title="Reset all inputs"
                 >
-                  Base Price
+                  Reset All
                 </button>
               </div>
 
