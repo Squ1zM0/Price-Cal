@@ -498,6 +498,7 @@ const sorted = useMemo(() => {
                 href={(() => {
                   const addr = formatAddress(mapModalBranch);
                   // Always use address for routing (not coordinates)
+                  // Note: api=1 format is for opening links in Google Maps, not for embedding
                   return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
                 })()}
                 target="_blank"
@@ -539,8 +540,9 @@ const sorted = useMemo(() => {
                   // If user has location, construct a directions URL
                   if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) {
                     // Use saddr (source address) and daddr (destination address) for directions embed
+                    // Format: lat,lng doesn't need encoding (it's just numbers and a comma)
                     const origin = `${pos.lat},${pos.lon}`;
-                    return `https://www.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(addr)}&output=embed`;
+                    return `https://www.google.com/maps?saddr=${origin}&daddr=${encodeURIComponent(addr)}&output=embed`;
                   }
                   // Fallback: show the destination location
                   return `https://www.google.com/maps?q=${encodeURIComponent(addr)}&output=embed`;
