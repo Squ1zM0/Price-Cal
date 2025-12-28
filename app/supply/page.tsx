@@ -536,6 +536,7 @@ const sorted = useMemo(() => {
             <div className="rounded-2xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-600 shadow-lg">
               <iframe
                 title={`Route to ${mapModalBranch.name}`}
+                className="dark:[filter:invert(90%)_hue-rotate(180deg)]"
                 src={(() => {
                   const addr = formatAddress(mapModalBranch);
                   // Show route preview using Google Maps embed
