@@ -496,12 +496,9 @@ const sorted = useMemo(() => {
             <div className="flex flex-wrap gap-2 mb-4">
               <a
                 href={(() => {
-                  const coords = getRoutingCoordinates(mapModalBranch);
                   const addr = formatAddress(mapModalBranch);
-                  // Prefer coordinates for more precise routing, fall back to address
-                  return Number.isFinite(coords.lat) && Number.isFinite(coords.lon)
-                    ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(`${coords.lat},${coords.lon}`)}&travelmode=driving`
-                    : `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
+                  // Always use address for routing (not coordinates)
+                  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
                 })()}
                 target="_blank"
                 rel="noreferrer"
@@ -532,17 +529,22 @@ const sorted = useMemo(() => {
               </button>
             </div>
 
-            {/* Google Maps Embed */}
+            {/* Google Maps Route Preview Embed */}
             <div className="rounded-2xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-600 shadow-lg">
               <iframe
-                title={`Map for ${mapModalBranch.name}`}
+                title={`Route to ${mapModalBranch.name}`}
                 src={(() => {
-                  const coords = getRoutingCoordinates(mapModalBranch);
                   const addr = formatAddress(mapModalBranch);
-                  // Prefer lat/lng for more precise embed
-                  return Number.isFinite(coords.lat) && Number.isFinite(coords.lon)
-                    ? `https://www.google.com/maps?q=${encodeURIComponent(`${coords.lat},${coords.lon}`)}&output=embed`
-                    : `https://www.google.com/maps?q=${encodeURIComponent(addr)}&output=embed`;
+                  // Show route preview using Google Maps directions
+                  // If user has location, show route from their position to the address
+                  if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) {
+                    const origin = `${pos.lat},${pos.lon}`;
+                    const destination = encodeURIComponent(addr);
+                    // Use the directions URL with output=embed to show route preview
+                    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving&output=embed`;
+                  }
+                  // Fallback: show the destination location
+                  return `https://www.google.com/maps?q=${encodeURIComponent(addr)}&output=embed`;
                 })()}
                 width="100%"
                 height="400"
