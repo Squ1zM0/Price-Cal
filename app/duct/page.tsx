@@ -863,7 +863,14 @@ export default function DuctPage() {
                         }, 0);
                         const label = getRunLabel(groupRuns[0].input);
                         return (
-                          <div key={key} className="relative" style={{ paddingLeft: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px`, paddingBottom: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px` }}>
+                          <div
+                            key={key}
+                            className="relative"
+                            style={{
+                              paddingLeft: `${Math.max(0, (groupRuns.length - 1) * PILL_STACK_OFFSET_PX)}px`,
+                              paddingBottom: `${Math.max(0, (groupRuns.length - 1) * PILL_STACK_OFFSET_PX)}px`,
+                            }}
+                          >
                             {groupRuns.map((_, index) => {
                               const isTop = index === groupRuns.length - 1;
                               return (
