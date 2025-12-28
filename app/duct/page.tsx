@@ -686,89 +686,58 @@ export default function DuctPage() {
                   No runs added for this side yet.
                 </div>
               ) : (
-                <div className="mt-3 grid gap-2">
-                  {runs.filter((r) => r.kind === mobileTrunk).map((r) => {
-                    const area = areaIn2(r.input);
-                    const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
-                    const cfm = round1(cfmFrom(area, vel));
-                    return (
-                      <details key={r.id} className="rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200">
-                        <summary className="cursor-pointer list-none px-4 py-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="text-sm font-semibold text-slate-900">
-                                {r.kind === "return" ? "Return" : "Supply"} -{" "}
-                                <span className="tabular-nums">{cfm || "—"}</span> CFM
-                              </div>
-                              <div className="text-[11px] text-slate-500 tabular-nums">
-                                {round1(area) || "—"} in² - {vel} fpm
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(() => {
+                    const filteredRuns = runs.filter((r) => r.kind === mobileTrunk);
+                    const grouped = groupRunsBySize(filteredRuns);
+                    return Array.from(grouped.entries()).map(([key, groupRuns]) => {
+                      const totalCfm = groupRuns.reduce((sum, r) => {
+                        const area = areaIn2(r.input);
+                        const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
+                        return sum + cfmFrom(area, vel);
+                      }, 0);
+                      const label = getRunLabel(groupRuns[0].input);
+                      return (
+                        <div key={key} className="relative" style={{ paddingLeft: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px`, paddingBottom: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px` }}>
+                          {groupRuns.map((_, index) => (
+                            <div
+                              key={index}
+                              className="absolute rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200"
+                              style={{
+                                left: `${index * PILL_STACK_OFFSET_PX}px`,
+                                top: `${index * PILL_STACK_OFFSET_PX}px`,
+                                zIndex: groupRuns.length - index,
+                              }}
+                            >
+                              <div className="flex items-center gap-2" style={{ visibility: index === groupRuns.length - 1 ? 'visible' : 'hidden' }}>
+                                <span className="text-sm font-semibold text-slate-900">
+                                  {label}
+                                </span>
+                                {groupRuns.length > 1 && (
+                                  <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                    ×{groupRuns.length}
+                                  </span>
+                                )}
+                                <span className="text-xs text-slate-600">
+                                  {round1(totalCfm)} CFM
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    groupRuns.forEach((r) => removeRun(r.id));
+                                  }}
+                                  className="ml-1 text-slate-500 hover:text-slate-700"
+                                  title="Remove all"
+                                >
+                                  ✕
+                                </button>
                               </div>
                             </div>
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                removeRun(r.id);
-                              }}
-                              className="shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-100"
-                            >
-                              Remove
-                            </button>
-                          </div>
-                        </summary>
-
-                        <div className="px-4 pb-4">
-                          <div className="mt-2 grid grid-cols-1 gap-2">
-                            <select
-                              value={r.input.shape}
-                              onChange={(e) => updateRun(r.id, { shape: e.target.value as Shape })}
-                              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                            >
-                              <option value="rect">Rectangular</option>
-                              <option value="round">Round</option>
-                            </select>
-
-                            <select
-                              value={r.input.dir}
-                              onChange={(e) => updateRun(r.id, { dir: e.target.value as Dir })}
-                              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                            >
-                              <option value="one">One-way</option>
-                              <option value="two">Two-way</option>
-                            </select>
-
-                            {r.input.shape === "round" ? (
-                              <input
-                                value={r.input.d}
-                                onChange={(e) => updateRun(r.id, { d: e.target.value })}
-                                placeholder="Diameter (in)"
-                                inputMode="decimal"
-                                className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                              />
-                            ) : (
-                              <div className="grid grid-cols-2 gap-2">
-                                <input
-                                  value={r.input.w}
-                                  onChange={(e) => updateRun(r.id, { w: e.target.value })}
-                                  placeholder="Width (in)"
-                                  inputMode="decimal"
-                                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                                />
-                                <input
-                                  value={r.input.h}
-                                  onChange={(e) => updateRun(r.id, { h: e.target.value })}
-                                  placeholder="Height (in)"
-                                  inputMode="decimal"
-                                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                                />
-                              </div>
-                            )}
-                          </div>
+                          ))}
                         </div>
-                      </details>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </section>
