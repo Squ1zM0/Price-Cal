@@ -133,6 +133,53 @@ return (
   );
 }
 
+/**
+ * Determine location accuracy tier based on GPS accuracy in meters.
+ * Returns 'high', 'moderate', or 'poor' based on predefined thresholds.
+ */
+function getAccuracyTier(accuracyMeters: number): 'high' | 'moderate' | 'poor' {
+  if (accuracyMeters <= 15) return 'high';
+  if (accuracyMeters <= 50) return 'moderate';
+  return 'poor';
+}
+
+/**
+ * Display tiered location accuracy indicator with appropriate styling.
+ * Uses pastel colors and human-readable text instead of raw meter values.
+ */
+function AccuracyIndicator({ accuracyMeters }: { accuracyMeters: number }) {
+  const tier = getAccuracyTier(accuracyMeters);
+  
+  const styles = {
+    high: {
+      bg: 'bg-green-100',
+      text: 'text-green-700',
+      label: 'High location accuracy'
+    },
+    moderate: {
+      bg: 'bg-yellow-100',
+      text: 'text-yellow-700',
+      label: 'Moderate location accuracy'
+    },
+    poor: {
+      bg: 'bg-red-100',
+      text: 'text-red-700',
+      label: 'Poor location accuracy'
+    }
+  };
+  
+  const style = styles[tier];
+  
+  return (
+    <span 
+      className={`inline-flex items-center rounded-full ${style.bg} px-2.5 py-1 text-xs font-semibold ${style.text}`}
+      title="Location accuracy indicates how precisely your device knows your current position. Higher accuracy improves nearby results and distance calculations."
+    >
+      {style.label}
+    </span>
+  );
+}
+
 export default function SupplyPage() {
   const [branches, setBranches] = useState<Branch[]>([]);
   const [pos, setPos] = useState<{ lat: number; lon: number; accuracyM: number | null; ts: number } | null>(null);
@@ -442,7 +489,7 @@ const sorted = useMemo(() => {
             <>
               <Chip>Location enabled</Chip>
               {pos.accuracyM != null ? (
-                <Chip>±{Math.round(pos.accuracyM)} m</Chip>
+                <AccuracyIndicator accuracyMeters={pos.accuracyM} />
               ) : null}
             </>
           ) : (
