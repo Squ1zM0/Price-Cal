@@ -572,6 +572,14 @@ export default function DuctPage() {
               <div className="mt-3 rounded-2xl bg-white ring-1 ring-inset ring-slate-200 p-3">
                 <div className="text-xs font-semibold text-slate-700">Quick add run (measurements)</div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMobileTrunk(mobileTrunk === "return" ? "supply" : "return")}
+                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+                  >
+                    {mobileTrunk === "return" ? "Return" : "Supply"}
+                  </button>
+
                   <select
                     value={quickRunShape}
                     onChange={(e) => {
