@@ -79,6 +79,19 @@ function getRunLabel(input: DuctInput): string {
   return `${w}×${h}${dir}`;
 }
 
+function groupRunsBySize(runs: Run[]): Map<string, Run[]> {
+  const grouped = new Map<string, Run[]>();
+  runs.forEach((r) => {
+    const key = getRunKey(r.input);
+    if (!grouped.has(key)) {
+      grouped.set(key, []);
+    }
+    // Safe to use ! here because we just checked/created the key above
+    grouped.get(key)!.push(r);
+  });
+  return grouped;
+}
+
 // IMPORTANT: keep this component at module scope (not inside DuctPage).
 // Defining it inside DuctPage causes React to treat it as a new component
 // type on each render, which can remount inputs and make iOS/desktop lose
@@ -894,14 +907,7 @@ export default function DuctPage() {
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       const returnRuns = runs.filter((r) => r.kind === "return");
-                      const grouped = new Map<string, Run[]>();
-                      returnRuns.forEach((r) => {
-                        const key = getRunKey(r.input);
-                        if (!grouped.has(key)) {
-                          grouped.set(key, []);
-                        }
-                        grouped.get(key)!.push(r);
-                      });
+                      const grouped = groupRunsBySize(returnRuns);
                       return Array.from(grouped.entries()).map(([key, groupRuns]) => {
                         const totalCfm = groupRuns.reduce((sum, r) => {
                           const area = areaIn2(r.input);
@@ -947,14 +953,7 @@ export default function DuctPage() {
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       const supplyRuns = runs.filter((r) => r.kind === "supply");
-                      const grouped = new Map<string, Run[]>();
-                      supplyRuns.forEach((r) => {
-                        const key = getRunKey(r.input);
-                        if (!grouped.has(key)) {
-                          grouped.set(key, []);
-                        }
-                        grouped.get(key)!.push(r);
-                      });
+                      const grouped = groupRunsBySize(supplyRuns);
                       return Array.from(grouped.entries()).map(([key, groupRuns]) => {
                         const totalCfm = groupRuns.reduce((sum, r) => {
                           const area = areaIn2(r.input);
