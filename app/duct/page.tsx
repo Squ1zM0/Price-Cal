@@ -241,12 +241,12 @@ export default function DuctPage() {
   function addQuickRun() {
     addRun(mobileTrunk, {
       shape: quickRunShape,
-      dir: quickRunDir,
+      dir: "one",
       w: quickRunShape === "rect" ? quickRunW : "",
       h: quickRunShape === "rect" ? quickRunH : "",
       d: quickRunShape === "round" ? quickRunD : "",
     });
-    // Keep shape/dir for rapid entry; clear only dimensions.
+    // Keep shape for rapid entry; clear only dimensions.
     setQuickRunW("");
     setQuickRunH("");
     setQuickRunD("");
@@ -255,12 +255,12 @@ export default function DuctPage() {
   function addDesktopQuickRun() {
     addRun(desktopQuickRunKind, {
       shape: desktopQuickRunShape,
-      dir: desktopQuickRunDir,
+      dir: "one",
       w: desktopQuickRunShape === "rect" ? desktopQuickRunW : "",
       h: desktopQuickRunShape === "rect" ? desktopQuickRunH : "",
       d: desktopQuickRunShape === "round" ? desktopQuickRunD : "",
     });
-    // Keep shape/dir for rapid entry; clear only dimensions.
+    // Keep shape for rapid entry; clear only dimensions.
     setDesktopQuickRunW("");
     setDesktopQuickRunH("");
     setDesktopQuickRunD("");
@@ -591,15 +591,6 @@ export default function DuctPage() {
                     <option value="round">Round</option>
                   </select>
 
-                  <select
-                    value={quickRunDir}
-                    onChange={(e) => setQuickRunDir(e.target.value as Dir)}
-                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  >
-                    <option value="one">One-way</option>
-                    <option value="two">Two-way</option>
-                  </select>
-
                   {quickRunShape === "round" ? (
                     <>
                       <input
@@ -618,7 +609,7 @@ export default function DuctPage() {
                               onClick={() => {
                                 addRun(mobileTrunk, {
                                   shape: "round",
-                                  dir: quickRunDir,
+                                  dir: "one",
                                   d: diameter,
                                 });
                                 setQuickRunD("");
@@ -754,7 +745,7 @@ export default function DuctPage() {
           {/* Quick add section at the top */}
           <div className="mt-4 rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
             <div className="text-xs font-semibold text-slate-700 mb-3">Quick add run</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               <select
                 value={desktopQuickRunKind}
                 onChange={(e) => setDesktopQuickRunKind(e.target.value as RunKind)}
@@ -780,15 +771,6 @@ export default function DuctPage() {
               >
                 <option value="rect">Rectangular</option>
                 <option value="round">Round</option>
-              </select>
-
-              <select
-                value={desktopQuickRunDir}
-                onChange={(e) => setDesktopQuickRunDir(e.target.value as Dir)}
-                className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              >
-                <option value="one">One-way</option>
-                <option value="two">Two-way</option>
               </select>
 
               {desktopQuickRunShape === "round" ? (
@@ -842,7 +824,7 @@ export default function DuctPage() {
                     onClick={() => {
                       addRun(desktopQuickRunKind, {
                         shape: "round",
-                        dir: desktopQuickRunDir,
+                        dir: "one",
                         d: diameter,
                       });
                     }}
