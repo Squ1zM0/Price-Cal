@@ -1003,13 +1003,13 @@ export default function DuctPage() {
           )}
 
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-              <div className="text-xs text-slate-500">Runs return total</div>
-              <div className="text-base font-semibold tabular-nums text-slate-900">{totals.runsReturnCfm || 0}</div>
+            <div className="rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600">
+              <div className="text-xs text-slate-500 dark:text-slate-400">Runs return total</div>
+              <div className="text-base font-semibold tabular-nums text-slate-900 dark:text-white">{totals.runsReturnCfm || 0}</div>
             </div>
-            <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-              <div className="text-xs text-slate-500">Runs supply total</div>
-              <div className="text-base font-semibold tabular-nums text-slate-900">{totals.runsSupplyCfm || 0}</div>
+            <div className="rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600">
+              <div className="text-xs text-slate-500 dark:text-slate-400">Runs supply total</div>
+              <div className="text-base font-semibold tabular-nums text-slate-900 dark:text-white">{totals.runsSupplyCfm || 0}</div>
             </div>
           </div>
         </section>
