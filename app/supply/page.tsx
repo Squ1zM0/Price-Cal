@@ -674,22 +674,22 @@ const sorted = useMemo(() => {
                   onClick={() => {
                     setMapModalBranch(b);
                     // Capture the current position when opening the modal to prevent constant refreshing
-                    if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) {
-                      setMapModalOrigin({ lat: pos.lat, lon: pos.lon });
-                    } else {
-                      setMapModalOrigin(null);
-                    }
+                    setMapModalOrigin(
+                      pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)
+                        ? { lat: pos.lat, lon: pos.lon }
+                        : null
+                    );
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       setMapModalBranch(b);
                       // Capture the current position when opening the modal
-                      if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) {
-                        setMapModalOrigin({ lat: pos.lat, lon: pos.lon });
-                      } else {
-                        setMapModalOrigin(null);
-                      }
+                      setMapModalOrigin(
+                        pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)
+                          ? { lat: pos.lat, lon: pos.lon }
+                          : null
+                      );
                     }
                   }}
                   className="text-left cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline-none focus:underline focus:text-blue-600 dark:focus:text-blue-400 transition-colors duration-200"
