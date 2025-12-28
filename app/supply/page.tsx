@@ -204,6 +204,8 @@ export default function SupplyPage() {
   
   // Modal state for Google Maps preview
   const [mapModalBranch, setMapModalBranch] = useState<Branch | null>(null);
+  // Store the user's position at the time the modal is opened to prevent constant refreshing
+  const [mapModalOrigin, setMapModalOrigin] = useState<{ lat: number; lon: number } | null>(null);
 
   // Handle Escape key to close modal
   useEffect(() => {
@@ -537,11 +539,11 @@ const sorted = useMemo(() => {
                 src={(() => {
                   const addr = formatAddress(mapModalBranch);
                   // Show route preview using Google Maps embed
-                  // If user has location, construct a directions URL
-                  if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) {
+                  // Use the captured position from when modal was opened (not live position)
+                  if (mapModalOrigin && Number.isFinite(mapModalOrigin.lat) && Number.isFinite(mapModalOrigin.lon)) {
                     // Use saddr (source address) and daddr (destination address) for directions embed
                     // Format: lat,lng doesn't need encoding (it's just numbers and a comma)
-                    const origin = `${pos.lat},${pos.lon}`;
+                    const origin = `${mapModalOrigin.lat},${mapModalOrigin.lon}`;
                     return `https://www.google.com/maps?saddr=${origin}&daddr=${encodeURIComponent(addr)}&output=embed`;
                   }
                   // Fallback: show the destination location
@@ -669,11 +671,25 @@ const sorted = useMemo(() => {
               <div className="mt-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                 <button
                   type="button"
-                  onClick={() => setMapModalBranch(b)}
+                  onClick={() => {
+                    setMapModalBranch(b);
+                    // Capture the current position when opening the modal to prevent constant refreshing
+                    if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) {
+                      setMapModalOrigin({ lat: pos.lat, lon: pos.lon });
+                    } else {
+                      setMapModalOrigin(null);
+                    }
+                  }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
                       setMapModalBranch(b);
+                      // Capture the current position when opening the modal
+                      if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) {
+                        setMapModalOrigin({ lat: pos.lat, lon: pos.lon });
+                      } else {
+                        setMapModalOrigin(null);
+                      }
                     }
                   }}
                   className="text-left cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline-none focus:underline focus:text-blue-600 dark:focus:text-blue-400 transition-colors duration-200"
