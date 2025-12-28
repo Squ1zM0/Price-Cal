@@ -104,6 +104,8 @@ function DuctBlock({
   onChange,
   velocityValue,
   onVelocityChange,
+  showToggle,
+  onToggleClick,
 }: {
   title: string;
   kind: RunKind;
@@ -111,6 +113,8 @@ function DuctBlock({
   onChange: (patch: Partial<DuctInput>) => void;
   velocityValue: "700" | "800" | "900";
   onVelocityChange: (v: "700" | "800" | "900") => void;
+  showToggle?: boolean;
+  onToggleClick?: () => void;
 }) {
   const area = areaIn2(value);
   const vel = num(velocityValue);
@@ -119,8 +123,19 @@ function DuctBlock({
   return (
     <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
-          <div className="text-base font-semibold text-slate-900">{title}</div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="text-base font-semibold text-slate-900">{title}</div>
+            {showToggle && onToggleClick && (
+              <button
+                type="button"
+                onClick={onToggleClick}
+                className="rounded-2xl bg-slate-50 px-3 py-1.5 text-xs font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+              >
+                {kind === "return" ? "Return" : "Supply"}
+              </button>
+            )}
+          </div>
           <div className="mt-0.5 text-xs text-slate-500">
             Area: <span className="font-semibold text-slate-700">{round1(area)}</span> in² • CFM:{" "}
             <span className="font-semibold text-slate-900">{cfm || "—"}</span>
@@ -532,16 +547,6 @@ export default function DuctPage() {
         <div className="lg:hidden">
           {mobileMode === "trunks" ? (
             <div className="mt-3">
-              <div className="mb-3 flex items-center gap-2">
-                <button
-                  type="button"
-                  onClick={() => setMobileTrunk(mobileTrunk === "return" ? "supply" : "return")}
-                  className="rounded-2xl bg-slate-50 px-4 py-2.5 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
-                >
-                  {mobileTrunk === "return" ? "Return" : "Supply"}
-                </button>
-                <span className="text-xs text-slate-500">Tap to switch trunk type</span>
-              </div>
               {mobileTrunk === "return" ? (
                 <DuctBlock
                   title="Main return trunk"
@@ -550,6 +555,8 @@ export default function DuctPage() {
                   onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
                   velocityValue={returnVelocityStr}
                   onVelocityChange={setReturnVelocityStr}
+                  showToggle={true}
+                  onToggleClick={() => setMobileTrunk("supply")}
                 />
               ) : (
                 <DuctBlock
@@ -559,6 +566,8 @@ export default function DuctPage() {
                   onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
                   velocityValue={supplyVelocityStr}
                   onVelocityChange={setSupplyVelocityStr}
+                  showToggle={true}
+                  onToggleClick={() => setMobileTrunk("return")}
                 />
               )}
             </div>
