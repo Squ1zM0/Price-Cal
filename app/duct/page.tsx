@@ -84,35 +84,36 @@ function DuctBlock({
   const cfm = round1(cfmFrom(area, vel));
 
   return (
-    <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
-      <div className="flex items-start justify-between gap-2 mb-3">
+    <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
+      <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="text-sm font-semibold text-slate-900">{title}</div>
+          <div className="text-base font-semibold text-slate-900">{title}</div>
           <div className="mt-0.5 text-xs text-slate-500">
-            {round1(area)} in² • {cfm || "—"} CFM
+            Area: <span className="font-semibold text-slate-700">{round1(area)}</span> in² • CFM:{" "}
+            <span className="font-semibold text-slate-900">{cfm || "—"}</span>
           </div>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <select
+            value={velocityValue}
+            onChange={(e) => onVelocityChange(e.target.value as any)}
+            className="rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            aria-label={`${kind} velocity`}
+            title={`${kind} velocity (FPM)`}
+          >
+            <option value="700">700 fpm</option>
+            <option value="800">800 fpm</option>
+            <option value="900">900 fpm</option>
+          </select>
         </div>
       </div>
 
-      <div className="mb-3">
-        <select
-          value={velocityValue}
-          onChange={(e) => onVelocityChange(e.target.value as any)}
-          className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-          aria-label={`${kind} velocity`}
-          title={`${kind} velocity (FPM)`}
-        >
-          <option value="700">700 fpm</option>
-          <option value="800">800 fpm</option>
-          <option value="900">900 fpm</option>
-        </select>
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 mb-2">
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
         <select
           value={value.shape}
           onChange={(e) => onChange({ shape: e.target.value as Shape })}
-          className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
         >
           <option value="rect">Rectangular</option>
           <option value="round">Round</option>
@@ -121,131 +122,40 @@ function DuctBlock({
         <select
           value={value.dir}
           onChange={(e) => onChange({ dir: e.target.value as Dir })}
-          className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           title="One-way = single duct. Two-way = two identical ducts (doubled area)."
         >
           <option value="one">One-way</option>
           <option value="two">Two-way</option>
         </select>
-      </div>
 
-      {value.shape === "round" ? (
-        <input
-          value={value.d}
-          onChange={(e) => onChange({ d: e.target.value })}
-          placeholder='Diameter (")'
-          inputMode="decimal"
-          className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-        />
-      ) : (
-        <div className="grid grid-cols-2 gap-2">
+        {value.shape === "round" ? (
           <input
-            value={value.w}
-            onChange={(e) => onChange({ w: e.target.value })}
-            placeholder='Width (")'
+            value={value.d}
+            onChange={(e) => onChange({ d: e.target.value })}
+            placeholder="Diameter (in)"
             inputMode="decimal"
-            className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           />
-          <input
-            value={value.h}
-            onChange={(e) => onChange({ h: e.target.value })}
-            placeholder='Height (")'
-            inputMode="decimal"
-            className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-          />
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Component for displaying runs as stacked pills
-function RunsPills({
-  runs,
-  kind,
-  velocity,
-  onAdd,
-  onRemove,
-}: {
-  runs: Run[];
-  kind: RunKind;
-  velocity: number;
-  onAdd: () => void;
-  onRemove: (id: string) => void;
-}) {
-  const filteredRuns = runs.filter((r) => r.kind === kind);
-  const totalCfm = filteredRuns.reduce((sum, r) => {
-    const area = areaIn2(r.input);
-    return sum + cfmFrom(area, velocity);
-  }, 0);
-
-  return (
-    <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
-      <div className="flex items-start justify-between gap-2 mb-3">
-        <div className="min-w-0">
-          <div className="text-sm font-semibold text-slate-900">
-            {kind === "supply" ? "Supply" : "Return"} runs
+        ) : (
+          <div className="grid grid-cols-2 gap-2">
+            <input
+              value={value.w}
+              onChange={(e) => onChange({ w: e.target.value })}
+              placeholder="Width (in)"
+              inputMode="decimal"
+              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            />
+            <input
+              value={value.h}
+              onChange={(e) => onChange({ h: e.target.value })}
+              placeholder="Height (in)"
+              inputMode="decimal"
+              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            />
           </div>
-          <div className="mt-0.5 text-xs text-slate-500">
-            {filteredRuns.length} runs • {round1(totalCfm)} CFM
-          </div>
-        </div>
-        <button
-          type="button"
-          onClick={onAdd}
-          className="shrink-0 rounded-full bg-slate-900 text-white w-7 h-7 flex items-center justify-center text-lg font-bold hover:bg-slate-800 active:scale-95 transition"
-          title="Add run"
-        >
-          +
-        </button>
+        )}
       </div>
-
-      {filteredRuns.length === 0 ? (
-        <div className="text-xs text-slate-500 text-center py-3">No runs</div>
-      ) : (
-        <div className="relative" style={{ minHeight: `${Math.max(60, filteredRuns.length * 40 + 40)}px` }}>
-          {filteredRuns.map((r, idx) => {
-            const area = areaIn2(r.input);
-            const cfm = round1(cfmFrom(area, velocity));
-            const zIndex = filteredRuns.length - idx;
-            const offset = idx * 12;
-            
-            return (
-              <div
-                key={r.id}
-                className="absolute left-0 right-0 rounded-2xl bg-slate-50 ring-1 ring-slate-200 px-3 py-2 flex items-center justify-between gap-2 shadow-sm hover:shadow-md transition-shadow cursor-pointer group"
-                style={{
-                  top: `${offset}px`,
-                  zIndex,
-                }}
-                onClick={() => {
-                  // Future: Could open an edit modal here
-                }}
-              >
-                <div className="min-w-0 text-xs">
-                  <span className="font-semibold text-slate-900">{cfm || "—"} CFM</span>
-                  <span className="text-slate-500 ml-2">
-                    {r.input.shape === "round" 
-                      ? `${r.input.d}″ ⌀` 
-                      : `${r.input.w}×${r.input.h}″`}
-                  </span>
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemove(r.id);
-                  }}
-                  className="shrink-0 opacity-0 group-hover:opacity-100 rounded-full bg-white text-slate-600 w-5 h-5 flex items-center justify-center text-xs font-bold hover:bg-slate-100 active:scale-90 transition"
-                  title="Remove"
-                >
-                  ×
-                </button>
-              </div>
-            );
-          })}
-        </div>
-      )}
     </div>
   );
 }
@@ -270,10 +180,10 @@ export default function DuctPage() {
 
   // Equipment modal
   const [equipOpen, setEquipOpen] = useState(false);
-  
-  // Quick add run modal
-  const [quickAddOpen, setQuickAddOpen] = useState(false);
-  const [quickAddKind, setQuickAddKind] = useState<RunKind>("supply");
+
+  // Mobile UX: reduce scrolling by letting users toggle between trunks and runs
+  const [mobileMode, setMobileMode] = useState<"trunks" | "runs">("trunks");
+  const [mobileTrunk, setMobileTrunk] = useState<RunKind>("return");
 
   const [quickRunShape, setQuickRunShape] = useState<Shape>("rect");
   const [quickRunDir, setQuickRunDir] = useState<Dir>("one");
@@ -285,7 +195,7 @@ export default function DuctPage() {
     quickRunShape === "round" ? num(quickRunD) > 0 : num(quickRunW) > 0 && num(quickRunH) > 0;
 
   function addQuickRun() {
-    addRun(quickAddKind, {
+    addRun(mobileTrunk, {
       shape: quickRunShape,
       dir: quickRunDir,
       w: quickRunShape === "rect" ? quickRunW : "",
@@ -296,7 +206,6 @@ export default function DuctPage() {
     setQuickRunW("");
     setQuickRunH("");
     setQuickRunD("");
-    setQuickAddOpen(false);
   }
 
 
@@ -437,159 +346,499 @@ export default function DuctPage() {
     setRuns((prev) => prev.filter((r) => r.id !== id));
   }
 
+  const TabButtons = (
+    <div className="shrink-0 flex items-center gap-2">
+      <Link
+        href="/calculator"
+        className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+        title="Go to Price"
+      >
+        Price
+      </Link>
+      <Link
+        href="/directory"
+        className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+        title="Go to Directory"
+      >
+        Directory
+      </Link>
+      <button
+        type="button"
+        onClick={resetAll}
+        className="shrink-0 rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+      >
+        Clear
+      </button>
+    </div>
+  );
+
   return (
     <div className="min-h-[100dvh] bg-slate-50 px-3 py-3 sm:px-6 sm:py-6">
-      <div className="mx-auto w-full max-w-6xl flex flex-col gap-3">
-        <AppHeader title="Ductulator" subtitle="Quick airflow + duct sizing" />
+      <div className="mx-auto w-full max-w-5xl flex flex-col gap-3">
+        <AppHeader title="Ductulator"
+        subtitle="Quick airflow + duct sizing" />
 
-        {/* Desktop: Quadrant layout with central circle */}
-        <div className="hidden lg:block">
-          <div className="relative grid grid-cols-2 gap-6 p-4">
-            {/* Top-left: Supply Trunk */}
-            <div className="pr-16 pb-8">
-              <DuctBlock
-                title="Supply trunk"
-                kind="supply"
-                value={mainSupply}
-                onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
-                velocityValue={supplyVelocityStr}
-                onVelocityChange={setSupplyVelocityStr}
-              />
+        {/* Mobile mode + trunk selector (now inline under the header, not an overlay) */}
+        <div className="lg:hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-xs text-slate-500">System CFM</div>
+              <div className="text-lg font-bold tabular-nums text-slate-900">{totals.system || "—"}</div>
             </div>
+            <button
+              type="button"
+              onClick={() => setEquipOpen(true)}
+              className="shrink-0 rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-[0.99] transition"
+            >
+              Equipment
+            </button>
+          </div>
 
-            {/* Top-right: Return Trunk */}
-            <div className="pl-16 pb-8">
-              <DuctBlock
-                title="Return trunk"
-                kind="return"
-                value={mainReturn}
-                onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
-                velocityValue={returnVelocityStr}
-                onVelocityChange={setReturnVelocityStr}
-              />
-            </div>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileMode("trunks")}
+              className={
+                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                (mobileMode === "trunks"
+                  ? "bg-slate-900 text-white ring-slate-900"
+                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
+              }
+            >
+              Trunks
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileMode("runs")}
+              className={
+                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                (mobileMode === "runs"
+                  ? "bg-slate-900 text-white ring-slate-900"
+                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
+              }
+            >
+              Runs
+            </button>
+          </div>
 
-            {/* Bottom-left: Supply Runs */}
-            <div className="pr-16 pt-8">
-              <RunsPills
-                runs={runs}
-                kind="supply"
-                velocity={num(supplyVelocityStr)}
-                onAdd={() => {
-                  setQuickAddKind("supply");
-                  setQuickAddOpen(true);
-                }}
-                onRemove={removeRun}
-              />
-            </div>
-
-            {/* Bottom-right: Return Runs */}
-            <div className="pl-16 pt-8">
-              <RunsPills
-                runs={runs}
-                kind="return"
-                velocity={num(returnVelocityStr)}
-                onAdd={() => {
-                  setQuickAddKind("return");
-                  setQuickAddOpen(true);
-                }}
-                onRemove={removeRun}
-              />
-            </div>
-
-            {/* Central Circle */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
-              <div className="w-48 h-48 rounded-full bg-white shadow-xl ring-2 ring-slate-200 flex flex-col pointer-events-auto">
-                {/* Top half: CFM display */}
-                <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
-                  <div className="text-xs text-slate-500 mb-1">System CFM</div>
-                  <div className="text-2xl font-bold tabular-nums text-slate-900">
-                    {totals.system || "—"}
-                  </div>
-                </div>
-                
-                {/* Bottom half: Equipment button */}
-                <div className="flex-1 flex items-center justify-center px-4">
-                  <button
-                    type="button"
-                    onClick={() => setEquipOpen(true)}
-                    className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition"
-                  >
-                    Equipment
-                  </button>
-                </div>
-              </div>
-            </div>
+          <div className="mt-2 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => setMobileTrunk("return")}
+              className={
+                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                (mobileTrunk === "return"
+                  ? "bg-slate-100 text-slate-900 ring-slate-200"
+                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
+              }
+            >
+              Return
+            </button>
+            <button
+              type="button"
+              onClick={() => setMobileTrunk("supply")}
+              className={
+                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
+                (mobileTrunk === "supply"
+                  ? "bg-slate-100 text-slate-900 ring-slate-200"
+                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
+              }
+            >
+              Supply
+            </button>
           </div>
         </div>
 
-        {/* Mobile/Tablet: Stacked layout with prominent circle */}
-        <div className="lg:hidden flex flex-col gap-3">
-          {/* Central Circle - prominent at top for mobile */}
-          <div className="flex justify-center">
-            <div className="w-48 h-48 rounded-full bg-white shadow-xl ring-2 ring-slate-200 flex flex-col">
-              <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
-                <div className="text-xs text-slate-500 mb-1">System CFM</div>
-                <div className="text-2xl font-bold tabular-nums text-slate-900">
-                  {totals.system || "—"}
-                </div>
-              </div>
-              <div className="flex-1 flex items-center justify-center px-4">
-                <button
-                  type="button"
-                  onClick={() => setEquipOpen(true)}
-                  className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition"
-                >
-                  Equipment
-                </button>
-              </div>
-            </div>
-          </div>
 
-          {/* Supply Trunk */}
+        {/* Desktop trunks */}
+        <div className="hidden lg:grid grid-cols-1 lg:grid-cols-2 gap-3">
           <DuctBlock
-            title="Supply trunk"
-            kind="supply"
-            value={mainSupply}
-            onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
-            velocityValue={supplyVelocityStr}
-            onVelocityChange={setSupplyVelocityStr}
-          />
-
-          {/* Return Trunk */}
-          <DuctBlock
-            title="Return trunk"
+            title="Main return trunk"
             kind="return"
             value={mainReturn}
             onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
             velocityValue={returnVelocityStr}
             onVelocityChange={setReturnVelocityStr}
           />
-
-          {/* Supply Runs */}
-          <RunsPills
-            runs={runs}
+          <DuctBlock
+            title="Main supply trunk"
             kind="supply"
-            velocity={num(supplyVelocityStr)}
-            onAdd={() => {
-              setQuickAddKind("supply");
-              setQuickAddOpen(true);
-            }}
-            onRemove={removeRun}
-          />
-
-          {/* Return Runs */}
-          <RunsPills
-            runs={runs}
-            kind="return"
-            velocity={num(returnVelocityStr)}
-            onAdd={() => {
-              setQuickAddKind("return");
-              setQuickAddOpen(true);
-            }}
-            onRemove={removeRun}
+            value={mainSupply}
+            onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
+            velocityValue={supplyVelocityStr}
+            onVelocityChange={setSupplyVelocityStr}
           />
         </div>
+
+        {/* Mobile trunks / runs (controlled by the selector above) */}
+        <div className="lg:hidden">
+          {mobileMode === "trunks" ? (
+            <div className="mt-3">
+              {mobileTrunk === "return" ? (
+                <DuctBlock
+                  title="Main return trunk"
+                  kind="return"
+                  value={mainReturn}
+                  onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
+                  velocityValue={returnVelocityStr}
+                  onVelocityChange={setReturnVelocityStr}
+                />
+              ) : (
+                <DuctBlock
+                  title="Main supply trunk"
+                  kind="supply"
+                  value={mainSupply}
+                  onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
+                  velocityValue={supplyVelocityStr}
+                  onVelocityChange={setSupplyVelocityStr}
+                />
+              )}
+            </div>
+          ) : (
+            <section className="mt-3 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
+              <div className="min-w-0">
+                <div className="text-base font-semibold text-slate-900">Branch Runs</div>
+                <div className="text-xs text-slate-500">
+                  Add room runs one side at a time — use the toggle above to switch Return / Supply.
+                </div>
+                <div className="mt-1 text-[11px] text-slate-600">
+                  Showing: <span className="font-semibold text-slate-900">{mobileTrunk === "return" ? "Return runs" : "Supply runs"}</span>
+                  {" "}• Total:{" "}
+                  <span className="font-semibold text-slate-900 tabular-nums">
+                    {mobileTrunk === "return" ? totals.runsReturnCfm || "—" : totals.runsSupplyCfm || "—"}
+                  </span>
+                  {" "}CFM
+                </div>
+              </div>
+
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-inset ring-slate-200">
+                  <div className="text-[11px] text-slate-500">Return runs total</div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-900">{totals.runsReturnCfm || "—"} CFM</div>
+                </div>
+                <div className="rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-inset ring-slate-200">
+                  <div className="text-[11px] text-slate-500">Supply runs total</div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-900">{totals.runsSupplyCfm || "—"} CFM</div>
+                </div>
+              </div>
+
+              {runs.filter((r) => r.kind === mobileTrunk).length === 0 ? (
+                <div className="mt-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-inset ring-slate-200">
+                  No runs added for this side yet.
+                </div>
+              ) : (
+                <div className="mt-3 grid gap-2">
+                  {runs.filter((r) => r.kind === mobileTrunk).map((r) => {
+                    const area = areaIn2(r.input);
+                    const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
+                    const cfm = round1(cfmFrom(area, vel));
+                    return (
+                      <details key={r.id} className="rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200">
+                        <summary className="cursor-pointer list-none px-4 py-3">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                              <div className="text-sm font-semibold text-slate-900">
+                                {r.kind === "return" ? "Return" : "Supply"} -{" "}
+                                <span className="tabular-nums">{cfm || "—"}</span> CFM
+                              </div>
+                              <div className="text-[11px] text-slate-500 tabular-nums">
+                                {round1(area) || "—"} in² - {vel} fpm
+                              </div>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                removeRun(r.id);
+                              }}
+                              className="shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-100"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </summary>
+
+                        <div className="px-4 pb-4">
+                          <div className="mt-2 grid grid-cols-1 gap-2">
+                            <select
+                              value={r.input.shape}
+                              onChange={(e) => updateRun(r.id, { shape: e.target.value as Shape })}
+                              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            >
+                              <option value="rect">Rectangular</option>
+                              <option value="round">Round</option>
+                            </select>
+
+                            <select
+                              value={r.input.dir}
+                              onChange={(e) => updateRun(r.id, { dir: e.target.value as Dir })}
+                              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                            >
+                              <option value="one">One-way</option>
+                              <option value="two">Two-way</option>
+                            </select>
+
+                            {r.input.shape === "round" ? (
+                              <input
+                                value={r.input.d}
+                                onChange={(e) => updateRun(r.id, { d: e.target.value })}
+                                placeholder="Diameter (in)"
+                                inputMode="decimal"
+                                className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                              />
+                            ) : (
+                              <div className="grid grid-cols-2 gap-2">
+                                <input
+                                  value={r.input.w}
+                                  onChange={(e) => updateRun(r.id, { w: e.target.value })}
+                                  placeholder="Width (in)"
+                                  inputMode="decimal"
+                                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                />
+                                <input
+                                  value={r.input.h}
+                                  onChange={(e) => updateRun(r.id, { h: e.target.value })}
+                                  placeholder="Height (in)"
+                                  inputMode="decimal"
+                                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </details>
+                    );
+                  })}
+                </div>
+              )}
+
+              <div className="mt-3 rounded-2xl bg-white ring-1 ring-inset ring-slate-200 p-3">
+                <div className="text-xs font-semibold text-slate-700">Quick add run (measurements)</div>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <select
+                    value={quickRunShape}
+                    onChange={(e) => {
+                      const v = e.target.value as Shape;
+                      setQuickRunShape(v);
+                      // Clear incompatible dims when switching.
+                      if (v === "round") {
+                        setQuickRunW("");
+                        setQuickRunH("");
+                      } else {
+                        setQuickRunD("");
+                      }
+                    }}
+                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  >
+                    <option value="rect">Rect</option>
+                    <option value="round">Round</option>
+                  </select>
+
+                  <select
+                    value={quickRunDir}
+                    onChange={(e) => setQuickRunDir(e.target.value as Dir)}
+                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  >
+                    <option value="one">One-way</option>
+                    <option value="two">Two-way</option>
+                  </select>
+
+                  {quickRunShape === "round" ? (
+                    <>
+                      <input
+                        inputMode="decimal"
+                        placeholder='Diameter (")'
+                        value={quickRunD}
+                        onChange={(e) => setQuickRunD(e.target.value)}
+                        className="col-span-2 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      />
+                      {mobileTrunk === "supply" && (
+                        <div className="col-span-2 flex flex-wrap gap-2 justify-center">
+                          {["4", "5", "6", "7", "8"].map((diameter) => (
+                            <button
+                              key={diameter}
+                              type="button"
+                              onClick={() => {
+                                addRun(mobileTrunk, {
+                                  shape: "round",
+                                  dir: quickRunDir,
+                                  d: diameter,
+                                });
+                                setQuickRunD("");
+                              }}
+                              className="rounded-full px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 ring-1 ring-inset ring-slate-300 active:scale-95 transition"
+                            >
+                              {diameter}&quot;
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        inputMode="decimal"
+                        placeholder='Width (")'
+                        value={quickRunW}
+                        onChange={(e) => setQuickRunW(e.target.value)}
+                        className="w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      />
+                      <input
+                        inputMode="decimal"
+                        placeholder='Height (")'
+                        value={quickRunH}
+                        onChange={(e) => setQuickRunH(e.target.value)}
+                        className="w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      />
+                    </>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={addQuickRun}
+                    disabled={!quickRunReady}
+                    className={
+                      "col-span-2 rounded-2xl px-4 py-3 text-sm font-semibold ring-1 ring-inset " +
+                      (quickRunReady
+                        ? "bg-slate-900 text-white ring-slate-900 hover:bg-slate-800 active:scale-[0.99] transition"
+                        : "bg-slate-100 text-slate-400 ring-slate-200")
+                    }
+                  >
+                    + Add {mobileTrunk === "return" ? "Return" : "Supply"} run
+                  </button>
+
+                  <div className="col-span-2 -mt-1 text-[11px] text-slate-500">
+                    Tip: enter measurements here, then fine-tune a run by expanding it above.
+                  </div>
+                </div>
+              </div>
+            </section>
+          )}
+        </div>
+
+        {/* Desktop runs */}
+        <section className="hidden lg:block rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div className="min-w-0">
+              <div className="text-base font-semibold text-slate-900">Optional runs (more precise)</div>
+              <div className="text-xs text-slate-500">
+                Add individual supplies/returns when you can measure them. These replace the trunk estimate on that side.
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => addRun("return")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+              >
+                + Return run
+              </button>
+              <button
+                type="button"
+                onClick={() => addRun("supply")}
+                className="rounded-2xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 active:scale-[0.99] transition"
+              >
+                + Supply run
+              </button>
+            </div>
+          </div>
+
+          {runs.length === 0 ? (
+            <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-inset ring-slate-200">
+              No runs added.
+            </div>
+          ) : (
+            <div className="mt-4 grid gap-2">
+              {runs.map((r) => {
+                const area = areaIn2(r.input);
+                const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
+                const cfm = round1(cfmFrom(area, vel));
+                return (
+                  <div key={r.id} className="rounded-2xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-200">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-sm font-semibold text-slate-900">
+                          {r.kind === "return" ? "Return run" : "Supply run"} • CFM{" "}
+                          <span className="tabular-nums">{cfm || "—"}</span>
+                        </div>
+                        <div className="text-[11px] text-slate-500">
+                          Area: {round1(area) || "—"} in² • Velocity: {vel} fpm
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeRun(r.id)}
+                        className="rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-100"
+                      >
+                        Remove
+                      </button>
+                    </div>
+
+                    <div className="mt-3 grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      <select
+                        value={r.input.shape}
+                        onChange={(e) => updateRun(r.id, { shape: e.target.value as Shape })}
+                        className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      >
+                        <option value="rect">Rectangular</option>
+                        <option value="round">Round</option>
+                      </select>
+
+                      <select
+                        value={r.input.dir}
+                        onChange={(e) => updateRun(r.id, { dir: e.target.value as Dir })}
+                        className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      >
+                        <option value="one">One-way</option>
+                        <option value="two">Two-way</option>
+                      </select>
+
+                      {r.input.shape === "round" ? (
+                        <input
+                          value={r.input.d}
+                          onChange={(e) => updateRun(r.id, { d: e.target.value })}
+                          placeholder="Diameter (in)"
+                          inputMode="decimal"
+                          className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        />
+                      ) : (
+                        <div className="grid grid-cols-2 gap-2">
+                          <input
+                            value={r.input.w}
+                            onChange={(e) => updateRun(r.id, { w: e.target.value })}
+                            placeholder="Width (in)"
+                            inputMode="decimal"
+                            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          />
+                          <input
+                            value={r.input.h}
+                            onChange={(e) => updateRun(r.id, { h: e.target.value })}
+                            placeholder="Height (in)"
+                            inputMode="decimal"
+                            className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+              <div className="text-xs text-slate-500">Runs return total</div>
+              <div className="text-base font-semibold tabular-nums text-slate-900">{totals.runsReturnCfm || 0}</div>
+            </div>
+            <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
+              <div className="text-xs text-slate-500">Runs supply total</div>
+              <div className="text-base font-semibold tabular-nums text-slate-900">{totals.runsSupplyCfm || 0}</div>
+            </div>
+          </div>
+        </section>
 
         <footer className="text-center text-[11px] text-slate-400">
           Rule-of-thumb sizing is only an estimate. Always verify static pressure and system design.
@@ -715,126 +964,6 @@ export default function DuctPage() {
                 className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800"
               >
                 Done
-              </button>
-            </div>
-          </div>
-        </div>
-      ) : null}
-
-      {/* Quick Add Run Modal */}
-      {quickAddOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-3">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setQuickAddOpen(false)} />
-          <div className="relative w-full max-w-md rounded-3xl bg-white shadow-xl ring-1 ring-slate-200 p-4 sm:p-6">
-            <div className="flex items-start justify-between gap-3 mb-4">
-              <div className="min-w-0">
-                <div className="text-base font-semibold text-slate-900">
-                  Add {quickAddKind === "supply" ? "Supply" : "Return"} Run
-                </div>
-                <div className="text-xs text-slate-500">
-                  Enter duct measurements
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setQuickAddOpen(false)}
-                className="rounded-2xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                Cancel
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2">
-              <select
-                value={quickRunShape}
-                onChange={(e) => {
-                  const v = e.target.value as Shape;
-                  setQuickRunShape(v);
-                  if (v === "round") {
-                    setQuickRunW("");
-                    setQuickRunH("");
-                  } else {
-                    setQuickRunD("");
-                  }
-                }}
-                className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              >
-                <option value="rect">Rectangular</option>
-                <option value="round">Round</option>
-              </select>
-
-              <select
-                value={quickRunDir}
-                onChange={(e) => setQuickRunDir(e.target.value as Dir)}
-                className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              >
-                <option value="one">One-way</option>
-                <option value="two">Two-way</option>
-              </select>
-
-              {quickRunShape === "round" ? (
-                <>
-                  <input
-                    inputMode="decimal"
-                    placeholder='Diameter (")'
-                    value={quickRunD}
-                    onChange={(e) => setQuickRunD(e.target.value)}
-                    className="col-span-2 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  />
-                  {quickAddKind === "supply" && (
-                    <div className="col-span-2 flex flex-wrap gap-2 justify-center mt-2">
-                      {["4", "5", "6", "7", "8"].map((diameter) => (
-                        <button
-                          key={diameter}
-                          type="button"
-                          onClick={() => {
-                            addRun(quickAddKind, {
-                              shape: "round",
-                              dir: quickRunDir,
-                              d: diameter,
-                            });
-                            setQuickRunD("");
-                            setQuickAddOpen(false);
-                          }}
-                          className="rounded-full px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 ring-1 ring-inset ring-slate-300 active:scale-95 transition"
-                        >
-                          {diameter}&quot;
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <>
-                  <input
-                    inputMode="decimal"
-                    placeholder='Width (")'
-                    value={quickRunW}
-                    onChange={(e) => setQuickRunW(e.target.value)}
-                    className="w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  />
-                  <input
-                    inputMode="decimal"
-                    placeholder='Height (")'
-                    value={quickRunH}
-                    onChange={(e) => setQuickRunH(e.target.value)}
-                    className="w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  />
-                </>
-              )}
-
-              <button
-                type="button"
-                onClick={addQuickRun}
-                disabled={!quickRunReady}
-                className={
-                  "col-span-2 mt-2 rounded-2xl px-4 py-3 text-sm font-semibold ring-1 ring-inset " +
-                  (quickRunReady
-                    ? "bg-slate-900 text-white ring-slate-900 hover:bg-slate-800 active:scale-[0.99] transition"
-                    : "bg-slate-100 text-slate-400 ring-slate-200 cursor-not-allowed")
-                }
-              >
-                Add Run
               </button>
             </div>
           </div>
