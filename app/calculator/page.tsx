@@ -214,9 +214,8 @@ export default function CalculatorPage() {
 
               <div className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-3 py-3 ring-1 ring-inset ring-slate-200">
                 <div>
-                  <div className="text-sm font-semibold text-slate-900">Tax included</div>
-                  <div className="text-xs text-slate-600">
-                    {taxIncluded ? "Using material as-entered" : "Will add tax to material"}
+                  <div className="text-xs font-semibold text-slate-900">
+                    {taxIncluded ? "Tax included" : "Tax not included"}
                   </div>
                 </div>
                 <button
