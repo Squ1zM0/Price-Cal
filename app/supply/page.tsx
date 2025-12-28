@@ -201,6 +201,22 @@ export default function SupplyPage() {
   const [trade, setTrade] = useState<"all" | "hvac" | "plumbing" | "electrical" | "filter">("all");
   const [showDetails, setShowDetails] = useState(false);
   const [driveTimes, setDriveTimes] = useState<Record<string, { min: number; ts: number }>>({});
+  
+  // Modal state for Google Maps preview
+  const [mapModalBranch, setMapModalBranch] = useState<Branch | null>(null);
+  // Store the user's position at the time the modal is opened to prevent constant refreshing
+  const [mapModalOrigin, setMapModalOrigin] = useState<{ lat: number; lon: number } | null>(null);
+
+  // Handle Escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && mapModalBranch) {
+        setMapModalBranch(null);
+      }
+    };
+    window.addEventListener("keydown", handleEscape);
+    return () => window.removeEventListener("keydown", handleEscape);
+  }, [mapModalBranch]);
 
   useEffect(() => {
     if (typeof navigator === "undefined" || !navigator.geolocation) return;
@@ -444,6 +460,107 @@ const sorted = useMemo(() => {
     <main className="max-w-3xl mx-auto p-4 space-y-4 min-h-[100dvh] bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
       <AppHeader title="Supply Houses" subtitle="Find the closest branch" />
 
+      {/* Google Maps Preview Modal */}
+      {mapModalBranch && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70 backdrop-blur-sm"
+          onClick={() => setMapModalBranch(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="modal-title"
+        >
+          <div
+            className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-6"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button
+              onClick={() => setMapModalBranch(null)}
+              className="absolute top-4 right-4 rounded-full bg-slate-100 dark:bg-slate-700 p-2 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              aria-label="Close modal"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor" className="w-6 h-6">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            {/* Modal Title */}
+            <h2 id="modal-title" className="text-2xl font-black text-slate-900 dark:text-white mb-2 pr-12">
+              {mapModalBranch.name || "Directions Preview"}
+            </h2>
+            
+            {/* Address */}
+            <p className="text-sm text-slate-700 dark:text-slate-300 mb-4">
+              {formatAddress(mapModalBranch)}
+            </p>
+
+            {/* Action Buttons */}
+            <div className="flex flex-wrap gap-2 mb-4">
+              <a
+                href={(() => {
+                  const addr = formatAddress(mapModalBranch);
+                  // Always use address for routing (not coordinates)
+                  // Note: api=1 format is for opening links in Google Maps, not for embedding
+                  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addr)}&travelmode=driving`;
+                })()}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                </svg>
+                Open in Google Maps
+              </a>
+
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(formatAddress(mapModalBranch));
+                  } catch (err) {
+                    // Fallback or silent fail - clipboard API might be restricted
+                    console.warn("Failed to copy address:", err);
+                  }
+                }}
+                className="inline-flex items-center justify-center gap-2 rounded-2xl bg-white dark:bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-white ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184" />
+                </svg>
+                Copy Address
+              </button>
+            </div>
+
+            {/* Google Maps Route Preview Embed */}
+            <div className="rounded-2xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-600 shadow-lg">
+              <iframe
+                title={`Route to ${mapModalBranch.name}`}
+                src={(() => {
+                  const addr = formatAddress(mapModalBranch);
+                  // Show route preview using Google Maps embed
+                  // Use the captured position from when modal was opened (not live position)
+                  if (mapModalOrigin && Number.isFinite(mapModalOrigin.lat) && Number.isFinite(mapModalOrigin.lon)) {
+                    // Use saddr (source address) and daddr (destination address) for directions embed
+                    // Format: lat,lng doesn't need encoding (it's just numbers and a comma)
+                    const origin = `${mapModalOrigin.lat},${mapModalOrigin.lon}`;
+                    return `https://www.google.com/maps?saddr=${origin}&daddr=${encodeURIComponent(addr)}&output=embed`;
+                  }
+                  // Fallback: show the destination location
+                  return `https://www.google.com/maps?q=${encodeURIComponent(addr)}&output=embed`;
+                })()}
+                width="100%"
+                height="400"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+
       <section className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 sm:p-5 space-y-3 transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div className="flex-1">
@@ -552,8 +669,35 @@ const sorted = useMemo(() => {
               </div>
 
               <div className="mt-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
-                {b.address1}
-                {b.address2 ? `, ${b.address2}` : ""}, {b.city}, {b.state} {b.zip}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMapModalBranch(b);
+                    // Capture the current position when opening the modal to prevent constant refreshing
+                    setMapModalOrigin(
+                      pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)
+                        ? { lat: pos.lat, lon: pos.lon }
+                        : null
+                    );
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setMapModalBranch(b);
+                      // Capture the current position when opening the modal
+                      setMapModalOrigin(
+                        pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)
+                          ? { lat: pos.lat, lon: pos.lon }
+                          : null
+                      );
+                    }
+                  }}
+                  className="text-left cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 hover:underline focus:outline-none focus:underline focus:text-blue-600 dark:focus:text-blue-400 transition-colors duration-200"
+                  aria-label={`View map for ${b.name}`}
+                >
+                  {b.address1}
+                  {b.address2 ? `, ${b.address2}` : ""}, {b.city}, {b.state} {b.zip}
+                </button>
               </div>
 
               <div className="mt-3 flex flex-wrap gap-2">
