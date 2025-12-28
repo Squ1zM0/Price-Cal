@@ -189,7 +189,7 @@ export default function CalculatorPage() {
             {/* Controls */}
             <section className="min-h-0 rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 sm:p-5 flex flex-col gap-4 transition-all duration-300">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Material input + Tax toggle (stacked in left column on desktop) */}
+                {/* Material input + Tax toggle + Tax rate (stacked in left column on desktop) */}
                 <div className="flex flex-col gap-3">
                   <div>
                     <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Material Cost</label>
@@ -225,6 +225,24 @@ export default function CalculatorPage() {
                       />
                     </button>
                   </div>
+
+                  {!taxIncluded ? (
+                    <div className="flex flex-col gap-2">
+                      <div>
+                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Tax Rate (%)</label>
+                        <input
+                          value={taxRateStr}
+                          onChange={(e) => setTaxRateStr(e.target.value)}
+                          inputMode="decimal"
+                          placeholder="8.0"
+                          className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
+                        />
+                      </div>
+                      <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Material w/ tax: <span className="font-semibold text-slate-900 dark:text-white">{moneyFmt.format(breakdown.matWithTax)}</span>
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
 
                 {/* Hours input (right column on desktop) */}
@@ -239,24 +257,6 @@ export default function CalculatorPage() {
                   />
                 </div>
               </div>
-
-              {!taxIncluded ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Tax Rate (%)</label>
-                    <input
-                      value={taxRateStr}
-                      onChange={(e) => setTaxRateStr(e.target.value)}
-                      inputMode="decimal"
-                      placeholder="8.0"
-                      className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
-                    />
-                  </div>
-                  <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Material w/ tax: <span className="font-semibold text-slate-900 dark:text-white">{moneyFmt.format(breakdown.matWithTax)}</span>
-                  </div>
-                </div>
-              ) : null}
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
