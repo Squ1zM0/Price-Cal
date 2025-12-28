@@ -84,6 +84,8 @@ export default function CalculatorPage() {
   const [taxIncluded, setTaxIncluded] = useSessionStorage("calculator:taxIncluded", true);
   const [taxRateStr, setTaxRateStr] = useSessionStorage("calculator:taxRateStr", "8.0");
 
+  const [warrantyIncluded, setWarrantyIncluded] = useSessionStorage("calculator:warrantyIncluded", true);
+
   const [wigglePct, setWigglePct] = useSessionStorage<number | null>("calculator:wigglePct", null);
   const [copied, setCopied] = useState(false);
 
@@ -98,10 +100,10 @@ export default function CalculatorPage() {
     const labor = hours * hourlyRate;
     const beforeOverhead = matWithTax + labor;
     const afterOverhead = beforeOverhead / 0.65;
-    const afterWarranty = afterOverhead * 1.05;
+    const afterWarranty = warrantyIncluded ? afterOverhead * 1.05 : afterOverhead;
     const afterOffset = afterWarranty * 1.1;
     return roundCents(afterOffset);
-  }, [material, taxIncluded, taxRate, hours, hourlyRate]);
+  }, [material, taxIncluded, taxRate, hours, hourlyRate, warrantyIncluded]);
 
   const final = useMemo(() => {
     if (wigglePct == null) return base;
@@ -113,7 +115,7 @@ export default function CalculatorPage() {
     const labor = hours * hourlyRate;
     const beforeOverhead = matWithTax + labor;
     const afterOverhead = beforeOverhead / 0.65;
-    const afterWarranty = afterOverhead * 1.05;
+    const afterWarranty = warrantyIncluded ? afterOverhead * 1.05 : afterOverhead;
     const afterOffset = afterWarranty * 1.1;
     return {
       matWithTax: roundCents(matWithTax),
@@ -123,7 +125,7 @@ export default function CalculatorPage() {
       afterWarranty: roundCents(afterWarranty),
       afterOffset: roundCents(afterOffset),
     };
-  }, [material, taxIncluded, taxRate, hours, hourlyRate]);
+  }, [material, taxIncluded, taxRate, hours, hourlyRate, warrantyIncluded]);
 
   function copyFinalPrice() {
     const txt = moneyFmt.format(final);
@@ -165,6 +167,7 @@ export default function CalculatorPage() {
     setCrew("x1");
     setTaxIncluded(true);
     setTaxRateStr("8.0");
+    setWarrantyIncluded(true);
     setWigglePct(null);
   }
 
@@ -221,6 +224,30 @@ export default function CalculatorPage() {
                         className={[
                           "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
                           taxIncluded ? "translate-x-6" : "translate-x-0",
+                        ].join(" ")}
+                      />
+                    </button>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
+                    <div>
+                      <div className="text-xs font-bold text-slate-900 dark:text-white">
+                        {warrantyIncluded ? "Warranty applied" : "No warranty"}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setWarrantyIncluded((v) => !v)}
+                      className={[
+                        "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
+                        warrantyIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
+                      ].join(" ")}
+                      aria-pressed={warrantyIncluded}
+                    >
+                      <div
+                        className={[
+                          "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
+                          warrantyIncluded ? "translate-x-6" : "translate-x-0",
                         ].join(" ")}
                       />
                     </button>
@@ -391,7 +418,7 @@ export default function CalculatorPage() {
                 <div className="h-px bg-slate-300 dark:bg-slate-600 my-1" />
                 <StatRow label="Subtotal" value={moneyFmt.format(breakdown.beforeOverhead)} />
                 <StatRow label="After overhead (/0.65)" value={moneyFmt.format(breakdown.afterOverhead)} />
-                <StatRow label="After warranty (×1.05)" value={moneyFmt.format(breakdown.afterWarranty)} />
+                {warrantyIncluded && <StatRow label="After warranty (×1.05)" value={moneyFmt.format(breakdown.afterWarranty)} />}
                 <StatRow label="After offset (×1.10)" value={moneyFmt.format(breakdown.afterOffset)} />
               </div>
 
@@ -427,7 +454,7 @@ export default function CalculatorPage() {
               </div>
 
               <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                Formula: (Material + Tax) + (Hours × Rate) ÷ 0.65 × 1.05 × 1.10
+                Formula: (Material + Tax) + (Hours × Rate) ÷ 0.65{warrantyIncluded ? " × 1.05" : ""} × 1.10
               </div>
             </section>
           </div>
