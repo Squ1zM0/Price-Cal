@@ -532,78 +532,102 @@ export default function DuctPage() {
           </div>
         </div>
 
-        {/* Mobile/Tablet: Stacked layout with prominent circle */}
-        <div className="lg:hidden flex flex-col gap-3">
-          {/* Central Circle - prominent at top for mobile */}
-          <div className="flex justify-center mb-2">
-            <div 
-              className="rounded-full bg-white shadow-xl ring-2 ring-slate-300 flex flex-col"
-              style={{ 
-                width: 'min(40vw, 10rem)',
-                height: 'min(40vw, 10rem)'
-              }}
-            >
-              <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
-                <div className="text-xs text-slate-500 mb-1">System CFM</div>
-                <div className="text-2xl font-bold tabular-nums text-slate-900">
-                  {totals.system || "—"}
+        {/* Mobile/Tablet: Stacked layout with clear hierarchy */}
+        <div className="lg:hidden flex flex-col gap-4">
+          {/* System-level Section - Visual anchor */}
+          <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-3xl p-4 shadow-sm">
+            <div className="flex justify-center">
+              <div 
+                className="rounded-full bg-white shadow-xl ring-2 ring-slate-300 flex flex-col"
+                style={{ 
+                  width: 'min(40vw, 10rem)',
+                  height: 'min(40vw, 10rem)'
+                }}
+              >
+                <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
+                  <div className="text-xs text-slate-500 mb-1">System CFM</div>
+                  <div className="text-2xl font-bold tabular-nums text-slate-900">
+                    {totals.system || "—"}
+                  </div>
                 </div>
-              </div>
-              <div className="flex-1 flex items-center justify-center px-4">
-                <button
-                  type="button"
-                  onClick={() => setEquipOpen(true)}
-                  className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition"
-                >
-                  Equipment
-                </button>
+                <div className="flex-1 flex items-center justify-center px-4">
+                  <button
+                    type="button"
+                    onClick={() => setEquipOpen(true)}
+                    className="rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-slate-800 active:scale-95 transition"
+                  >
+                    Equipment
+                  </button>
+                </div>
               </div>
             </div>
           </div>
 
-          {/* Supply Trunk */}
-          <DuctBlock
-            title="Supply trunk"
-            kind="supply"
-            value={mainSupply}
-            onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
-            velocityValue={supplyVelocityStr}
-            onVelocityChange={setSupplyVelocityStr}
-          />
+          {/* Trunk Section - Grouped with visual separation */}
+          <div className="space-y-3">
+            <div className="px-2">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Trunk Ducts</h3>
+            </div>
+            
+            {/* Supply Trunk - Card with visual identity */}
+            <div className="rounded-3xl bg-white shadow-md ring-1 ring-slate-200 p-4">
+              <DuctBlock
+                title="Supply trunk"
+                kind="supply"
+                value={mainSupply}
+                onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
+                velocityValue={supplyVelocityStr}
+                onVelocityChange={setSupplyVelocityStr}
+              />
+            </div>
 
-          {/* Return Trunk */}
-          <DuctBlock
-            title="Return trunk"
-            kind="return"
-            value={mainReturn}
-            onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
-            velocityValue={returnVelocityStr}
-            onVelocityChange={setReturnVelocityStr}
-          />
+            {/* Return Trunk - Card with visual identity */}
+            <div className="rounded-3xl bg-white shadow-md ring-1 ring-slate-200 p-4">
+              <DuctBlock
+                title="Return trunk"
+                kind="return"
+                value={mainReturn}
+                onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
+                velocityValue={returnVelocityStr}
+                onVelocityChange={setReturnVelocityStr}
+              />
+            </div>
+          </div>
 
-          {/* Supply Runs */}
-          <RunsPills
-            runs={runs}
-            kind="supply"
-            velocity={num(supplyVelocityStr)}
-            onAdd={() => {
-              setQuickAddKind("supply");
-              setQuickAddOpen(true);
-            }}
-            onRemove={removeRun}
-          />
+          {/* Runs Section - Grouped with visual separation */}
+          <div className="space-y-3">
+            <div className="px-2">
+              <h3 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Duct Runs</h3>
+            </div>
+            
+            {/* Supply Runs - Card with visual identity */}
+            <div className="rounded-3xl bg-white shadow-md ring-1 ring-slate-200 p-4">
+              <RunsPills
+                runs={runs}
+                kind="supply"
+                velocity={num(supplyVelocityStr)}
+                onAdd={() => {
+                  setQuickAddKind("supply");
+                  setQuickAddOpen(true);
+                }}
+                onRemove={removeRun}
+              />
+            </div>
 
-          {/* Return Runs */}
-          <RunsPills
-            runs={runs}
-            kind="return"
-            velocity={num(returnVelocityStr)}
-            onAdd={() => {
-              setQuickAddKind("return");
-              setQuickAddOpen(true);
-            }}
-            onRemove={removeRun}
-          />
+            {/* Return Runs - Card with visual identity */}
+            <div className="rounded-3xl bg-white shadow-md ring-1 ring-slate-200 p-4">
+              <RunsPills
+                runs={runs}
+                kind="return"
+                velocity={num(returnVelocityStr)}
+                onAdd={() => {
+                  setQuickAddKind("return");
+                  setQuickAddOpen(true);
+                }}
+                onRemove={removeRun}
+              />
+            </div>
+          </div>
         </div>
 
         <footer className="text-center text-[11px] text-slate-400">
