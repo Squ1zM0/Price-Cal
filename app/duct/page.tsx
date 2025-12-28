@@ -928,31 +928,29 @@ export default function DuctPage() {
                                   zIndex: groupRuns.length - index,
                                 }}
                               >
-                                {index === groupRuns.length - 1 && (
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold text-slate-900">
-                                      {label}
+                                <div className="flex items-center gap-2" style={{ visibility: index === groupRuns.length - 1 ? 'visible' : 'hidden' }}>
+                                  <span className="text-sm font-semibold text-slate-900">
+                                    {label}
+                                  </span>
+                                  {groupRuns.length > 1 && (
+                                    <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                      ×{groupRuns.length}
                                     </span>
-                                    {groupRuns.length > 1 && (
-                                      <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
-                                        ×{groupRuns.length}
-                                      </span>
-                                    )}
-                                    <span className="text-xs text-slate-600">
-                                      {round1(totalCfm)} CFM
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        groupRuns.forEach((r) => removeRun(r.id));
-                                      }}
-                                      className="ml-1 text-slate-500 hover:text-slate-700"
-                                      title="Remove all"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                )}
+                                  )}
+                                  <span className="text-xs text-slate-600">
+                                    {round1(totalCfm)} CFM
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      groupRuns.forEach((r) => removeRun(r.id));
+                                    }}
+                                    className="ml-1 text-slate-500 hover:text-slate-700"
+                                    title="Remove all"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>
@@ -990,31 +988,29 @@ export default function DuctPage() {
                                   zIndex: groupRuns.length - index,
                                 }}
                               >
-                                {index === groupRuns.length - 1 && (
-                                  <div className="flex items-center gap-2">
-                                    <span className="text-sm font-semibold text-slate-900">
-                                      {label}
+                                <div className="flex items-center gap-2" style={{ visibility: index === groupRuns.length - 1 ? 'visible' : 'hidden' }}>
+                                  <span className="text-sm font-semibold text-slate-900">
+                                    {label}
+                                  </span>
+                                  {groupRuns.length > 1 && (
+                                    <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                      ×{groupRuns.length}
                                     </span>
-                                    {groupRuns.length > 1 && (
-                                      <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
-                                        ×{groupRuns.length}
-                                      </span>
-                                    )}
-                                    <span className="text-xs text-slate-600">
-                                      {round1(totalCfm)} CFM
-                                    </span>
-                                    <button
-                                      type="button"
-                                      onClick={() => {
-                                        groupRuns.forEach((r) => removeRun(r.id));
-                                      }}
-                                      className="ml-1 text-slate-500 hover:text-slate-700"
-                                      title="Remove all"
-                                    >
-                                      ✕
-                                    </button>
-                                  </div>
-                                )}
+                                  )}
+                                  <span className="text-xs text-slate-600">
+                                    {round1(totalCfm)} CFM
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      groupRuns.forEach((r) => removeRun(r.id));
+                                    }}
+                                    className="ml-1 text-slate-500 hover:text-slate-700"
+                                    title="Remove all"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
                               </div>
                             ))}
                           </div>
