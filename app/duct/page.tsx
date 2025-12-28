@@ -565,13 +565,36 @@ export default function DuctPage() {
                   </select>
 
                   {quickRunShape === "round" ? (
-                    <input
-                      inputMode="decimal"
-                      placeholder='Diameter (")'
-                      value={quickRunD}
-                      onChange={(e) => setQuickRunD(e.target.value)}
-                      className="col-span-2 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                    />
+                    <>
+                      <input
+                        inputMode="decimal"
+                        placeholder='Diameter (")'
+                        value={quickRunD}
+                        onChange={(e) => setQuickRunD(e.target.value)}
+                        className="col-span-2 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                      />
+                      {mobileTrunk === "supply" && (
+                        <div className="col-span-2 flex flex-wrap gap-2 justify-center">
+                          {["4", "5", "6", "7", "8"].map((diameter) => (
+                            <button
+                              key={diameter}
+                              type="button"
+                              onClick={() => {
+                                addRun(mobileTrunk, {
+                                  shape: "round",
+                                  dir: quickRunDir,
+                                  d: diameter,
+                                });
+                                setQuickRunD("");
+                              }}
+                              className="rounded-full px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 ring-1 ring-inset ring-slate-300 active:scale-95 transition"
+                            >
+                              {diameter}&quot;
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
                   ) : (
                     <>
                       <input
