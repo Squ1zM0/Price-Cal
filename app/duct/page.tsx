@@ -114,7 +114,7 @@ function DuctBlock({
           onChange={(e) => onChange({ shape: e.target.value as Shape })}
           className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
         >
-          <option value="rect">Rect</option>
+          <option value="rect">Rectangular</option>
           <option value="round">Round</option>
         </select>
 
@@ -124,8 +124,8 @@ function DuctBlock({
           className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           title="One-way = single duct. Two-way = two identical ducts (doubled area)."
         >
-          <option value="one">1-way</option>
-          <option value="two">2-way</option>
+          <option value="one">One-way</option>
+          <option value="two">Two-way</option>
         </select>
       </div>
 
@@ -133,7 +133,7 @@ function DuctBlock({
         <input
           value={value.d}
           onChange={(e) => onChange({ d: e.target.value })}
-          placeholder="Diameter (in)"
+          placeholder='Diameter (")'
           inputMode="decimal"
           className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
         />
@@ -142,14 +142,14 @@ function DuctBlock({
           <input
             value={value.w}
             onChange={(e) => onChange({ w: e.target.value })}
-            placeholder="Width"
+            placeholder='Width (")'
             inputMode="decimal"
             className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           />
           <input
             value={value.h}
             onChange={(e) => onChange({ h: e.target.value })}
-            placeholder="Height"
+            placeholder='Height (")'
             inputMode="decimal"
             className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           />
@@ -219,8 +219,7 @@ function RunsPills({
                   zIndex,
                 }}
                 onClick={() => {
-                  // Toggle details on click - for now just show in console
-                  console.log('Run details:', r);
+                  // Future: Could open an edit modal here
                 }}
               >
                 <div className="min-w-0 text-xs">
