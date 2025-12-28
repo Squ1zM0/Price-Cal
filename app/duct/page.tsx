@@ -135,7 +135,7 @@ function DuctBlock({
           onChange={(e) => onChange({ d: e.target.value })}
           placeholder='Diameter (")'
           inputMode="decimal"
-          className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+          className="w-full rounded-2xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
         />
       ) : (
         <div className="grid grid-cols-2 gap-2">
@@ -144,14 +144,14 @@ function DuctBlock({
             onChange={(e) => onChange({ w: e.target.value })}
             placeholder='Width (")'
             inputMode="decimal"
-            className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full rounded-2xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           />
           <input
             value={value.h}
             onChange={(e) => onChange({ h: e.target.value })}
             placeholder='Height (")'
             inputMode="decimal"
-            className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            className="w-full rounded-2xl bg-slate-50 px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
           />
         </div>
       )}
