@@ -131,7 +131,7 @@ async function fetchJsonWithFallback<T>(rel: string): Promise<{ data: T; url: st
 function Chip({ children }: { children: React.ReactNode }) {
 
 return (
-    <span className="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
+    <span className="inline-flex items-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-300 ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm">
       {children}
     </span>
   );
@@ -441,27 +441,27 @@ const sorted = useMemo(() => {
 
 
   return (
-    <main className="max-w-3xl mx-auto p-4 space-y-4">
+    <main className="max-w-3xl mx-auto p-4 space-y-4 min-h-[100dvh] bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
       <AppHeader title="Supply Houses" subtitle="Find the closest branch" />
 
-      <section className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5 space-y-3">
+      <section className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 sm:p-5 space-y-3 transition-all duration-300">
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
           <div className="flex-1">
-            <label className="block text-sm font-semibold text-slate-800 mb-1">Search</label>
+            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Search</label>
             <input
               value={q}
               onChange={(e) => setQ(e.target.value)}
               placeholder='Try "Johnstone", "Trane", "Denver", "parts"...'
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base outline-none focus:ring-2 focus:ring-slate-900/20"
+              className="w-full rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-3 text-base text-slate-900 dark:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:border-blue-300 dark:hover:border-blue-500"
             />
           </div>
 
           <div className="w-full sm:w-56">
-            <label className="block text-sm font-semibold text-slate-800 mb-1">Trade</label>
+            <label className="block text-sm font-bold text-slate-800 dark:text-slate-200 mb-1">Trade</label>
             <select
               value={trade}
               onChange={(e) => setTrade(e.target.value as "all" | "hvac" | "plumbing" | "electrical" | "filter")}
-              className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-base text-slate-900 outline-none focus:ring-2 focus:ring-slate-900/20"
+              className="w-full rounded-2xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-3 text-base text-slate-900 dark:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
             >
               <option value="all">All</option>
               <option value="hvac">HVAC</option>
@@ -475,22 +475,22 @@ const sorted = useMemo(() => {
             <button
               type="button"
               onClick={() => setQ("")}
-              className="rounded-2xl bg-slate-100 px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-200"
+              className="rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white shadow-sm hover:shadow-md ring-1 ring-slate-200 dark:ring-slate-600 transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
             >
               Clear
             </button>
             <button
               type="button"
               onClick={() => setShowDetails((v) => !v)}
-              className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
+              className="rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 px-4 py-3 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
             >
               {showDetails ? "Hide" : "Details"}
             </button>
           </div>
         </div>
 
-        {err ? <div className="text-red-600 font-semibold">{err}</div> : null}
-        {loading ? <div className="text-slate-600">Loading…</div> : null}
+        {err ? <div className="text-red-600 dark:text-red-400 font-semibold">{err}</div> : null}
+        {loading ? <div className="text-slate-600 dark:text-slate-400">Loading…</div> : null}
 
         
         <div className="flex flex-wrap items-center gap-2 text-sm">
@@ -508,7 +508,7 @@ const sorted = useMemo(() => {
         </div>
 
         {showDetails && debug ? (
-          <div className="text-xs text-slate-500 break-words">{debug}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400 break-words">{debug}</div>
         ) : null}
       </section>
 
@@ -531,19 +531,19 @@ const sorted = useMemo(() => {
               })();
 
           return (
-            <div key={b.id} className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
+            <div key={b.id} className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 sm:p-5 transition-all duration-300">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <div className="text-lg font-black text-slate-900 truncate">{b.name}</div>
-                  <div className="text-sm font-semibold text-slate-600">{b.chain}</div>
+                  <div className="text-lg font-black text-slate-900 dark:text-white truncate">{b.name}</div>
+                  <div className="text-sm font-semibold text-slate-600 dark:text-slate-400">{b.chain}</div>
                 </div>
                 {pos ? (
                   <div className="shrink-0 flex items-center gap-2">
-                    <div className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+                    <div className="rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 px-3 py-1 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
                       {dist != null ? `${dist.toFixed(1)} mi` : 'N/A'}
                     </div>
                     {driveTimes[b.id]?.min ? (
-                      <div className="rounded-full bg-slate-100 px-3 py-1 text-sm font-semibold text-slate-700">
+                      <div className="rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 px-3 py-1 text-sm font-semibold text-slate-700 dark:text-slate-300 shadow-sm">
                         {driveTimes[b.id].min} min
                       </div>
                     ) : null}
@@ -551,7 +551,7 @@ const sorted = useMemo(() => {
                 ) : null}
               </div>
 
-              <div className="mt-2 text-sm text-slate-700">
+              <div className="mt-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">
                 {b.address1}
                 {b.address2 ? `, ${b.address2}` : ""}, {b.city}, {b.state} {b.zip}
               </div>
@@ -559,8 +559,11 @@ const sorted = useMemo(() => {
               <div className="mt-3 flex flex-wrap gap-2">
                 <a
                   href={`tel:${b.phone}`}
-                  className="inline-flex items-center justify-center rounded-2xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 px-4 py-2 text-sm font-semibold text-white shadow-md hover:shadow-lg transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                  </svg>
                   Call
                 </a>
 
@@ -568,8 +571,12 @@ const sorted = useMemo(() => {
                   href={mapsUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-200"
+                  className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-white dark:bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-white ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10.5a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1115 0z" />
+                  </svg>
                   Directions
                 </a>
 
@@ -578,8 +585,11 @@ const sorted = useMemo(() => {
                     href={b.website}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center justify-center rounded-2xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-200"
+                    className="inline-flex items-center justify-center gap-1.5 rounded-2xl bg-white dark:bg-slate-700 px-4 py-2 text-sm font-semibold text-slate-900 dark:text-white ring-1 ring-slate-200 dark:ring-slate-600 shadow-sm hover:shadow-md transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
                   >
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="w-4 h-4">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9.004 9.004 0 008.716-6.747M12 21a9.004 9.004 0 01-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 017.843 4.582M12 3a8.997 8.997 0 00-7.843 4.582m15.686 0A11.953 11.953 0 0112 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0121 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0112 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 013 12c0-1.605.42-3.113 1.157-4.418" />
+                    </svg>
                     Website
                   </a>
                 ) : null}
@@ -588,7 +598,7 @@ const sorted = useMemo(() => {
               {(b.brandsRep?.length || b.partsFor?.length) ? (
                 <div className="mt-3 space-y-1">
                   {b.brandsRep?.length ? (
-                    <div className="text-xs text-slate-600">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                       <span className="font-semibold">Brands:</span>{" "}
                       {b.brandsRep.slice(0, 14).join(", ")}
                       {b.brandsRep.length > 14 ? "…" : ""}
@@ -596,7 +606,7 @@ const sorted = useMemo(() => {
                   ) : null}
 
                   {b.partsFor?.length ? (
-                    <div className="text-xs text-slate-600">
+                    <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
                       <span className="font-semibold">Parts for:</span>{" "}
                       {b.partsFor.slice(0, 14).join(", ")}
                       {b.partsFor.length > 14 ? "…" : ""}
@@ -605,7 +615,7 @@ const sorted = useMemo(() => {
                 </div>
               ) : null}
 
-              {b.notes ? <div className="mt-2 text-xs text-slate-500">{b.notes}</div> : null}
+              {b.notes ? <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{b.notes}</div> : null}
             </div>
           );
         })}
