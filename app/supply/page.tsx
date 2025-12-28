@@ -534,6 +534,7 @@ const sorted = useMemo(() => {
 
             {/* Google Maps Route Preview Embed */}
             <div className="rounded-2xl overflow-hidden ring-1 ring-slate-200 dark:ring-slate-600 shadow-lg">
+              {/* Apply pseudo-dark mode to Google Maps iframe in dark theme using CSS filters */}
               <iframe
                 title={`Route to ${mapModalBranch.name}`}
                 className="dark:[filter:invert(90%)_hue-rotate(180deg)]"
