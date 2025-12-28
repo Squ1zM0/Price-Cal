@@ -702,11 +702,9 @@ export default function DuctPage() {
                           <span className="text-sm font-semibold text-slate-900">
                             {label}
                           </span>
-                          {groupRuns.length > 1 && (
-                            <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
-                              ×{groupRuns.length}
-                            </span>
-                          )}
+                          <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                            ×{groupRuns.length}
+                          </span>
                           <span className="text-xs text-slate-600">
                             {round1(totalCfm)} CFM
                           </span>
@@ -899,11 +897,9 @@ export default function DuctPage() {
                                   <span className="text-sm font-semibold text-slate-900">
                                     {label}
                                   </span>
-                                  {groupRuns.length > 1 && (
-                                    <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
-                                      ×{groupRuns.length}
-                                    </span>
-                                  )}
+                                  <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                    ×{groupRuns.length}
+                                  </span>
                                   <span className="text-xs text-slate-600">
                                     {round1(totalCfm)} CFM
                                   </span>
@@ -971,11 +967,9 @@ export default function DuctPage() {
                                   <span className="text-sm font-semibold text-slate-900">
                                     {label}
                                   </span>
-                                  {groupRuns.length > 1 && (
-                                    <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
-                                      ×{groupRuns.length}
-                                    </span>
-                                  )}
+                                  <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                    ×{groupRuns.length}
+                                  </span>
                                   <span className="text-xs text-slate-600">
                                     {round1(totalCfm)} CFM
                                   </span>
