@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
+import { useSessionStorage } from "../hooks/useSessionStorage";
 
 type Shape = "rect" | "round";
 type Dir = "one" | "two";
@@ -208,21 +209,21 @@ function DuctBlock({
 
 export default function DuctPage() {
   // Velocities (FPM)
-  const [returnVelocityStr, setReturnVelocityStr] = useState<"700" | "800" | "900">("700");
-  const [supplyVelocityStr, setSupplyVelocityStr] = useState<"700" | "800" | "900">("700");
+  const [returnVelocityStr, setReturnVelocityStr] = useSessionStorage<"700" | "800" | "900">("duct:returnVelocityStr", "700");
+  const [supplyVelocityStr, setSupplyVelocityStr] = useSessionStorage<"700" | "800" | "900">("duct:supplyVelocityStr", "700");
 
   // Rule-of-thumb sizing: CFM per ton
-  const [cfmPerTon, setCfmPerTon] = useState<number>(400); // default-ish; user can slide 350–450
+  const [cfmPerTon, setCfmPerTon] = useSessionStorage<number>("duct:cfmPerTon", 400); // default-ish; user can slide 350–450
 
   // Heat rise method: ΔT (temperature rise) used to estimate furnace BTU from airflow
-  const [deltaT, setDeltaT] = useState<number>(50); // adjustable 40–55°F
+  const [deltaT, setDeltaT] = useSessionStorage<number>("duct:deltaT", 50); // adjustable 40–55°F
 
   // Main trunks
-  const [mainReturn, setMainReturn] = useState<DuctInput>({ shape: "rect", dir: "one", w: "", h: "", d: "" });
-  const [mainSupply, setMainSupply] = useState<DuctInput>({ shape: "rect", dir: "one", w: "", h: "", d: "" });
+  const [mainReturn, setMainReturn] = useSessionStorage<DuctInput>("duct:mainReturn", { shape: "rect", dir: "one", w: "", h: "", d: "" });
+  const [mainSupply, setMainSupply] = useSessionStorage<DuctInput>("duct:mainSupply", { shape: "rect", dir: "one", w: "", h: "", d: "" });
 
   // Optional runs (more precise estimate)
-  const [runs, setRuns] = useState<Run[]>([]);
+  const [runs, setRuns] = useSessionStorage<Run[]>("duct:runs", []);
 
   // Equipment modal
   const [equipOpen, setEquipOpen] = useState(false);

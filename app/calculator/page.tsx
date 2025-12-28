@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
+import { useSessionStorage } from "../hooks/useSessionStorage";
 
 type JobType = "residential" | "commercial";
 type Crew = "x1" | "x2";
@@ -74,16 +75,16 @@ function StatRow({ label, value }: { label: string; value: string }) {
 }
 
 export default function CalculatorPage() {
-  const [materialStr, setMaterialStr] = useState("");
-  const [hoursStr, setHoursStr] = useState("");
+  const [materialStr, setMaterialStr] = useSessionStorage("calculator:materialStr", "");
+  const [hoursStr, setHoursStr] = useSessionStorage("calculator:hoursStr", "");
 
-  const [jobType, setJobType] = useState<JobType>("residential");
-  const [crew, setCrew] = useState<Crew>("x1");
+  const [jobType, setJobType] = useSessionStorage<JobType>("calculator:jobType", "residential");
+  const [crew, setCrew] = useSessionStorage<Crew>("calculator:crew", "x1");
 
-  const [taxIncluded, setTaxIncluded] = useState(true);
-  const [taxRateStr, setTaxRateStr] = useState("8.0");
+  const [taxIncluded, setTaxIncluded] = useSessionStorage("calculator:taxIncluded", true);
+  const [taxRateStr, setTaxRateStr] = useSessionStorage("calculator:taxRateStr", "8.0");
 
-  const [wigglePct, setWigglePct] = useState<number | null>(null);
+  const [wigglePct, setWigglePct] = useSessionStorage<number | null>("calculator:wigglePct", null);
   const [copied, setCopied] = useState(false);
 
   const material = useMemo(() => parseNum(materialStr), [materialStr]);
