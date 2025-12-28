@@ -90,6 +90,9 @@ function groupRunsBySize(runs: Run[]): Map<string, Run[]> {
   return grouped;
 }
 
+// Visual offset (in pixels) for stacking pill effect when grouping same-size runs
+const PILL_STACK_OFFSET_PX = 8;
+
 // IMPORTANT: keep this component at module scope (not inside DuctPage).
 // Defining it inside DuctPage causes React to treat it as a new component
 // type on each render, which can remount inputs and make iOS/desktop lose
@@ -101,6 +104,8 @@ function DuctBlock({
   onChange,
   velocityValue,
   onVelocityChange,
+  showToggle,
+  onToggleClick,
 }: {
   title: string;
   kind: RunKind;
@@ -108,6 +113,8 @@ function DuctBlock({
   onChange: (patch: Partial<DuctInput>) => void;
   velocityValue: "700" | "800" | "900";
   onVelocityChange: (v: "700" | "800" | "900") => void;
+  showToggle?: boolean;
+  onToggleClick?: () => void;
 }) {
   const area = areaIn2(value);
   const vel = num(velocityValue);
@@ -116,7 +123,7 @@ function DuctBlock({
   return (
     <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="text-base font-semibold text-slate-900">{title}</div>
           <div className="mt-0.5 text-xs text-slate-500">
             Area: <span className="font-semibold text-slate-700">{round1(area)}</span> in² • CFM:{" "}
@@ -124,7 +131,7 @@ function DuctBlock({
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col items-end gap-2">
           <select
             value={velocityValue}
             onChange={(e) => onVelocityChange(e.target.value as any)}
@@ -136,6 +143,15 @@ function DuctBlock({
             <option value="800">800 fpm</option>
             <option value="900">900 fpm</option>
           </select>
+          {showToggle && onToggleClick && (
+            <button
+              type="button"
+              onClick={onToggleClick}
+              className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+            >
+              {kind === "return" ? "Return" : "Supply"}
+            </button>
+          )}
         </div>
       </div>
 
@@ -238,12 +254,12 @@ export default function DuctPage() {
   function addQuickRun() {
     addRun(mobileTrunk, {
       shape: quickRunShape,
-      dir: quickRunDir,
+      dir: "one",
       w: quickRunShape === "rect" ? quickRunW : "",
       h: quickRunShape === "rect" ? quickRunH : "",
       d: quickRunShape === "round" ? quickRunD : "",
     });
-    // Keep shape/dir for rapid entry; clear only dimensions.
+    // Keep shape for rapid entry; clear only dimensions.
     setQuickRunW("");
     setQuickRunH("");
     setQuickRunD("");
@@ -252,12 +268,12 @@ export default function DuctPage() {
   function addDesktopQuickRun() {
     addRun(desktopQuickRunKind, {
       shape: desktopQuickRunShape,
-      dir: desktopQuickRunDir,
+      dir: "one",
       w: desktopQuickRunShape === "rect" ? desktopQuickRunW : "",
       h: desktopQuickRunShape === "rect" ? desktopQuickRunH : "",
       d: desktopQuickRunShape === "round" ? desktopQuickRunD : "",
     });
-    // Keep shape/dir for rapid entry; clear only dimensions.
+    // Keep shape for rapid entry; clear only dimensions.
     setDesktopQuickRunW("");
     setDesktopQuickRunH("");
     setDesktopQuickRunD("");
@@ -476,32 +492,7 @@ export default function DuctPage() {
             </button>
           </div>
 
-          <div className="mt-2 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => setMobileTrunk("return")}
-              className={
-                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
-                (mobileTrunk === "return"
-                  ? "bg-slate-100 text-slate-900 ring-slate-200"
-                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
-              }
-            >
-              Return
-            </button>
-            <button
-              type="button"
-              onClick={() => setMobileTrunk("supply")}
-              className={
-                "rounded-2xl px-3 py-2 text-sm font-semibold ring-1 ring-inset transition " +
-                (mobileTrunk === "supply"
-                  ? "bg-slate-100 text-slate-900 ring-slate-200"
-                  : "bg-white text-slate-700 ring-slate-200 hover:bg-slate-50")
-              }
-            >
-              Supply
-            </button>
-          </div>
+
         </div>
 
 
@@ -537,6 +528,8 @@ export default function DuctPage() {
                   onChange={(p) => setMainReturn((v) => ({ ...v, ...p }))}
                   velocityValue={returnVelocityStr}
                   onVelocityChange={setReturnVelocityStr}
+                  showToggle={true}
+                  onToggleClick={() => setMobileTrunk("supply")}
                 />
               ) : (
                 <DuctBlock
@@ -546,6 +539,8 @@ export default function DuctPage() {
                   onChange={(p) => setMainSupply((v) => ({ ...v, ...p }))}
                   velocityValue={supplyVelocityStr}
                   onVelocityChange={setSupplyVelocityStr}
+                  showToggle={true}
+                  onToggleClick={() => setMobileTrunk("return")}
                 />
               )}
             </div>
@@ -554,7 +549,7 @@ export default function DuctPage() {
               <div className="min-w-0">
                 <div className="text-base font-semibold text-slate-900">Branch Runs</div>
                 <div className="text-xs text-slate-500">
-                  Add room runs one side at a time — use the toggle above to switch Return / Supply.
+                  Add room runs one side at a time — use the toggle button to switch Return / Supply.
                 </div>
                 <div className="mt-1 text-[11px] text-slate-600">
                   Showing: <span className="font-semibold text-slate-900">{mobileTrunk === "return" ? "Return runs" : "Supply runs"}</span>
@@ -569,6 +564,14 @@ export default function DuctPage() {
               <div className="mt-3 rounded-2xl bg-white ring-1 ring-inset ring-slate-200 p-3">
                 <div className="text-xs font-semibold text-slate-700">Quick add run (measurements)</div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setMobileTrunk(mobileTrunk === "return" ? "supply" : "return")}
+                    className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+                  >
+                    {mobileTrunk === "return" ? "Return" : "Supply"}
+                  </button>
+
                   <select
                     value={quickRunShape}
                     onChange={(e) => {
@@ -586,15 +589,6 @@ export default function DuctPage() {
                   >
                     <option value="rect">Rect</option>
                     <option value="round">Round</option>
-                  </select>
-
-                  <select
-                    value={quickRunDir}
-                    onChange={(e) => setQuickRunDir(e.target.value as Dir)}
-                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                  >
-                    <option value="one">One-way</option>
-                    <option value="two">Two-way</option>
                   </select>
 
                   {quickRunShape === "round" ? (
@@ -615,7 +609,7 @@ export default function DuctPage() {
                               onClick={() => {
                                 addRun(mobileTrunk, {
                                   shape: "round",
-                                  dir: quickRunDir,
+                                  dir: "one",
                                   d: diameter,
                                 });
                                 setQuickRunD("");
@@ -683,89 +677,54 @@ export default function DuctPage() {
                   No runs added for this side yet.
                 </div>
               ) : (
-                <div className="mt-3 grid gap-2">
-                  {runs.filter((r) => r.kind === mobileTrunk).map((r) => {
-                    const area = areaIn2(r.input);
-                    const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
-                    const cfm = round1(cfmFrom(area, vel));
-                    return (
-                      <details key={r.id} className="rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200">
-                        <summary className="cursor-pointer list-none px-4 py-3">
-                          <div className="flex items-start justify-between gap-3">
-                            <div className="min-w-0">
-                              <div className="text-sm font-semibold text-slate-900">
-                                {r.kind === "return" ? "Return" : "Supply"} -{" "}
-                                <span className="tabular-nums">{cfm || "—"}</span> CFM
-                              </div>
-                              <div className="text-[11px] text-slate-500 tabular-nums">
-                                {round1(area) || "—"} in² - {vel} fpm
-                              </div>
-                            </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {(() => {
+                    const filteredRuns = runs.filter((r) => r.kind === mobileTrunk);
+                    const grouped = groupRunsBySize(filteredRuns);
+                    return Array.from(grouped.entries()).map(([key, groupRuns]) => {
+                      const totalCfm = groupRuns.reduce((sum, r) => {
+                        const area = areaIn2(r.input);
+                        const vel = r.kind === "return" ? num(returnVelocityStr) : num(supplyVelocityStr);
+                        return sum + cfmFrom(area, vel);
+                      }, 0);
+                      const label = getRunLabel(groupRuns[0].input);
+                      return (
+                        <div key={key} className="rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200 flex items-center gap-2">
+                          <span className="text-sm font-semibold text-slate-900">
+                            {label}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                            ×{groupRuns.length}
+                          </span>
+                          <span className="text-xs text-slate-600">
+                            {round1(totalCfm)} CFM
+                          </span>
+                          {groupRuns.length > 1 && (
                             <button
                               type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                removeRun(r.id);
+                              onClick={() => {
+                                removeRun(groupRuns[0].id);
                               }}
-                              className="shrink-0 rounded-xl bg-white px-3 py-2 text-xs font-semibold text-slate-700 ring-1 ring-inset ring-slate-200 hover:bg-slate-100"
+                              className="ml-1 text-slate-500 hover:text-slate-700"
+                              title="Remove one"
                             >
-                              Remove
+                              −
                             </button>
-                          </div>
-                        </summary>
-
-                        <div className="px-4 pb-4">
-                          <div className="mt-2 grid grid-cols-1 gap-2">
-                            <select
-                              value={r.input.shape}
-                              onChange={(e) => updateRun(r.id, { shape: e.target.value as Shape })}
-                              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                            >
-                              <option value="rect">Rectangular</option>
-                              <option value="round">Round</option>
-                            </select>
-
-                            <select
-                              value={r.input.dir}
-                              onChange={(e) => updateRun(r.id, { dir: e.target.value as Dir })}
-                              className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                            >
-                              <option value="one">One-way</option>
-                              <option value="two">Two-way</option>
-                            </select>
-
-                            {r.input.shape === "round" ? (
-                              <input
-                                value={r.input.d}
-                                onChange={(e) => updateRun(r.id, { d: e.target.value })}
-                                placeholder="Diameter (in)"
-                                inputMode="decimal"
-                                className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                              />
-                            ) : (
-                              <div className="grid grid-cols-2 gap-2">
-                                <input
-                                  value={r.input.w}
-                                  onChange={(e) => updateRun(r.id, { w: e.target.value })}
-                                  placeholder="Width (in)"
-                                  inputMode="decimal"
-                                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                                />
-                                <input
-                                  value={r.input.h}
-                                  onChange={(e) => updateRun(r.id, { h: e.target.value })}
-                                  placeholder="Height (in)"
-                                  inputMode="decimal"
-                                  className="w-full rounded-2xl bg-white px-4 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-                                />
-                              </div>
-                            )}
-                          </div>
+                          )}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              groupRuns.forEach((r) => removeRun(r.id));
+                            }}
+                            className="ml-1 text-slate-500 hover:text-slate-700"
+                            title="Remove all"
+                          >
+                            ✕
+                          </button>
                         </div>
-                      </details>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </section>
@@ -786,15 +745,14 @@ export default function DuctPage() {
           {/* Quick add section at the top */}
           <div className="mt-4 rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
             <div className="text-xs font-semibold text-slate-700 mb-3">Quick add run</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-              <select
-                value={desktopQuickRunKind}
-                onChange={(e) => setDesktopQuickRunKind(e.target.value as RunKind)}
-                className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setDesktopQuickRunKind(desktopQuickRunKind === "return" ? "supply" : "return")}
+                className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
               >
-                <option value="return">Return</option>
-                <option value="supply">Supply</option>
-              </select>
+                {desktopQuickRunKind === "return" ? "Return" : "Supply"}
+              </button>
 
               <select
                 value={desktopQuickRunShape}
@@ -812,15 +770,6 @@ export default function DuctPage() {
               >
                 <option value="rect">Rectangular</option>
                 <option value="round">Round</option>
-              </select>
-
-              <select
-                value={desktopQuickRunDir}
-                onChange={(e) => setDesktopQuickRunDir(e.target.value as Dir)}
-                className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
-              >
-                <option value="one">One-way</option>
-                <option value="two">Two-way</option>
               </select>
 
               {desktopQuickRunShape === "round" ? (
@@ -874,7 +823,7 @@ export default function DuctPage() {
                     onClick={() => {
                       addRun(desktopQuickRunKind, {
                         shape: "round",
-                        dir: desktopQuickRunDir,
+                        dir: "one",
                         d: diameter,
                       });
                     }}
@@ -914,28 +863,64 @@ export default function DuctPage() {
                         }, 0);
                         const label = getRunLabel(groupRuns[0].input);
                         return (
-                          <div key={key} className="rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200 flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-900">
-                              {label}
-                            </span>
-                            {groupRuns.length > 1 && (
-                              <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
-                                ×{groupRuns.length}
-                              </span>
-                            )}
-                            <span className="text-xs text-slate-600">
-                              {round1(totalCfm)} CFM
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                groupRuns.forEach((r) => removeRun(r.id));
-                              }}
-                              className="ml-1 text-slate-500 hover:text-slate-700"
-                              title="Remove all"
-                            >
-                              ✕
-                            </button>
+                          <div
+                            key={key}
+                            className="relative"
+                            style={{
+                              paddingLeft: `${Math.max(0, (groupRuns.length - 1) * PILL_STACK_OFFSET_PX)}px`,
+                              paddingBottom: `${Math.max(0, (groupRuns.length - 1) * PILL_STACK_OFFSET_PX)}px`,
+                            }}
+                          >
+                            {groupRuns.map((_, index) => {
+                              const isTop = index === groupRuns.length - 1;
+                              return (
+                                <div
+                                  key={index}
+                                  className="absolute rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200"
+                                  style={{
+                                    left: `${index * PILL_STACK_OFFSET_PX}px`,
+                                    top: `${index * PILL_STACK_OFFSET_PX}px`,
+                                    zIndex: groupRuns.length - index,
+                                  }}
+                                >
+                                  {isTop && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-semibold text-slate-900">
+                                        {label}
+                                      </span>
+                                      <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                        ×{groupRuns.length}
+                                      </span>
+                                      <span className="text-xs text-slate-600">
+                                        {round1(totalCfm)} CFM
+                                      </span>
+                                      {groupRuns.length > 1 && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            removeRun(groupRuns[0].id);
+                                          }}
+                                          className="ml-1 text-slate-500 hover:text-slate-700"
+                                          title="Remove one"
+                                        >
+                                          −
+                                        </button>
+                                      )}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          groupRuns.forEach((r) => removeRun(r.id));
+                                        }}
+                                        className="ml-1 text-slate-500 hover:text-slate-700"
+                                        title="Remove all"
+                                      >
+                                        ✕
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
                           </div>
                         );
                       });
@@ -960,28 +945,52 @@ export default function DuctPage() {
                         }, 0);
                         const label = getRunLabel(groupRuns[0].input);
                         return (
-                          <div key={key} className="rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200 flex items-center gap-2">
-                            <span className="text-sm font-semibold text-slate-900">
-                              {label}
-                            </span>
-                            {groupRuns.length > 1 && (
-                              <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
-                                ×{groupRuns.length}
-                              </span>
-                            )}
-                            <span className="text-xs text-slate-600">
-                              {round1(totalCfm)} CFM
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                groupRuns.forEach((r) => removeRun(r.id));
-                              }}
-                              className="ml-1 text-slate-500 hover:text-slate-700"
-                              title="Remove all"
-                            >
-                              ✕
-                            </button>
+                          <div key={key} className="relative" style={{ paddingLeft: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px`, paddingBottom: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px` }}>
+                            {groupRuns.map((_, index) => (
+                              <div
+                                key={index}
+                                className="absolute rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200"
+                                style={{
+                                  left: `${index * PILL_STACK_OFFSET_PX}px`,
+                                  top: `${index * PILL_STACK_OFFSET_PX}px`,
+                                  zIndex: groupRuns.length - index,
+                                }}
+                              >
+                                <div className="flex items-center gap-2" style={{ visibility: index === groupRuns.length - 1 ? 'visible' : 'hidden' }}>
+                                  <span className="text-sm font-semibold text-slate-900">
+                                    {label}
+                                  </span>
+                                  <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                    ×{groupRuns.length}
+                                  </span>
+                                  <span className="text-xs text-slate-600">
+                                    {round1(totalCfm)} CFM
+                                  </span>
+                                  {groupRuns.length > 1 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        removeRun(groupRuns[0].id);
+                                      }}
+                                      className="ml-1 text-slate-500 hover:text-slate-700"
+                                      title="Remove one"
+                                    >
+                                      −
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      groupRuns.forEach((r) => removeRun(r.id));
+                                    }}
+                                    className="ml-1 text-slate-500 hover:text-slate-700"
+                                    title="Remove all"
+                                  >
+                                    ✕
+                                  </button>
+                                </div>
+                              </div>
+                            ))}
                           </div>
                         );
                       });
