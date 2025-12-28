@@ -90,6 +90,9 @@ function groupRunsBySize(runs: Run[]): Map<string, Run[]> {
   return grouped;
 }
 
+// Visual offset (in pixels) for stacking pill effect when grouping same-size runs
+const PILL_STACK_OFFSET_PX = 8;
+
 // IMPORTANT: keep this component at module scope (not inside DuctPage).
 // Defining it inside DuctPage causes React to treat it as a new component
 // type on each render, which can remount inputs and make iOS/desktop lose
@@ -913,16 +916,15 @@ export default function DuctPage() {
                           return sum + cfmFrom(area, vel);
                         }, 0);
                         const label = getRunLabel(groupRuns[0].input);
-                        const offsetPx = 8; // offset for stacking effect
                         return (
-                          <div key={key} className="relative" style={{ paddingLeft: `${(groupRuns.length - 1) * offsetPx}px`, paddingBottom: `${(groupRuns.length - 1) * offsetPx}px` }}>
+                          <div key={key} className="relative" style={{ paddingLeft: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px`, paddingBottom: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px` }}>
                             {groupRuns.map((_, index) => (
                               <div
                                 key={index}
                                 className="absolute rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200"
                                 style={{
-                                  left: `${index * offsetPx}px`,
-                                  top: `${index * offsetPx}px`,
+                                  left: `${index * PILL_STACK_OFFSET_PX}px`,
+                                  top: `${index * PILL_STACK_OFFSET_PX}px`,
                                   zIndex: groupRuns.length - index,
                                 }}
                               >
@@ -976,16 +978,15 @@ export default function DuctPage() {
                           return sum + cfmFrom(area, vel);
                         }, 0);
                         const label = getRunLabel(groupRuns[0].input);
-                        const offsetPx = 8; // offset for stacking effect
                         return (
-                          <div key={key} className="relative" style={{ paddingLeft: `${(groupRuns.length - 1) * offsetPx}px`, paddingBottom: `${(groupRuns.length - 1) * offsetPx}px` }}>
+                          <div key={key} className="relative" style={{ paddingLeft: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px`, paddingBottom: `${(groupRuns.length - 1) * PILL_STACK_OFFSET_PX}px` }}>
                             {groupRuns.map((_, index) => (
                               <div
                                 key={index}
                                 className="absolute rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200"
                                 style={{
-                                  left: `${index * offsetPx}px`,
-                                  top: `${index * offsetPx}px`,
+                                  left: `${index * PILL_STACK_OFFSET_PX}px`,
+                                  top: `${index * PILL_STACK_OFFSET_PX}px`,
                                   zIndex: groupRuns.length - index,
                                 }}
                               >
