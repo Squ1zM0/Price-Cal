@@ -63,6 +63,10 @@ const BASES = [
   "https://cdn.jsdelivr.net/gh/Squ1zM0/SupplyFind@main",
 ];
 
+// Location accuracy thresholds in meters
+const ACCURACY_THRESHOLD_HIGH = 15;
+const ACCURACY_THRESHOLD_MODERATE = 50;
+
 function haversineMiles(lat1: number, lon1: number, lat2: number, lon2: number) {
   const R_km = 6371;
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -138,8 +142,8 @@ return (
  * Returns 'high', 'moderate', or 'poor' based on predefined thresholds.
  */
 function getAccuracyTier(accuracyMeters: number): 'high' | 'moderate' | 'poor' {
-  if (accuracyMeters <= 15) return 'high';
-  if (accuracyMeters <= 50) return 'moderate';
+  if (accuracyMeters <= ACCURACY_THRESHOLD_HIGH) return 'high';
+  if (accuracyMeters <= ACCURACY_THRESHOLD_MODERATE) return 'moderate';
   return 'poor';
 }
 
