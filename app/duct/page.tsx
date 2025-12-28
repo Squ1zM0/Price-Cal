@@ -147,7 +147,7 @@ function DuctBlock({
             <button
               type="button"
               onClick={onToggleClick}
-              className="rounded-2xl bg-slate-50 px-3 py-1.5 text-xs font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+              className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
             >
               {kind === "return" ? "Return" : "Supply"}
             </button>
@@ -592,7 +592,7 @@ export default function DuctPage() {
                   <button
                     type="button"
                     onClick={() => setMobileTrunk(mobileTrunk === "return" ? "supply" : "return")}
-                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+                    className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
                   >
                     {mobileTrunk === "return" ? "Return" : "Supply"}
                   </button>
@@ -774,7 +774,7 @@ export default function DuctPage() {
               <button
                 type="button"
                 onClick={() => setDesktopQuickRunKind(desktopQuickRunKind === "return" ? "supply" : "return")}
-                className="w-full rounded-2xl bg-white px-3 py-2 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+                className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
               >
                 {desktopQuickRunKind === "return" ? "Return" : "Supply"}
               </button>
