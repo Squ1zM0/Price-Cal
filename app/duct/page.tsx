@@ -444,9 +444,9 @@ export default function DuctPage() {
 
         {/* Desktop: Quadrant layout with central circle */}
         <div className="hidden lg:block">
-          <div className="relative grid grid-cols-2 gap-6 p-4">
+          <div className="relative grid grid-cols-2 gap-4 p-6">
             {/* Top-left: Supply Trunk */}
-            <div className="pr-16 pb-8 relative z-20">
+            <div className="pr-12 pb-12 relative">
               <DuctBlock
                 title="Supply trunk"
                 kind="supply"
@@ -458,7 +458,7 @@ export default function DuctPage() {
             </div>
 
             {/* Top-right: Return Trunk */}
-            <div className="pl-16 pb-8 relative z-20">
+            <div className="pl-12 pb-12 relative">
               <DuctBlock
                 title="Return trunk"
                 kind="return"
@@ -470,7 +470,7 @@ export default function DuctPage() {
             </div>
 
             {/* Bottom-left: Supply Runs */}
-            <div className="pr-16 pt-8 relative z-20">
+            <div className="pr-12 pt-12 relative">
               <RunsPills
                 runs={runs}
                 kind="supply"
@@ -484,7 +484,7 @@ export default function DuctPage() {
             </div>
 
             {/* Bottom-right: Return Runs */}
-            <div className="pl-16 pt-8 relative z-20">
+            <div className="pl-12 pt-12 relative">
               <RunsPills
                 runs={runs}
                 kind="return"
@@ -497,20 +497,10 @@ export default function DuctPage() {
               />
             </div>
 
-            {/* Connecting lines from center to quadrants (axis lines) */}
-            {/* Horizontal line - left */}
-            <div className="absolute top-1/2 left-0 w-[calc(50%-min(12vw,8rem))] h-0.5 bg-gradient-to-r from-transparent via-slate-300 to-slate-400 -translate-y-1/2 z-0" />
-            {/* Horizontal line - right */}
-            <div className="absolute top-1/2 right-0 w-[calc(50%-min(12vw,8rem))] h-0.5 bg-gradient-to-l from-transparent via-slate-300 to-slate-400 -translate-y-1/2 z-0" />
-            {/* Vertical line - top */}
-            <div className="absolute left-1/2 top-0 h-[calc(50%-min(12vw,8rem))] w-0.5 bg-gradient-to-b from-transparent via-slate-300 to-slate-400 -translate-x-1/2 z-0" />
-            {/* Vertical line - bottom */}
-            <div className="absolute left-1/2 bottom-0 h-[calc(50%-min(12vw,8rem))] w-0.5 bg-gradient-to-t from-transparent via-slate-300 to-slate-400 -translate-x-1/2 z-0" />
-
-            {/* Central Circle - responsive sizing */}
+            {/* Central Circle - responsive sizing, nested cleanly within quadrants */}
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
               <div 
-                className="rounded-full bg-white shadow-2xl ring-2 ring-slate-300 flex flex-col"
+                className="rounded-full bg-white shadow-2xl ring-2 ring-slate-200 flex flex-col"
                 style={{ 
                   width: 'min(24vw, 16rem)',
                   height: 'min(24vw, 16rem)'
