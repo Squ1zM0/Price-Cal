@@ -83,11 +83,9 @@ function groupRunsBySize(runs: Run[]): Map<string, Run[]> {
   const grouped = new Map<string, Run[]>();
   runs.forEach((r) => {
     const key = getRunKey(r.input);
-    if (!grouped.has(key)) {
-      grouped.set(key, []);
-    }
-    // Safe to use ! here because we just checked/created the key above
-    grouped.get(key)!.push(r);
+    const group = grouped.get(key) || [];
+    group.push(r);
+    grouped.set(key, group);
   });
   return grouped;
 }
