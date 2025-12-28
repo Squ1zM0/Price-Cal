@@ -124,25 +124,14 @@ function DuctBlock({
     <div className="rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <div className="text-base font-semibold text-slate-900">{title}</div>
-            {showToggle && onToggleClick && (
-              <button
-                type="button"
-                onClick={onToggleClick}
-                className="rounded-2xl bg-slate-50 px-3 py-1.5 text-xs font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
-              >
-                {kind === "return" ? "Return" : "Supply"}
-              </button>
-            )}
-          </div>
+          <div className="text-base font-semibold text-slate-900">{title}</div>
           <div className="mt-0.5 text-xs text-slate-500">
             Area: <span className="font-semibold text-slate-700">{round1(area)}</span> in² • CFM:{" "}
             <span className="font-semibold text-slate-900">{cfm || "—"}</span>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+        <div className="flex flex-col items-end gap-2">
           <select
             value={velocityValue}
             onChange={(e) => onVelocityChange(e.target.value as any)}
@@ -154,6 +143,15 @@ function DuctBlock({
             <option value="800">800 fpm</option>
             <option value="900">900 fpm</option>
           </select>
+          {showToggle && onToggleClick && (
+            <button
+              type="button"
+              onClick={onToggleClick}
+              className="rounded-2xl bg-slate-50 px-3 py-1.5 text-xs font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+            >
+              {kind === "return" ? "Return" : "Supply"}
+            </button>
+          )}
         </div>
       </div>
 
