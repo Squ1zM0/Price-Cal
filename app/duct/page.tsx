@@ -445,10 +445,10 @@ export default function DuctPage() {
         {/* Desktop: Quadrant layout with central circle */}
         <div className="hidden lg:block">
           {/* Unified container with border containing all quadrants */}
-          <div className="relative rounded-3xl border-2 border-slate-200 bg-white shadow-lg overflow-hidden">
-            <div className="relative grid grid-cols-2">
+          <div className="relative rounded-3xl border-2 border-slate-200 bg-white shadow-lg">
+            <div className="relative grid grid-cols-2 min-h-[500px]">
               {/* Top-left: Supply Trunk */}
-              <div className="p-6 border-r border-b border-slate-200">
+              <div className="p-6 border-r border-b border-slate-200 min-h-0">
                 <DuctBlock
                   title="Supply trunk"
                   kind="supply"
@@ -460,7 +460,7 @@ export default function DuctPage() {
               </div>
 
               {/* Top-right: Return Trunk */}
-              <div className="p-6 border-b border-slate-200">
+              <div className="p-6 border-b border-slate-200 min-h-0">
                 <DuctBlock
                   title="Return trunk"
                   kind="return"
@@ -472,7 +472,7 @@ export default function DuctPage() {
               </div>
 
               {/* Bottom-left: Supply Runs */}
-              <div className="p-6 border-r border-slate-200">
+              <div className="p-6 border-r border-slate-200 min-h-0">
                 <RunsPills
                   runs={runs}
                   kind="supply"
@@ -486,7 +486,7 @@ export default function DuctPage() {
               </div>
 
               {/* Bottom-right: Return Runs */}
-              <div className="p-6">
+              <div className="p-6 min-h-0">
                 <RunsPills
                   runs={runs}
                   kind="return"
@@ -500,12 +500,12 @@ export default function DuctPage() {
               </div>
 
               {/* Central Circle - naturally nested within the unified quadrant container */}
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20 pointer-events-none">
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 pointer-events-none">
                 <div 
                   className="rounded-full bg-white shadow-2xl ring-2 ring-slate-300 flex flex-col"
                   style={{ 
-                    width: 'min(22vw, 14rem)',
-                    height: 'min(22vw, 14rem)'
+                    width: 'min(20vw, 12rem)',
+                    height: 'min(20vw, 12rem)'
                   }}
                 >
                   {/* Top half: CFM display */}
@@ -535,12 +535,12 @@ export default function DuctPage() {
         {/* Mobile/Tablet: Stacked layout with prominent circle */}
         <div className="lg:hidden flex flex-col gap-3">
           {/* Central Circle - prominent at top for mobile */}
-          <div className="flex justify-center">
+          <div className="flex justify-center mb-2">
             <div 
               className="rounded-full bg-white shadow-xl ring-2 ring-slate-300 flex flex-col"
               style={{ 
-                width: 'min(48vw, 12rem)',
-                height: 'min(48vw, 12rem)'
+                width: 'min(40vw, 10rem)',
+                height: 'min(40vw, 10rem)'
               }}
             >
               <div className="flex-1 flex flex-col items-center justify-center border-b-2 border-slate-200 px-4">
