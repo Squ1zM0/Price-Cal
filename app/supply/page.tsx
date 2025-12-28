@@ -535,13 +535,12 @@ const sorted = useMemo(() => {
                 title={`Route to ${mapModalBranch.name}`}
                 src={(() => {
                   const addr = formatAddress(mapModalBranch);
-                  // Show route preview using Google Maps directions
-                  // If user has location, show route from their position to the address
+                  // Show route preview using Google Maps embed
+                  // If user has location, construct a directions URL
                   if (pos && Number.isFinite(pos.lat) && Number.isFinite(pos.lon)) {
+                    // Use saddr (source address) and daddr (destination address) for directions embed
                     const origin = `${pos.lat},${pos.lon}`;
-                    const destination = encodeURIComponent(addr);
-                    // Use the directions URL with output=embed to show route preview
-                    return `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}&travelmode=driving&output=embed`;
+                    return `https://www.google.com/maps?saddr=${encodeURIComponent(origin)}&daddr=${encodeURIComponent(addr)}&output=embed`;
                   }
                   // Fallback: show the destination location
                   return `https://www.google.com/maps?q=${encodeURIComponent(addr)}&output=embed`;
