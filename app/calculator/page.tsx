@@ -57,7 +57,7 @@ function SegButton({
         "ring-1 ring-inset shadow-sm hover:shadow-md",
         active
           ? "bg-gradient-to-br from-blue-500 to-blue-600 dark:from-blue-600 dark:to-blue-700 text-white ring-blue-500 dark:ring-blue-600 shadow-md hover:scale-105"
-          : "bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 ring-slate-200 dark:ring-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 hover:scale-102",
+          : "bg-white dark:bg-slate-700 text-slate-800 dark:text-slate-200 ring-slate-200 dark:ring-slate-600 hover:bg-slate-50 dark:hover:bg-slate-600 hover:scale-[1.02]",
       ].join(" ")}
     >
       {children}

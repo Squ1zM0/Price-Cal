@@ -18,11 +18,16 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
     // Check localStorage or system preference
-    const stored = localStorage.getItem("theme") as Theme | null;
-    if (stored) {
-      setTheme(stored);
-    } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
+    try {
+      const stored = localStorage.getItem("theme") as Theme | null;
+      if (stored) {
+        setTheme(stored);
+      } else if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        setTheme("dark");
+      }
+    } catch (error) {
+      // localStorage might not be available (e.g., SSR, private browsing)
+      console.warn("Failed to access localStorage:", error);
     }
   }, []);
 
@@ -35,7 +40,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     } else {
       root.classList.remove("dark");
     }
-    localStorage.setItem("theme", theme);
+    
+    try {
+      localStorage.setItem("theme", theme);
+    } catch (error) {
+      // localStorage might not be available
+      console.warn("Failed to save theme preference:", error);
+    }
   }, [theme, mounted]);
 
   const toggleTheme = () => {

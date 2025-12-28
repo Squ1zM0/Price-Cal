@@ -26,7 +26,7 @@ body {
 }
 
 body.dark {
-  background: rgb(15 23 42); /* slate-900 */
+  background: theme('colors.slate.900');
 }
 
 * {
