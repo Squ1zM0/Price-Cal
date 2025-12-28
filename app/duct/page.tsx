@@ -546,29 +546,29 @@ export default function DuctPage() {
               )}
             </div>
           ) : (
-            <section className="mt-3 rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4">
+            <section className="mt-3 rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 transition-all duration-300">
               <div className="min-w-0">
-                <div className="text-base font-semibold text-slate-900">Branch Runs</div>
-                <div className="text-xs text-slate-500">
+                <div className="text-base font-semibold text-slate-900 dark:text-white">Branch Runs</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400">
                   Add room runs one side at a time — use the toggle button to switch Return / Supply.
                 </div>
-                <div className="mt-1 text-[11px] text-slate-600">
-                  Showing: <span className="font-semibold text-slate-900">{mobileTrunk === "return" ? "Return runs" : "Supply runs"}</span>
+                <div className="mt-1 text-[11px] text-slate-600 dark:text-slate-400">
+                  Showing: <span className="font-semibold text-slate-900 dark:text-white">{mobileTrunk === "return" ? "Return runs" : "Supply runs"}</span>
                   {" "}• Total:{" "}
-                  <span className="font-semibold text-slate-900 tabular-nums">
+                  <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
                     {mobileTrunk === "return" ? totals.runsReturnCfm || "—" : totals.runsSupplyCfm || "—"}
                   </span>
                   {" "}CFM
                 </div>
               </div>
 
-              <div className="mt-3 rounded-2xl bg-white ring-1 ring-inset ring-slate-200 p-3">
-                <div className="text-xs font-semibold text-slate-700">Quick add run (measurements)</div>
+              <div className="mt-3 rounded-2xl bg-white dark:bg-slate-700 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 p-3 transition-all duration-300">
+                <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">Quick add run (measurements)</div>
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setMobileTrunk(mobileTrunk === "return" ? "supply" : "return")}
-                    className="w-full rounded-2xl bg-slate-50 px-4 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-500 hover:bg-slate-100 dark:hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition active:scale-[0.98]"
                   >
                     {mobileTrunk === "return" ? "Return" : "Supply"}
                   </button>
@@ -586,7 +586,7 @@ export default function DuctPage() {
                         setQuickRunD("");
                       }
                     }}
-                    className="w-full rounded-2xl bg-slate-50 px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                   >
                     <option value="rect">Rect</option>
                     <option value="round">Round</option>
@@ -599,7 +599,7 @@ export default function DuctPage() {
                         placeholder='Diameter (")'
                         value={quickRunD}
                         onChange={(e) => setQuickRunD(e.target.value)}
-                        className="col-span-2 w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        className="col-span-2 w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                       />
                       {mobileTrunk === "supply" && (
                         <div className="col-span-2 flex flex-wrap gap-2 justify-center">
@@ -615,7 +615,7 @@ export default function DuctPage() {
                                 });
                                 setQuickRunD("");
                               }}
-                              className="rounded-full px-3 py-1 text-xs font-semibold bg-slate-100 text-slate-700 hover:bg-slate-200 ring-1 ring-inset ring-slate-300 active:scale-95 transition"
+                              className="rounded-full px-3 py-1 text-xs font-semibold bg-slate-100 dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-500 ring-1 ring-inset ring-slate-300 dark:ring-slate-500 active:scale-95 transition"
                             >
                               {diameter}&quot;
                             </button>
@@ -630,14 +630,14 @@ export default function DuctPage() {
                         placeholder='Width (")'
                         value={quickRunW}
                         onChange={(e) => setQuickRunW(e.target.value)}
-                        className="w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        className="w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                       />
                       <input
                         inputMode="decimal"
                         placeholder='Height (")'
                         value={quickRunH}
                         onChange={(e) => setQuickRunH(e.target.value)}
-                        className="w-full rounded-2xl bg-white px-3 py-3 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                        className="w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                       />
                     </>
                   )}
@@ -647,34 +647,34 @@ export default function DuctPage() {
                     onClick={addQuickRun}
                     disabled={!quickRunReady}
                     className={
-                      "col-span-2 rounded-2xl px-4 py-3 text-sm font-semibold ring-1 ring-inset " +
+                      "col-span-2 rounded-2xl px-4 py-3 text-sm font-semibold ring-1 ring-inset transition-all duration-300 " +
                       (quickRunReady
-                        ? "bg-slate-900 text-white ring-slate-900 hover:bg-slate-800 active:scale-[0.99] transition"
-                        : "bg-slate-100 text-slate-400 ring-slate-200")
+                        ? "bg-slate-900 dark:bg-blue-600 text-white ring-slate-900 dark:ring-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 active:scale-[0.99]"
+                        : "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 ring-slate-200 dark:ring-slate-600")
                     }
                   >
                     + Add {mobileTrunk === "return" ? "Return" : "Supply"} run
                   </button>
 
-                  <div className="col-span-2 -mt-1 text-[11px] text-slate-500">
+                  <div className="col-span-2 -mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                     Tip: enter measurements here, then tap a run pill below to edit details.
                   </div>
                 </div>
               </div>
 
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <div className="rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-inset ring-slate-200">
-                  <div className="text-[11px] text-slate-500">Return runs total</div>
-                  <div className="text-sm font-semibold tabular-nums text-slate-900">{totals.runsReturnCfm || "—"} CFM</div>
+                <div className="rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300">
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Return runs total</div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-900 dark:text-white">{totals.runsReturnCfm || "—"} CFM</div>
                 </div>
-                <div className="rounded-2xl bg-slate-50 px-4 py-3 ring-1 ring-inset ring-slate-200">
-                  <div className="text-[11px] text-slate-500">Supply runs total</div>
-                  <div className="text-sm font-semibold tabular-nums text-slate-900">{totals.runsSupplyCfm || "—"} CFM</div>
+                <div className="rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300">
+                  <div className="text-[11px] text-slate-500 dark:text-slate-400">Supply runs total</div>
+                  <div className="text-sm font-semibold tabular-nums text-slate-900 dark:text-white">{totals.runsSupplyCfm || "—"} CFM</div>
                 </div>
               </div>
 
               {runs.filter((r) => r.kind === mobileTrunk).length === 0 ? (
-                <div className="mt-3 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-inset ring-slate-200">
+                <div className="mt-3 rounded-2xl bg-slate-50 dark:bg-slate-700 p-4 text-sm text-slate-600 dark:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300">
                   No runs added for this side yet.
                 </div>
               ) : (
@@ -690,14 +690,14 @@ export default function DuctPage() {
                       }, 0);
                       const label = getRunLabel(groupRuns[0].input);
                       return (
-                        <div key={key} className="rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200 flex items-center gap-2">
-                          <span className="text-sm font-semibold text-slate-900">
+                        <div key={key} className="rounded-full bg-slate-100 dark:bg-slate-700 px-4 py-2 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 flex items-center gap-2 transition-all duration-300">
+                          <span className="text-sm font-semibold text-slate-900 dark:text-white">
                             {label}
                           </span>
-                          <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-600 rounded-full px-2 py-0.5">
                             ×{groupRuns.length}
                           </span>
-                          <span className="text-xs text-slate-600">
+                          <span className="text-xs text-slate-600 dark:text-slate-300">
                             {round1(totalCfm)} CFM
                           </span>
                           {groupRuns.length > 1 && (
@@ -706,7 +706,7 @@ export default function DuctPage() {
                               onClick={() => {
                                 removeRun(groupRuns[0].id);
                               }}
-                              className="ml-1 text-slate-500 hover:text-slate-700"
+                              className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                               title="Remove one"
                             >
                               −
@@ -717,7 +717,7 @@ export default function DuctPage() {
                             onClick={() => {
                               groupRuns.forEach((r) => removeRun(r.id));
                             }}
-                            className="ml-1 text-slate-500 hover:text-slate-700"
+                            className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                             title="Remove all"
                           >
                             ✕
@@ -733,24 +733,24 @@ export default function DuctPage() {
         </div>
 
         {/* Desktop runs */}
-        <section className="hidden lg:block rounded-3xl bg-white shadow-sm ring-1 ring-slate-200 p-4 sm:p-5">
+        <section className="hidden lg:block rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 sm:p-5 transition-all duration-300">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="min-w-0">
-              <div className="text-base font-semibold text-slate-900">Optional runs (more precise)</div>
-              <div className="text-xs text-slate-500">
+              <div className="text-base font-semibold text-slate-900 dark:text-white">Optional runs (more precise)</div>
+              <div className="text-xs text-slate-500 dark:text-slate-400">
                 Add individual supplies/returns when you can measure them. These replace the trunk estimate on that side.
               </div>
             </div>
           </div>
 
           {/* Quick add section at the top */}
-          <div className="mt-4 rounded-2xl bg-slate-50 ring-1 ring-inset ring-slate-200 p-4">
-            <div className="text-xs font-semibold text-slate-700 mb-3">Quick add run</div>
+          <div className="mt-4 rounded-2xl bg-slate-50 dark:bg-slate-700 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 p-4 transition-all duration-300">
+            <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Quick add run</div>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setDesktopQuickRunKind(desktopQuickRunKind === "return" ? "supply" : "return")}
-                className="w-full rounded-2xl bg-white px-4 py-3 text-sm font-semibold ring-1 ring-inset ring-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-400 transition active:scale-[0.98]"
+                className="w-full rounded-2xl bg-white dark:bg-slate-600 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-500 hover:bg-slate-50 dark:hover:bg-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300 active:scale-[0.98]"
               >
                 {desktopQuickRunKind === "return" ? "Return" : "Supply"}
               </button>
@@ -767,7 +767,7 @@ export default function DuctPage() {
                     setDesktopQuickRunD("");
                   }
                 }}
-                className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                className="w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-2 text-sm text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
               >
                 <option value="rect">Rectangular</option>
                 <option value="round">Round</option>
@@ -779,7 +779,7 @@ export default function DuctPage() {
                   placeholder='Diameter (")'
                   value={desktopQuickRunD}
                   onChange={(e) => setDesktopQuickRunD(e.target.value)}
-                  className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                  className="w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                 />
               ) : (
                 <>
@@ -788,14 +788,14 @@ export default function DuctPage() {
                     placeholder='Width (")'
                     value={desktopQuickRunW}
                     onChange={(e) => setDesktopQuickRunW(e.target.value)}
-                    className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    className="w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                   />
                   <input
                     inputMode="decimal"
                     placeholder='Height (")'
                     value={desktopQuickRunH}
                     onChange={(e) => setDesktopQuickRunH(e.target.value)}
-                    className="w-full rounded-2xl bg-white px-3 py-2 text-sm ring-1 ring-inset ring-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-400"
+                    className="w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                   />
                 </>
               )}
@@ -806,10 +806,10 @@ export default function DuctPage() {
               onClick={addDesktopQuickRun}
               disabled={!desktopQuickRunReady}
               className={
-                "mt-3 w-full rounded-2xl px-4 py-2 text-sm font-semibold ring-1 ring-inset " +
+                "mt-3 w-full rounded-2xl px-4 py-2 text-sm font-semibold ring-1 ring-inset transition-all duration-300 " +
                 (desktopQuickRunReady
-                  ? "bg-slate-900 text-white ring-slate-900 hover:bg-slate-800 active:scale-[0.99] transition"
-                  : "bg-slate-100 text-slate-400 ring-slate-200")
+                  ? "bg-slate-900 dark:bg-blue-600 text-white ring-slate-900 dark:ring-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 active:scale-[0.99]"
+                  : "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 ring-slate-200 dark:ring-slate-600")
               }
             >
               + Add {desktopQuickRunKind === "return" ? "Return" : "Supply"} run
@@ -828,7 +828,7 @@ export default function DuctPage() {
                         d: diameter,
                       });
                     }}
-                    className="rounded-full px-3 py-1 text-xs font-semibold bg-white text-slate-700 hover:bg-slate-100 ring-1 ring-inset ring-slate-200 active:scale-95 transition"
+                    className="rounded-full px-3 py-1 text-xs font-semibold bg-white dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-500 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 active:scale-95 transition"
                   >
                     {diameter}&quot;
                   </button>
@@ -836,14 +836,14 @@ export default function DuctPage() {
               </div>
             )}
 
-            <div className="mt-2 text-[11px] text-slate-500">
+            <div className="mt-2 text-[11px] text-slate-500 dark:text-slate-400">
               Tip: enter measurements here, then tap a run pill below to edit details.
             </div>
           </div>
 
           {/* Runs display with pill-style grouping */}
           {runs.length === 0 ? (
-            <div className="mt-4 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600 ring-1 ring-inset ring-slate-200">
+            <div className="mt-4 rounded-2xl bg-slate-50 dark:bg-slate-700 p-4 text-sm text-slate-600 dark:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300">
               No runs added.
             </div>
           ) : (
@@ -851,7 +851,7 @@ export default function DuctPage() {
               {/* Return runs */}
               {runs.filter((r) => r.kind === "return").length > 0 && (
                 <div className="mt-4">
-                  <div className="text-sm font-semibold text-slate-900 mb-2">Return runs</div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white mb-2">Return runs</div>
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       const returnRuns = runs.filter((r) => r.kind === "return");
@@ -877,7 +877,7 @@ export default function DuctPage() {
                               return (
                                 <div
                                   key={index}
-                                  className="absolute rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200"
+                                  className="absolute rounded-full bg-slate-100 dark:bg-slate-700 px-4 py-2 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300"
                                   style={{
                                     left: `${index * PILL_STACK_OFFSET_PX}px`,
                                     top: `${index * PILL_STACK_OFFSET_PX}px`,
@@ -886,13 +886,13 @@ export default function DuctPage() {
                                 >
                                   {isTop && (
                                     <div className="flex items-center gap-2">
-                                      <span className="text-sm font-semibold text-slate-900">
+                                      <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                         {label}
                                       </span>
-                                      <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-600 rounded-full px-2 py-0.5">
                                         ×{groupRuns.length}
                                       </span>
-                                      <span className="text-xs text-slate-600">
+                                      <span className="text-xs text-slate-600 dark:text-slate-300">
                                         {round1(totalCfm)} CFM
                                       </span>
                                       {groupRuns.length > 1 && (
@@ -901,7 +901,7 @@ export default function DuctPage() {
                                           onClick={() => {
                                             removeRun(groupRuns[0].id);
                                           }}
-                                          className="ml-1 text-slate-500 hover:text-slate-700"
+                                          className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                                           title="Remove one"
                                         >
                                           −
@@ -912,7 +912,7 @@ export default function DuctPage() {
                                         onClick={() => {
                                           groupRuns.forEach((r) => removeRun(r.id));
                                         }}
-                                        className="ml-1 text-slate-500 hover:text-slate-700"
+                                        className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                                         title="Remove all"
                                       >
                                         ✕
@@ -933,7 +933,7 @@ export default function DuctPage() {
               {/* Supply runs */}
               {runs.filter((r) => r.kind === "supply").length > 0 && (
                 <div className="mt-4">
-                  <div className="text-sm font-semibold text-slate-900 mb-2">Supply runs</div>
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white mb-2">Supply runs</div>
                   <div className="flex flex-wrap gap-2">
                     {(() => {
                       const supplyRuns = runs.filter((r) => r.kind === "supply");
@@ -950,7 +950,7 @@ export default function DuctPage() {
                             {groupRuns.map((_, index) => (
                               <div
                                 key={index}
-                                className="absolute rounded-full bg-slate-100 px-4 py-2 ring-1 ring-inset ring-slate-200"
+                                className="absolute rounded-full bg-slate-100 dark:bg-slate-700 px-4 py-2 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300"
                                 style={{
                                   left: `${index * PILL_STACK_OFFSET_PX}px`,
                                   top: `${index * PILL_STACK_OFFSET_PX}px`,
@@ -958,13 +958,13 @@ export default function DuctPage() {
                                 }}
                               >
                                 <div className="flex items-center gap-2" style={{ visibility: index === groupRuns.length - 1 ? 'visible' : 'hidden' }}>
-                                  <span className="text-sm font-semibold text-slate-900">
+                                  <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                     {label}
                                   </span>
-                                  <span className="text-xs font-semibold text-slate-600 bg-slate-200 rounded-full px-2 py-0.5">
+                                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-600 rounded-full px-2 py-0.5">
                                     ×{groupRuns.length}
                                   </span>
-                                  <span className="text-xs text-slate-600">
+                                  <span className="text-xs text-slate-600 dark:text-slate-300">
                                     {round1(totalCfm)} CFM
                                   </span>
                                   {groupRuns.length > 1 && (
@@ -973,7 +973,7 @@ export default function DuctPage() {
                                       onClick={() => {
                                         removeRun(groupRuns[0].id);
                                       }}
-                                      className="ml-1 text-slate-500 hover:text-slate-700"
+                                      className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                                       title="Remove one"
                                     >
                                       −
@@ -984,7 +984,7 @@ export default function DuctPage() {
                                     onClick={() => {
                                       groupRuns.forEach((r) => removeRun(r.id));
                                     }}
-                                    className="ml-1 text-slate-500 hover:text-slate-700"
+                                    className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                                     title="Remove all"
                                   >
                                     ✕
@@ -1003,13 +1003,13 @@ export default function DuctPage() {
           )}
 
           <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-              <div className="text-xs text-slate-500">Runs return total</div>
-              <div className="text-base font-semibold tabular-nums text-slate-900">{totals.runsReturnCfm || 0}</div>
+            <div className="rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300">
+              <div className="text-xs text-slate-500 dark:text-slate-400">Runs return total</div>
+              <div className="text-base font-semibold tabular-nums text-slate-900 dark:text-white">{totals.runsReturnCfm || 0}</div>
             </div>
-            <div className="rounded-2xl bg-white px-4 py-3 ring-1 ring-inset ring-slate-200">
-              <div className="text-xs text-slate-500">Runs supply total</div>
-              <div className="text-base font-semibold tabular-nums text-slate-900">{totals.runsSupplyCfm || 0}</div>
+            <div className="rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300">
+              <div className="text-xs text-slate-500 dark:text-slate-400">Runs supply total</div>
+              <div className="text-base font-semibold tabular-nums text-slate-900 dark:text-white">{totals.runsSupplyCfm || 0}</div>
             </div>
           </div>
         </section>
