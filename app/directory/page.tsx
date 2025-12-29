@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
+import { ProtectedPage } from "../components/ProtectedPage";
 
 export const dynamic = "force-static";
 
@@ -124,6 +125,7 @@ export default function DirectoryPage() {
   }, [data, q, cat, vendor]);
 
   return (
+    <ProtectedPage>
     <div role="main" className="app-shell h-[100dvh] overflow-hidden px-3 py-3 sm:px-4 sm:py-8 bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
       <div className="mx-auto h-full w-full max-w-3xl flex flex-col gap-3">
         <AppHeader title="Tech Directory"
@@ -271,5 +273,6 @@ export default function DirectoryPage() {
         </footer>
       </div>
     </div>
+    </ProtectedPage>
   );
 }

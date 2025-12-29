@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useMemo, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
 import { useSessionStorage } from "../hooks/useSessionStorage";
+import { ProtectedPage } from "../components/ProtectedPage";
 
 type Shape = "rect" | "round";
 type Dir = "one" | "two";
@@ -445,6 +446,7 @@ export default function DuctPage() {
   );
 
   return (
+    <ProtectedPage>
     <div className="min-h-[100dvh] bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 px-3 py-3 sm:px-6 sm:py-6 transition-colors duration-300">
       <div className="mx-auto w-full max-w-5xl flex flex-col gap-3">
         <AppHeader title="Ductulator"
@@ -1144,5 +1146,6 @@ export default function DuctPage() {
         </div>
       ) : null}
     </div>
+    </ProtectedPage>
   );
 }

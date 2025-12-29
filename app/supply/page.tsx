@@ -3,6 +3,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AppHeader } from "../components/AppHeader";
+import { ProtectedPage } from "../components/ProtectedPage";
 
 type Branch = {
   id: string;
@@ -457,6 +458,7 @@ const sorted = useMemo(() => {
 
 
   return (
+    <ProtectedPage>
     <main className="max-w-3xl mx-auto p-4 space-y-4 min-h-[100dvh] bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
       <AppHeader title="Supply Houses" subtitle="Find the closest branch" />
 
@@ -767,5 +769,6 @@ const sorted = useMemo(() => {
         })}
       </section>
     </main>
+    </ProtectedPage>
   );
 }
