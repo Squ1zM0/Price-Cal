@@ -4,8 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDeviceId, getDeviceInfo, isDeviceApproved } from "../utils/deviceAuth";
 
-// TODO: Replace with actual admin email address
-const ADMIN_EMAIL = "admin@example.com";
+const ADMIN_EMAIL = "ffrench0598@gmail.com";
 
 export default function GatePage() {
   const router = useRouter();
