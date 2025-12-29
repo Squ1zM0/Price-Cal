@@ -53,8 +53,23 @@ export default function AdminAccessPage() {
   }, []);
 
   const handleGenerateCode = useCallback(() => {
+    let code_id = generateCodeId();
+    
+    // Check for duplicate code_id (very unlikely but possible)
+    // Retry up to 3 times if collision detected
+    let retries = 0;
+    while (proposedCodes.some(c => c.code_id === code_id) && retries < 3) {
+      code_id = generateCodeId();
+      retries++;
+    }
+    
+    if (proposedCodes.some(c => c.code_id === code_id)) {
+      console.error("Failed to generate unique code_id after 3 attempts");
+      return;
+    }
+    
     const code: AccessCode = {
-      code_id: generateCodeId(),
+      code_id,
       code_value: generateCodeValue(),
       role: newCodeRole,
       label: newCodeLabel.trim() || undefined,

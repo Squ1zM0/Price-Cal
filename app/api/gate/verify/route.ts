@@ -12,6 +12,10 @@ export const dynamic = 'force-dynamic';
 export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
+  // TODO: Add rate limiting to prevent brute force attacks
+  // Consider implementing IP-based rate limiting or exponential backoff
+  // after failed attempts to prevent code guessing attacks
+  
   try {
     const { code } = await request.json();
 
