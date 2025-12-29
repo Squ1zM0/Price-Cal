@@ -229,30 +229,6 @@ export default function CalculatorPage() {
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        {warrantyIncluded ? "Warranty applied" : "No warranty"}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setWarrantyIncluded((v) => !v)}
-                      className={[
-                        "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
-                        warrantyIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
-                      ].join(" ")}
-                      aria-pressed={warrantyIncluded}
-                    >
-                      <div
-                        className={[
-                          "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
-                          warrantyIncluded ? "translate-x-6" : "translate-x-0",
-                        ].join(" ")}
-                      />
-                    </button>
-                  </div>
-
                   {!taxIncluded ? (
                     <div className="flex flex-col gap-2">
                       <div>
@@ -309,6 +285,30 @@ export default function CalculatorPage() {
                   <SegButton active={crew === "x2"} onClick={() => setCrew("x2")}>
                     x2 Tech
                   </SegButton>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
+                  <div>
+                    <div className="text-xs font-bold text-slate-900 dark:text-white">
+                      {warrantyIncluded ? "Warranty applied" : "No warranty"}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setWarrantyIncluded((v) => !v)}
+                    className={[
+                      "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
+                      warrantyIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
+                    ].join(" ")}
+                    aria-pressed={warrantyIncluded}
+                  >
+                    <div
+                      className={[
+                        "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
+                        warrantyIncluded ? "translate-x-6" : "translate-x-0",
+                      ].join(" ")}
+                    />
+                  </button>
                 </div>
               </div>
             </section>
