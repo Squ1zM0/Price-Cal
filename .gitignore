@@ -28,3 +28,6 @@ Thumbs.db
 
 # ESLint
 .eslintrc.json
+
+# Temporary test files
+tmp/

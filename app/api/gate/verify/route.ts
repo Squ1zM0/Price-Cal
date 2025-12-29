@@ -5,6 +5,8 @@ import {
   validateAccessCode,
 } from "@/app/lib/access-codes";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(request: NextRequest) {
   try {
     const { code } = await request.json();
