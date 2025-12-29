@@ -1,6 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { parseAccessCodes, parseAdminCodeIds, isBootstrapMode } from "@/app/lib/access-codes";
+import {
+  parseAccessCodes,
+  parseAdminCodeIds,
+  isBootstrapMode,
+  BOOTSTRAP_ADMIN_IDENTIFIER,
+  DEFAULT_USER_PATH,
+  DEFAULT_ADMIN_PATH,
+} from "@/app/lib/access-codes";
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -30,13 +37,13 @@ export function middleware(request: NextRequest) {
   }
 
   // Check if in bootstrap mode
-  const isBootstrapUser = pcGateCode.value === "__bootstrap_admin__";
+  const isBootstrapUser = pcGateCode.value === BOOTSTRAP_ADMIN_IDENTIFIER;
 
   if (isBootstrapUser && bootstrapActive) {
     // In bootstrap mode, only allow /admin/access
     if (!pathname.startsWith("/admin/access") && !pathname.startsWith("/api/admin")) {
       const url = request.nextUrl.clone();
-      url.pathname = "/admin/access";
+      url.pathname = DEFAULT_ADMIN_PATH;
       url.searchParams.set("bootstrap", "1");
       return NextResponse.redirect(url);
     }
@@ -52,7 +59,7 @@ export function middleware(request: NextRequest) {
     if (!isAdmin) {
       // Non-admin trying to access admin area - redirect to calculator
       const url = request.nextUrl.clone();
-      url.pathname = "/calculator";
+      url.pathname = DEFAULT_USER_PATH;
       return NextResponse.redirect(url);
     }
   }

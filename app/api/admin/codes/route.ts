@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { parseAdminCodeIds } from "@/app/lib/access-codes";
+import { parseAdminCodeIds, BOOTSTRAP_ADMIN_IDENTIFIER } from "@/app/lib/access-codes";
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
 
     // Check if user is admin or in bootstrap mode
     const adminCodeIds = parseAdminCodeIds(process.env.ADMIN_CODE_IDS);
-    const isBootstrap = pcGateCode.value === "__bootstrap_admin__";
+    const isBootstrap = pcGateCode.value === BOOTSTRAP_ADMIN_IDENTIFIER;
     const isAdmin = isBootstrap || adminCodeIds.includes(pcGateCode.value);
 
     if (!isAdmin) {

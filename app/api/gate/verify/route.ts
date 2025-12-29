@@ -3,6 +3,9 @@ import {
   parseAccessCodes,
   parseAdminCodeIds,
   validateAccessCode,
+  BOOTSTRAP_ADMIN_IDENTIFIER,
+  DEFAULT_USER_PATH,
+  DEFAULT_ADMIN_PATH,
 } from "@/app/lib/access-codes";
 
 export const dynamic = 'force-dynamic';
@@ -40,13 +43,16 @@ export async function POST(request: NextRequest) {
     // Determine the code identifier for the cookie
     let codeIdentifier: string;
     let isAdmin = false;
+    let redirectTo: string;
 
     if (validation.isBootstrap) {
-      codeIdentifier = "__bootstrap_admin__";
+      codeIdentifier = BOOTSTRAP_ADMIN_IDENTIFIER;
       isAdmin = true;
+      redirectTo = `${DEFAULT_ADMIN_PATH}?bootstrap=1`;
     } else if (validation.code) {
       codeIdentifier = validation.code.code_id;
       isAdmin = validation.code.role === "admin" && adminCodeIds.includes(validation.code.code_id);
+      redirectTo = isAdmin ? DEFAULT_ADMIN_PATH : DEFAULT_USER_PATH;
     } else {
       return NextResponse.json(
         { error: "Unexpected validation state" },
@@ -59,7 +65,7 @@ export async function POST(request: NextRequest) {
       success: true,
       isAdmin,
       isBootstrap: validation.isBootstrap || false,
-      redirectTo: validation.isBootstrap ? "/admin/access?bootstrap=1" : (isAdmin ? "/admin/access" : "/calculator"),
+      redirectTo,
     });
 
     // Set cookies

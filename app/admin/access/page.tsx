@@ -222,6 +222,7 @@ export default function AdminAccessPage() {
             Generate Code
           </button>
 
+          {/* In bootstrap mode, disable additional code generation after first admin code is created */}
           {generatedCode && (
             <div className="mt-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
               <p className="text-sm text-green-800 dark:text-green-400 mb-2">

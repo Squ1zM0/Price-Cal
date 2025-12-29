@@ -5,6 +5,17 @@
 
 export type AccessCodeRole = "admin" | "user";
 
+/**
+ * Special identifier for bootstrap admin session
+ */
+export const BOOTSTRAP_ADMIN_IDENTIFIER = "__bootstrap_admin__";
+
+/**
+ * Default redirect paths for different user types
+ */
+export const DEFAULT_USER_PATH = "/calculator";
+export const DEFAULT_ADMIN_PATH = "/admin/access";
+
 export interface AccessCode {
   code_id: string;
   code_value: string;
@@ -35,7 +46,7 @@ export function parseAccessCodes(envString: string | undefined): AccessCode[] {
       role: (parts[2].trim() as AccessCodeRole) || "user",
       label: parts[3]?.trim() || undefined,
       expiresAt: parts[4]?.trim() || undefined,
-      maxDevices: parts[5] ? parseInt(parts[5].trim(), 10) : undefined,
+      maxDevices: parts[5] ? (parseInt(parts[5].trim(), 10) || undefined) : undefined,
     };
 
     codes.push(code);
@@ -97,9 +108,10 @@ export function generateCodeId(): string {
 /**
  * Generate a human-readable access code value
  * Format: PC-XXXX-XXXX-XXXX (similar to product keys)
+ * Excludes ambiguous characters: 0, 1, I, O
  */
 export function generateCodeValue(): string {
-  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Remove ambiguous chars
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // Exclude 0, 1, I, O to avoid confusion
   const segments = 3;
   const segmentLength = 4;
   
