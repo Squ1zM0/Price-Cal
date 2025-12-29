@@ -27,6 +27,47 @@ Add the environment variable in your Vercel project settings:
 - Add `GATE_PASSWORD` with your chosen password
 - **Never commit the actual password to the repository**
 
+### Optional WebAuthn/Face ID Configuration
+
+**For Vercel Deployments:**
+No additional configuration needed! The app automatically detects the Vercel environment.
+
+**For Custom Domains or Non-Vercel Deployments:**
+If you're deploying to a custom domain or non-Vercel environment, you need to set these environment variables:
+
+```bash
+# The domain name without protocol (e.g., "yourdomain.com" or "localhost")
+NEXT_PUBLIC_RP_ID=yourdomain.com
+
+# The full origin URL with protocol (e.g., "https://yourdomain.com" or "http://localhost:3000")
+NEXT_PUBLIC_ORIGIN=https://yourdomain.com
+
+# (Optional) The human-readable name shown during Face ID prompts
+NEXT_PUBLIC_RP_NAME=Price Calculator
+```
+
+**Why these are needed:**
+- WebAuthn (Face ID/Touch ID) requires precise configuration of the domain and origin
+- The `RP_ID` (Relying Party ID) must match your actual domain
+- The `ORIGIN` must match the URL where your app is hosted
+- On Vercel, these are automatically detected from `VERCEL_URL`
+- For other deployments, you must set them explicitly
+
+**Examples:**
+
+*For a custom domain:*
+```bash
+NEXT_PUBLIC_RP_ID=myapp.example.com
+NEXT_PUBLIC_ORIGIN=https://myapp.example.com
+```
+
+*For localhost development:*
+```bash
+# These are the defaults, so you don't need to set them for local development
+NEXT_PUBLIC_RP_ID=localhost
+NEXT_PUBLIC_ORIGIN=http://localhost:3000
+```
+
 ### Security Notes
 
 ⚠️ **Important:**
@@ -145,9 +186,25 @@ On localhost, Face ID will work but may not be available on all devices.
 - Check your `.env.local` or Vercel environment variables
 
 ### Face ID not working
-- Ensure you're on HTTPS (or localhost)
-- Check if your device/browser supports WebAuthn
-- Face ID credentials are lost on server restart (expected behavior)
+- **Ensure you're on HTTPS (or localhost)** - WebAuthn requires a secure context
+- **Check if your device/browser supports WebAuthn** - iOS Safari, macOS Safari, Chrome on Android, Windows Hello, etc.
+- **For custom domains or non-Vercel deployments:** Set `NEXT_PUBLIC_RP_ID` and `NEXT_PUBLIC_ORIGIN` environment variables to match your domain
+- **Face ID credentials are lost on server restart** (expected behavior with in-memory storage)
+- **Check browser console for errors** - Look for WebAuthn-specific error messages
+- **Verify RP_ID and ORIGIN configuration:**
+  - RP_ID should be just the domain (e.g., "example.com" or "localhost")
+  - ORIGIN should be the full URL with protocol (e.g., "https://example.com" or "http://localhost:3000")
+  - These must match your actual deployment URL exactly
+
+### "Failed to enable Face ID" or "Failed to get registration options"
+- This typically means the WebAuthn configuration doesn't match your deployment environment
+- **Solution:** Set the `NEXT_PUBLIC_RP_ID` and `NEXT_PUBLIC_ORIGIN` environment variables
+- Example for a custom domain `myapp.com`:
+  ```bash
+  NEXT_PUBLIC_RP_ID=myapp.com
+  NEXT_PUBLIC_ORIGIN=https://myapp.com
+  ```
+- After setting these, restart your development server or redeploy
 
 ### Redirect loop
 - Clear your browser cookies

@@ -1,13 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateRegistrationOptions } from "@simplewebauthn/server";
 import { webAuthnStorage } from "@/app/lib/webauthn-storage";
-
-// These should ideally come from environment variables
-const RP_NAME = "Price Calculator";
-const RP_ID = process.env.VERCEL_URL || "localhost";
-const ORIGIN = process.env.VERCEL_URL 
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+import { webAuthnConfig } from "@/app/lib/webauthn-config";
 
 export async function POST(request: NextRequest) {
   try {
@@ -28,8 +22,8 @@ export async function POST(request: NextRequest) {
     const existingCredentials = webAuthnStorage.getAllCredentials();
 
     const options = await generateRegistrationOptions({
-      rpName: RP_NAME,
-      rpID: RP_ID,
+      rpName: webAuthnConfig.rpName,
+      rpID: webAuthnConfig.rpId,
       userID: userId,
       userName: userName,
       attestationType: "none",

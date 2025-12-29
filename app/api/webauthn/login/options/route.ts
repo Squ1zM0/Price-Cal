@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
 import { webAuthnStorage } from "@/app/lib/webauthn-storage";
-
-const RP_ID = process.env.VERCEL_URL || "localhost";
+import { webAuthnConfig } from "@/app/lib/webauthn-config";
 
 export async function POST() {
   try {
@@ -17,7 +16,7 @@ export async function POST() {
     }
 
     const options = await generateAuthenticationOptions({
-      rpID: RP_ID,
+      rpID: webAuthnConfig.rpId,
       allowCredentials: credentials.map((cred) => ({
         id: cred.id,
         type: "public-key",

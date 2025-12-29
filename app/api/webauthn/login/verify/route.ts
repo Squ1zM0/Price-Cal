@@ -4,11 +4,7 @@ import {
   type AuthenticationResponseJSON 
 } from "@simplewebauthn/server";
 import { webAuthnStorage } from "@/app/lib/webauthn-storage";
-
-const RP_ID = process.env.VERCEL_URL || "localhost";
-const ORIGIN = process.env.VERCEL_URL 
-  ? `https://${process.env.VERCEL_URL}`
-  : "http://localhost:3000";
+import { webAuthnConfig } from "@/app/lib/webauthn-config";
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,8 +34,8 @@ export async function POST(request: NextRequest) {
     const verification = await verifyAuthenticationResponse({
       response: assertionResponse as AuthenticationResponseJSON,
       expectedChallenge: challenge,
-      expectedOrigin: ORIGIN,
-      expectedRPID: RP_ID,
+      expectedOrigin: webAuthnConfig.origin,
+      expectedRPID: webAuthnConfig.rpId,
       credential: {
         id: credential.id,
         publicKey: credential.publicKey,
