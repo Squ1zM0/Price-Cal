@@ -124,7 +124,7 @@ BOOTSTRAP_ADMIN_CODE=your-secure-code
 2. **Use Strong Codes:** Even though codes are auto-generated, treat them as passwords
 3. **Regular Audits:** Periodically review and revoke unused codes
 4. **Expiration Dates:** Set expiration dates for temporary access
-5. **Device Limits:** Use max devices to limit code sharing
+5. **Device Limits (Planned):** The `maxDevices` setting is currently not enforced and is reserved for future use. Do not rely on it to limit code sharing.
 6. **HTTPS Only:** Always use HTTPS in production (automatic on Vercel)
 
 ## Troubleshooting

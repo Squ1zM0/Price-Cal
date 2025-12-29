@@ -40,10 +40,21 @@ export function parseAccessCodes(envString: string | undefined): AccessCode[] {
     const parts = record.split("|");
     if (parts.length < 3) continue; // Need at least code_id, code_value, role
 
+    const roleRaw = parts[2].trim();
+    let role: AccessCodeRole = "user";
+    if (roleRaw === "admin" || roleRaw === "user") {
+      role = roleRaw;
+    } else if (roleRaw) {
+      // Invalid non-empty role value; log a warning and default to "user"
+      console.warn(
+        `Invalid access code role "${roleRaw}" for code_id "${parts[0].trim()}". Defaulting to "user".`
+      );
+    }
+
     const code: AccessCode = {
       code_id: parts[0].trim(),
       code_value: parts[1].trim(),
-      role: (parts[2].trim() as AccessCodeRole) || "user",
+      role,
       label: parts[3]?.trim() || undefined,
       expiresAt: parts[4]?.trim() || undefined,
       maxDevices: parts[5] ? (parseInt(parts[5].trim(), 10) || undefined) : undefined,
@@ -83,7 +94,7 @@ export function serializeAccessCodes(codes: AccessCode[]): string {
       ];
       return parts.join("|");
     })
-    .join(";\n");
+    .join(";");
 }
 
 /**
@@ -94,19 +105,30 @@ export function serializeAdminCodeIds(codeIds: string[]): string {
 }
 
 /**
- * Generate a new access code ID
+ * Generate a new access code ID using cryptographically secure random
  */
 export function generateCodeId(): string {
   const chars = "abcdefghijklmnopqrstuvwxyz0123456789";
   let id = "ac_";
-  for (let i = 0; i < 6; i++) {
-    id += chars[Math.floor(Math.random() * chars.length)];
+  
+  // Use crypto.getRandomValues for cryptographically secure random
+  const randomValues = new Uint8Array(6);
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(randomValues);
+    for (let i = 0; i < 6; i++) {
+      id += chars[randomValues[i] % chars.length];
+    }
+  } else {
+    // Fallback for environments without crypto (shouldn't happen in modern browsers/Node)
+    for (let i = 0; i < 6; i++) {
+      id += chars[Math.floor(Math.random() * chars.length)];
+    }
   }
   return id;
 }
 
 /**
- * Generate a human-readable access code value
+ * Generate a human-readable access code value using cryptographically secure random
  * Format: PC-XXXX-XXXX-XXXX (similar to product keys)
  * Excludes ambiguous characters: 0, 1, I, O
  */
@@ -116,12 +138,30 @@ export function generateCodeValue(): string {
   const segmentLength = 4;
   
   const parts: string[] = ["PC"];
-  for (let i = 0; i < segments; i++) {
-    let segment = "";
-    for (let j = 0; j < segmentLength; j++) {
-      segment += chars[Math.floor(Math.random() * chars.length)];
+  
+  // Use crypto.getRandomValues for cryptographically secure random
+  const totalChars = segments * segmentLength;
+  const randomValues = new Uint8Array(totalChars);
+  
+  if (typeof crypto !== 'undefined' && crypto.getRandomValues) {
+    crypto.getRandomValues(randomValues);
+    let charIndex = 0;
+    for (let i = 0; i < segments; i++) {
+      let segment = "";
+      for (let j = 0; j < segmentLength; j++) {
+        segment += chars[randomValues[charIndex++] % chars.length];
+      }
+      parts.push(segment);
     }
-    parts.push(segment);
+  } else {
+    // Fallback for environments without crypto
+    for (let i = 0; i < segments; i++) {
+      let segment = "";
+      for (let j = 0; j < segmentLength; j++) {
+        segment += chars[Math.floor(Math.random() * chars.length)];
+      }
+      parts.push(segment);
+    }
   }
   
   return parts.join("-");

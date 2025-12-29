@@ -18,8 +18,6 @@ export default function AdminAccessPage() {
   const searchParams = useSearchParams();
   const isBootstrap = searchParams.get("bootstrap") === "1";
 
-  const [currentCodes, setCurrentCodes] = useState<AccessCode[]>([]);
-  const [currentAdminIds, setCurrentAdminIds] = useState<string[]>([]);
   const [proposedCodes, setProposedCodes] = useState<AccessCode[]>([]);
   const [proposedAdminIds, setProposedAdminIds] = useState<string[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
@@ -44,8 +42,6 @@ export default function AdminAccessPage() {
           const codes = parseAccessCodes(data.accessCodes);
           const adminIds = parseAdminCodeIds(data.adminCodeIds);
           
-          setCurrentCodes(codes);
-          setCurrentAdminIds(adminIds);
           setProposedCodes(codes);
           setProposedAdminIds(adminIds);
         }
@@ -189,6 +185,7 @@ export default function AdminAccessPage() {
                 type="date"
                 value={newCodeExpires}
                 onChange={(e) => setNewCodeExpires(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 
                          bg-white dark:bg-slate-700 text-slate-900 dark:text-white
                          focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -205,6 +202,7 @@ export default function AdminAccessPage() {
                 onChange={(e) => setNewCodeMaxDevices(e.target.value)}
                 placeholder="e.g., 5"
                 min="1"
+                max="100"
                 className="w-full px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 
                          bg-white dark:bg-slate-700 text-slate-900 dark:text-white
                          focus:ring-2 focus:ring-blue-500 focus:border-transparent"

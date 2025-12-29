@@ -4,6 +4,7 @@ import {
   parseAccessCodes,
   parseAdminCodeIds,
   isBootstrapMode,
+  isCodeExpired,
   BOOTSTRAP_ADMIN_IDENTIFIER,
   DEFAULT_USER_PATH,
   DEFAULT_ADMIN_PATH,
@@ -50,6 +51,22 @@ export function middleware(request: NextRequest) {
     // Check if in bootstrap mode
     const isBootstrapUser = pcGateCode.value === BOOTSTRAP_ADMIN_IDENTIFIER;
 
+    // Validate non-bootstrap users still have valid, non-expired codes
+    if (!isBootstrapUser) {
+      const userCode = codes.find(c => c.code_id === pcGateCode.value);
+      
+      // If code no longer exists or is expired, redirect to gate
+      if (!userCode || isCodeExpired(userCode)) {
+        const url = request.nextUrl.clone();
+        url.pathname = "/gate";
+        // Clear invalid cookies by setting response headers
+        const response = NextResponse.redirect(url);
+        response.cookies.delete("pc_gate");
+        response.cookies.delete("pc_gate_code");
+        return response;
+      }
+    }
+
     if (isBootstrapUser && bootstrapActive) {
       // In bootstrap mode, only allow /admin/access
       if (!pathname.startsWith("/admin/access") && !pathname.startsWith("/api/admin")) {
@@ -58,6 +75,14 @@ export function middleware(request: NextRequest) {
         url.searchParams.set("bootstrap", "1");
         return NextResponse.redirect(url);
       }
+    } else if (isBootstrapUser && !bootstrapActive) {
+      // Bootstrap mode disabled but user still has bootstrap cookie - clear it and redirect to gate
+      const url = request.nextUrl.clone();
+      url.pathname = "/gate";
+      const response = NextResponse.redirect(url);
+      response.cookies.delete("pc_gate");
+      response.cookies.delete("pc_gate_code");
+      return response;
     }
 
     // Check admin routes
