@@ -13,57 +13,70 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public paths that don't require authentication
-  const publicPaths = ["/gate", "/api/gate/verify"];
+  const publicPaths = ["/gate", "/api/gate/verify", "/api/passkey/register", "/api/passkey/verify"];
   const isPublicPath = publicPaths.some((path) => pathname.startsWith(path));
 
-  if (isPublicPath) {
+  // Allow access to static files and Next.js internal routes
+  if (
+    isPublicPath ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/favicon") ||
+    pathname.startsWith("/apple-touch-icon") ||
+    pathname.startsWith("/manifest.webmanifest") ||
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|gif|css|js|woff|woff2|ttf|eot)$/)
+  ) {
     return NextResponse.next();
   }
 
-  // Get gate cookies
-  const pcGate = request.cookies.get("pc_gate");
+  // Check for authentication cookies
+  const hasGateAccess = request.cookies.get("pc_gate")?.value === "1";
+  const hasPasskeyAccess = request.cookies.get("pc_passkey")?.value === "1";
   const pcGateCode = request.cookies.get("pc_gate_code");
 
-  // Get env configuration
-  const codes = parseAccessCodes(process.env.ACCESS_CODES);
-  const adminCodeIds = parseAdminCodeIds(process.env.ADMIN_CODE_IDS);
-  const bootstrapActive = isBootstrapMode(codes, adminCodeIds);
-
-  // If no gate access, redirect to gate page
-  if (!pcGate || pcGate.value !== "1" || !pcGateCode) {
+  // If not authenticated, redirect to gate page
+  if (!hasGateAccess && !hasPasskeyAccess) {
     const url = request.nextUrl.clone();
     url.pathname = "/gate";
     return NextResponse.redirect(url);
   }
 
-  // Check if in bootstrap mode
-  const isBootstrapUser = pcGateCode.value === BOOTSTRAP_ADMIN_IDENTIFIER;
+  // Admin route protection (only applies to gate-authenticated users, not passkey users)
+  if (hasGateAccess && pcGateCode) {
+    // Get env configuration for admin code checking
+    const codes = parseAccessCodes(process.env.ACCESS_CODES);
+    const adminCodeIds = parseAdminCodeIds(process.env.ADMIN_CODE_IDS);
+    const bootstrapActive = isBootstrapMode(codes, adminCodeIds);
 
-  if (isBootstrapUser && bootstrapActive) {
-    // In bootstrap mode, only allow /admin/access
-    if (!pathname.startsWith("/admin/access") && !pathname.startsWith("/api/admin")) {
-      const url = request.nextUrl.clone();
-      url.pathname = DEFAULT_ADMIN_PATH;
-      url.searchParams.set("bootstrap", "1");
-      return NextResponse.redirect(url);
+    // Check if in bootstrap mode
+    const isBootstrapUser = pcGateCode.value === BOOTSTRAP_ADMIN_IDENTIFIER;
+
+    if (isBootstrapUser && bootstrapActive) {
+      // In bootstrap mode, only allow /admin/access
+      if (!pathname.startsWith("/admin/access") && !pathname.startsWith("/api/admin")) {
+        const url = request.nextUrl.clone();
+        url.pathname = DEFAULT_ADMIN_PATH;
+        url.searchParams.set("bootstrap", "1");
+        return NextResponse.redirect(url);
+      }
+    }
+
+    // Check admin routes
+    const adminPaths = ["/admin"];
+    const isAdminPath = adminPaths.some((path) => pathname.startsWith(path));
+
+    if (isAdminPath) {
+      const isAdmin = isBootstrapUser || adminCodeIds.includes(pcGateCode.value);
+      
+      if (!isAdmin) {
+        // Non-admin trying to access admin area - redirect to calculator
+        const url = request.nextUrl.clone();
+        url.pathname = DEFAULT_USER_PATH;
+        return NextResponse.redirect(url);
+      }
     }
   }
 
-  // Check admin routes
-  const adminPaths = ["/admin"];
-  const isAdminPath = adminPaths.some((path) => pathname.startsWith(path));
-
-  if (isAdminPath) {
-    const isAdmin = isBootstrapUser || adminCodeIds.includes(pcGateCode.value);
-    
-    if (!isAdmin) {
-      // Non-admin trying to access admin area - redirect to calculator
-      const url = request.nextUrl.clone();
-      url.pathname = DEFAULT_USER_PATH;
-      return NextResponse.redirect(url);
-    }
-  }
-
+  // User is authenticated, allow access
   return NextResponse.next();
 }
 
@@ -76,6 +89,6 @@ export const config = {
      * - favicon.ico (favicon file)
      * - public files (images, etc)
      */
-    "/((?!_next/static|_next/image|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico|webmanifest)$).*)",
+    "/((?!_next/static|_next/image|favicon|.*\\.(?:svg|png|jpg|jpeg|gif|webp|gif|css|js|woff|woff2|ttf|eot|ico|webmanifest)$).*)",
   ],
 };

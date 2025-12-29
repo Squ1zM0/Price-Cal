@@ -9,6 +9,7 @@ import {
 } from "@/app/lib/access-codes";
 
 export const dynamic = 'force-dynamic';
+export const runtime = "nodejs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -66,6 +67,8 @@ export async function POST(request: NextRequest) {
       isAdmin,
       isBootstrap: validation.isBootstrap || false,
       redirectTo,
+      // Include message for compatibility
+      message: "Access granted",
     });
 
     // Set cookies
