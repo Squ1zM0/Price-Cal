@@ -34,10 +34,10 @@ export async function GET(request: NextRequest) {
     // Note: This intentionally returns the full ACCESS_CODES including code values
     // because the admin UI needs to display them for the env-based workflow where
     // admins copy the generated env snippet to update Vercel. This is by design
-    // for a system with no database - env vars are the source of truth.
+    // Return current env configuration without exposing raw secret values
     return NextResponse.json({
-      accessCodes: process.env.ACCESS_CODES || "",
-      adminCodeIds: process.env.ADMIN_CODE_IDS || "",
+      accessCodes: "REDACTED",
+      adminCodeIds: "REDACTED",
     });
   } catch (error) {
     console.error("Error fetching admin codes:", error);
