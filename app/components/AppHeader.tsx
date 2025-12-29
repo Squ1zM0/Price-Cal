@@ -3,7 +3,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { DarkModeToggle } from "./DarkModeToggle";
 
 type PageItem = { href: string; label: string };
@@ -23,12 +23,28 @@ export function AppHeader({
   subtitle?: string;
 }) {
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
 
   const current = useMemo(() => {
     const hit = PAGES.find((p) => pathname?.startsWith(p.href));
     return hit ?? PAGES[0];
   }, [pathname]);
+
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await fetch("/api/gate/signout", {
+        method: "POST",
+      });
+      router.push("/gate");
+      router.refresh();
+    } catch (error) {
+      console.error("Sign out error:", error);
+      setSigningOut(false);
+    }
+  };
 
   return (
     <header className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 px-4 py-3 sm:px-6 sm:py-4 transition-all duration-300">
@@ -83,6 +99,18 @@ export function AppHeader({
                     </Link>
                   );
                 })}
+                
+                <div className="my-1 h-px bg-slate-200 dark:bg-slate-700" />
+                
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  disabled={signingOut}
+                  className="w-full text-left rounded-xl px-3 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all duration-200 disabled:opacity-50"
+                  role="menuitem"
+                >
+                  {signingOut ? "Signing out..." : "Sign Out"}
+                </button>
               </div>
             ) : null}
           </div>
