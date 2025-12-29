@@ -67,38 +67,53 @@ export default function AdminAccessPage() {
       console.error("Failed to generate unique code_id after 3 attempts");
       return;
     }
-    
-    const code: AccessCode = {
-      code_id,
-      code_value: generateCodeValue(),
-      role: newCodeRole,
-      label: newCodeLabel.trim() || undefined,
-      expiresAt: newCodeExpires || undefined,
-      maxDevices: newCodeMaxDevices ? parseInt(newCodeMaxDevices, 10) : undefined,
-    };
+  const handleGenerateCode = useCallback(async () => {
+    try {
+      const response = await fetch("/api/admin/codes/generate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          role: newCodeRole,
+          label: newCodeLabel.trim() || undefined,
+          expiresAt: newCodeExpires || undefined,
+          maxDevices: newCodeMaxDevices ? parseInt(newCodeMaxDevices, 10) : undefined,
+        }),
+      });
 
-    setGeneratedCode(code);
-    
-    const newProposedCodes = [...proposedCodes, code];
-    setProposedCodes(newProposedCodes);
+      if (!response.ok) {
+        console.error("Failed to generate code:", response.statusText);
+        return;
+      }
 
-    // If it's an admin code, add to admin IDs
-    if (code.role === "admin") {
-      const newAdminIds = [...proposedAdminIds, code.code_id];
-      setProposedAdminIds(newAdminIds);
-    }
+      const code: AccessCode = await response.json();
 
-    setHasChanges(true);
+      setGeneratedCode(code);
 
-    // Reset form
-    setNewCodeRole("user");
-    setNewCodeLabel("");
-    setNewCodeExpires("");
-    setNewCodeMaxDevices("");
+      const newProposedCodes = [...proposedCodes, code];
+      setProposedCodes(newProposedCodes);
 
-    // Mark bootstrap as complete if this is the first admin code
-    if (isBootstrap && code.role === "admin") {
-      setBootstrapComplete(true);
+      // If it's an admin code, add to admin IDs
+      if (code.role === "admin") {
+        const newAdminIds = [...proposedAdminIds, code.code_id];
+        setProposedAdminIds(newAdminIds);
+      }
+
+      setHasChanges(true);
+
+      // Reset form
+      setNewCodeRole("user");
+      setNewCodeLabel("");
+      setNewCodeExpires("");
+      setNewCodeMaxDevices("");
+
+      // Mark bootstrap as complete if this is the first admin code
+      if (isBootstrap && code.role === "admin") {
+        setBootstrapComplete(true);
+      }
+    } catch (error) {
+      console.error("Failed to generate code:", error);
     }
   }, [newCodeRole, newCodeLabel, newCodeExpires, newCodeMaxDevices, proposedCodes, proposedAdminIds, isBootstrap]);
 
