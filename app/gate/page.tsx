@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getDeviceId, getDeviceInfo, isDeviceApproved } from "../utils/deviceAuth";
 
-const ADMIN_EMAIL = "admin@example.com"; // Replace with actual admin email
+// TODO: Replace with actual admin email address
+const ADMIN_EMAIL = "admin@example.com";
 
 export default function GatePage() {
   const router = useRouter();
@@ -95,7 +96,7 @@ Reply to this email with any questions.
           <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
             <p className="text-green-800 text-sm">
               ✓ Email client opened. Please send the email to request access.
-              Once approved by an administrator, you'll be able to access the
+              Once approved by an administrator, you&apos;ll be able to access the
               application.
             </p>
           </div>

@@ -25,9 +25,14 @@ export function getDeviceId(): string {
 }
 
 /**
- * Generates a random device ID
+ * Generates a random device ID using crypto API for better security
  */
 function generateRandomId(): string {
+  // Use crypto.randomUUID if available, fallback to random string
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older browsers
   return Math.random().toString(36).substring(2, 15) + 
          Math.random().toString(36).substring(2, 15);
 }
