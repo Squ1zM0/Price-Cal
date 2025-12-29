@@ -43,7 +43,7 @@ export default function AdminAccessPage() {
   useEffect(() => {
     if (isBootstrap && currentCodes.length === 0) {
       setShowNewCodeForm(true);
-      setNewCodeForm({ ...newCodeForm, role: "admin" });
+      setNewCodeForm((prev) => ({ ...prev, role: "admin" }));
     }
   }, [isBootstrap, currentCodes]);
 

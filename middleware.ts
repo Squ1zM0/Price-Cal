@@ -9,7 +9,7 @@ import type { NextRequest } from "next/server";
 const BOOTSTRAP_CODE_ID = "__bootstrap_admin__";
 
 // Public routes that don't require authentication
-const publicRoutes = ["/gate", "/api/gate/verify"];
+const publicRoutes = ["/gate", "/api"];
 
 // Routes that require admin access
 const adminRoutes = ["/admin"];
