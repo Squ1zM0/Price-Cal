@@ -9,12 +9,9 @@ import type {
   VerifyRegistrationResponseOpts,
 } from "@simplewebauthn/server";
 import type { RegistrationResponseJSON } from "@simplewebauthn/types";
+import { challenges, credentials } from "@/app/lib/passkey-storage";
 
 export const runtime = "nodejs";
-
-// In-memory storage for challenges and credentials (in production, use a database)
-const challenges = new Map<string, string>();
-const credentials = new Map<string, any>();
 
 // Get RP (Relying Party) info from environment or use defaults
 const rpName = process.env.RP_NAME || "Accutrol Pricing Calculator";

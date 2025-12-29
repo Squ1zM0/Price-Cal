@@ -73,9 +73,8 @@ export async function POST(req: NextRequest) {
       path: "/",
     });
 
-    // Store which code was used (hashed or indexed for potential revocation)
-    // For now, we'll just store a flag. Could be enhanced to track specific codes.
-    cookieStore.set("pc_gate_code", code.substring(0, 4), {
+    // Store authenticated flag without revealing which code was used
+    cookieStore.set("pc_gate_code", "verified", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "lax",

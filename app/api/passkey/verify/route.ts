@@ -9,13 +9,9 @@ import type {
   VerifyAuthenticationResponseOpts,
 } from "@simplewebauthn/server";
 import type { AuthenticationResponseJSON } from "@simplewebauthn/types";
+import { challenges, credentials } from "@/app/lib/passkey-storage";
 
 export const runtime = "nodejs";
-
-// Shared storage with register route (in production, use a database)
-// These would be imported from a shared module
-const challenges = new Map<string, string>();
-const credentials = new Map<string, any>();
 
 // Get RP (Relying Party) info from environment or use defaults
 const rpID = process.env.RP_ID || "localhost";

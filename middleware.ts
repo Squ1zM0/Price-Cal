@@ -16,8 +16,8 @@ export function middleware(request: NextRequest) {
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon") ||
     pathname.startsWith("/apple-touch-icon") ||
-    pathname.startsWith("/manifest") ||
-    pathname.includes(".")
+    pathname.startsWith("/manifest.webmanifest") ||
+    pathname.match(/\.(ico|png|jpg|jpeg|svg|webp|gif|css|js|woff|woff2|ttf|eot)$/)
   ) {
     return NextResponse.next();
   }
