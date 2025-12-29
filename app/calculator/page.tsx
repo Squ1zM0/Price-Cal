@@ -192,84 +192,16 @@ export default function CalculatorPage() {
             {/* Controls */}
             <section className="min-h-0 rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg dark:shadow-2xl ring-1 ring-slate-200 dark:ring-slate-700 p-4 sm:p-5 flex flex-col gap-4 transition-all duration-300">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {/* Material input + Tax toggle + Tax rate (stacked in left column on desktop) */}
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Material Cost</label>
-                    <input
-                      value={materialStr}
-                      onChange={(e) => setMaterialStr(e.target.value)}
-                      inputMode="decimal"
-                      placeholder="0.00"
-                      className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
-                    />
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        {taxIncluded ? "Tax included" : "Tax not included"}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setTaxIncluded((v) => !v)}
-                      className={[
-                        "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
-                        taxIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
-                      ].join(" ")}
-                      aria-pressed={taxIncluded}
-                    >
-                      <div
-                        className={[
-                          "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
-                          taxIncluded ? "translate-x-6" : "translate-x-0",
-                        ].join(" ")}
-                      />
-                    </button>
-                  </div>
-
-                  <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
-                    <div>
-                      <div className="text-xs font-bold text-slate-900 dark:text-white">
-                        {warrantyIncluded ? "Warranty applied" : "No warranty"}
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setWarrantyIncluded((v) => !v)}
-                      className={[
-                        "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
-                        warrantyIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
-                      ].join(" ")}
-                      aria-pressed={warrantyIncluded}
-                    >
-                      <div
-                        className={[
-                          "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
-                          warrantyIncluded ? "translate-x-6" : "translate-x-0",
-                        ].join(" ")}
-                      />
-                    </button>
-                  </div>
-
-                  {!taxIncluded ? (
-                    <div className="flex flex-col gap-2">
-                      <div>
-                        <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Tax Rate (%)</label>
-                        <input
-                          value={taxRateStr}
-                          onChange={(e) => setTaxRateStr(e.target.value)}
-                          inputMode="decimal"
-                          placeholder="8.0"
-                          className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
-                        />
-                      </div>
-                      <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-                        Material w/ tax: <span className="font-semibold text-slate-900 dark:text-white">{moneyFmt.format(breakdown.matWithTax)}</span>
-                      </div>
-                    </div>
-                  ) : null}
+                {/* Material input (left column on desktop) */}
+                <div>
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Material Cost</label>
+                  <input
+                    value={materialStr}
+                    onChange={(e) => setMaterialStr(e.target.value)}
+                    inputMode="decimal"
+                    placeholder="0.00"
+                    className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
+                  />
                 </div>
 
                 {/* Hours input (right column on desktop) */}
@@ -284,6 +216,48 @@ export default function CalculatorPage() {
                   />
                 </div>
               </div>
+
+              <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
+                <div>
+                  <div className="text-xs font-bold text-slate-900 dark:text-white">
+                    {taxIncluded ? "Tax included" : "Tax not included"}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setTaxIncluded((v) => !v)}
+                  className={[
+                    "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
+                    taxIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
+                  ].join(" ")}
+                  aria-pressed={taxIncluded}
+                >
+                  <div
+                    className={[
+                      "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
+                      taxIncluded ? "translate-x-6" : "translate-x-0",
+                    ].join(" ")}
+                  />
+                </button>
+              </div>
+
+              {!taxIncluded ? (
+                <div className="flex flex-col gap-2">
+                  <div>
+                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400">Tax Rate (%)</label>
+                    <input
+                      value={taxRateStr}
+                      onChange={(e) => setTaxRateStr(e.target.value)}
+                      inputMode="decimal"
+                      placeholder="8.0"
+                      className="mt-1 w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-3 py-3 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:ring-offset-2 dark:focus:ring-offset-slate-800 hover:ring-blue-300 dark:hover:ring-blue-500"
+                    />
+                  </div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Material w/ tax: <span className="font-semibold text-slate-900 dark:text-white">{moneyFmt.format(breakdown.matWithTax)}</span>
+                  </div>
+                </div>
+              ) : null}
 
               <div className="flex flex-col gap-3">
                 <div className="flex items-center justify-between">
@@ -309,6 +283,30 @@ export default function CalculatorPage() {
                   <SegButton active={crew === "x2"} onClick={() => setCrew("x2")}>
                     x2 Tech
                   </SegButton>
+                </div>
+
+                <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
+                  <div>
+                    <div className="text-xs font-bold text-slate-900 dark:text-white">
+                      {warrantyIncluded ? "Warranty applied" : "No warranty"}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setWarrantyIncluded((v) => !v)}
+                    className={[
+                      "h-10 w-16 rounded-full p-1 ring-1 ring-inset transition-all duration-300 hover:scale-105",
+                      warrantyIncluded ? "bg-gradient-to-br from-blue-500 to-blue-600 ring-blue-500 dark:from-blue-600 dark:to-blue-700 dark:ring-blue-600" : "bg-white dark:bg-slate-600 ring-slate-200 dark:ring-slate-500",
+                    ].join(" ")}
+                    aria-pressed={warrantyIncluded}
+                  >
+                    <div
+                      className={[
+                        "h-8 w-8 rounded-full bg-white shadow-md transition-all duration-300",
+                        warrantyIncluded ? "translate-x-6" : "translate-x-0",
+                      ].join(" ")}
+                    />
+                  </button>
                 </div>
               </div>
             </section>
