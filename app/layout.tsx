@@ -1,6 +1,8 @@
 import "./globals.css";
 import type { Metadata, Viewport } from "next";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { GateProvider } from "./contexts/GateContext";
+import { GateGuard } from "./components/GateGuard";
 
 export const metadata: Metadata = {
   title: "Accutrol Pricing Calculator",
@@ -31,7 +33,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
       </head>
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <GateProvider>
+            <GateGuard>{children}</GateGuard>
+          </GateProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
