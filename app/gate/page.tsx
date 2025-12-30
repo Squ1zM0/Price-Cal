@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useGate } from "../contexts/GateContext";
 import { getGatePassword } from "../lib/gate";
@@ -13,6 +13,7 @@ export default function GatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showFaceIDModal, setShowFaceIDModal] = useState(false);
   const [isWebAuthnSupported, setIsWebAuthnSupported] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   // Check WebAuthn support
   useEffect(() => {
@@ -28,6 +29,13 @@ export default function GatePage() {
       router.push("/calculator");
     }
   }, [isApproved, router]);
+
+  // Focus management for modal
+  useEffect(() => {
+    if (showFaceIDModal && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [showFaceIDModal]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -134,7 +142,7 @@ export default function GatePage() {
 
       {/* Face ID Modal */}
       {showFaceIDModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="faceid-modal-title" aria-describedby="faceid-modal-description">
+        <div ref={modalRef} tabIndex={-1} className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="faceid-modal-title" aria-describedby="faceid-modal-description">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Background overlay */}
             <div
@@ -166,7 +174,7 @@ export default function GatePage() {
                   </h3>
                   <div className="mt-2">
                     <p id="faceid-modal-description" className="text-sm text-gray-500 dark:text-gray-400">
-                      Face ID is required for quick access to this device. If setup is not available or fails, you will still be able to access the app.
+                      Face ID will be set up for convenient access to this device. If setup fails, you can still use the app.
                     </p>
                   </div>
                 </div>
