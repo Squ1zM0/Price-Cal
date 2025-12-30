@@ -6,9 +6,11 @@ interface GateContextType {
   isApproved: boolean;
   isFaceIDEnabled: boolean;
   isCheckingFaceID: boolean;
+  isAuthenticated: boolean;
   approveDevice: (useFaceID: boolean) => Promise<void>;
   checkFaceID: () => Promise<boolean>;
   clearApproval: () => void;
+  setAuthenticated: (value: boolean) => void;
 }
 
 const GateContext = createContext<GateContextType | undefined>(undefined);
@@ -24,6 +26,7 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
   const [isApproved, setIsApproved] = useState(false);
   const [isFaceIDEnabled, setIsFaceIDEnabled] = useState(false);
   const [isCheckingFaceID, setIsCheckingFaceID] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [mounted, setMounted] = useState(false);
 
   // Check if WebAuthn is supported
@@ -43,6 +46,10 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
       if (approved === "1") {
         setIsApproved(true);
         setIsFaceIDEnabled(faceIDEnabled === "1");
+        // If Face ID is not enabled, mark as authenticated immediately
+        if (faceIDEnabled !== "1") {
+          setIsAuthenticated(true);
+        }
       }
     } catch (error) {
       console.warn("Failed to access localStorage:", error);
@@ -98,16 +105,19 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
             localStorage.setItem(STORAGE_KEYS.CREDENTIAL_ID, credentialId);
             localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "1");
             setIsFaceIDEnabled(true);
+            setIsAuthenticated(true);
           }
         } catch (error) {
           console.warn("Face ID setup failed:", error);
           // Still approve the device even if Face ID fails
           localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "0");
           setIsFaceIDEnabled(false);
+          setIsAuthenticated(true);
         }
       } else {
         localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "0");
         setIsFaceIDEnabled(false);
+        setIsAuthenticated(true);
       }
       
       setIsApproved(true);
@@ -150,7 +160,11 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
         },
       });
 
-      return assertion !== null;
+      const success = assertion !== null;
+      if (success) {
+        setIsAuthenticated(true);
+      }
+      return success;
     } catch (error) {
       console.warn("Face ID check failed:", error);
       return false;
@@ -168,6 +182,7 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem(STORAGE_KEYS.CREDENTIAL_ID);
       setIsApproved(false);
       setIsFaceIDEnabled(false);
+      setIsAuthenticated(false);
     } catch (error) {
       console.error("Failed to clear approval:", error);
     }
@@ -184,9 +199,11 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
         isApproved,
         isFaceIDEnabled,
         isCheckingFaceID,
+        isAuthenticated,
         approveDevice,
         checkFaceID,
         clearApproval,
+        setAuthenticated: setIsAuthenticated,
       }}
     >
       {children}
