@@ -3,6 +3,7 @@
 import { useState, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useGate } from "../contexts/GateContext";
+import { getGatePassword } from "../lib/gate";
 
 export default function GatePage() {
   const router = useRouter();
@@ -34,7 +35,7 @@ export default function GatePage() {
     setIsLoading(true);
 
     try {
-      const expectedPassword = process.env.NEXT_PUBLIC_GATE_PASSWORD || "";
+      const expectedPassword = getGatePassword();
       
       if (!expectedPassword) {
         setError("Gate password not configured");

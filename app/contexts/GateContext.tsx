@@ -62,6 +62,10 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
           const challenge = new Uint8Array(32);
           crypto.getRandomValues(challenge);
           
+          // Generate random user ID for this credential
+          const userId = new Uint8Array(16);
+          crypto.getRandomValues(userId);
+          
           const credential = await navigator.credentials.create({
             publicKey: {
               challenge,
@@ -70,7 +74,7 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
                 id: window.location.hostname,
               },
               user: {
-                id: new Uint8Array(16),
+                id: userId,
                 name: "device-user",
                 displayName: "Device User",
               },
@@ -87,11 +91,10 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
             },
           });
 
-          if (credential) {
+          if (credential && credential instanceof PublicKeyCredential) {
             // Store credential ID for future verification
-            const credentialId = btoa(String.fromCharCode(...new Uint8Array(
-              (credential as any).rawId
-            )));
+            const rawId = (credential as PublicKeyCredential & { rawId: ArrayBuffer }).rawId;
+            const credentialId = btoa(String.fromCharCode(...new Uint8Array(rawId)));
             localStorage.setItem(STORAGE_KEYS.CREDENTIAL_ID, credentialId);
             localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "1");
             setIsFaceIDEnabled(true);
