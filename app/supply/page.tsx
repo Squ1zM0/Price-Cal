@@ -12,7 +12,8 @@ type Branch = {
   address2?: string;
   city: string;
   state: string;
-  zip: string;
+  zip?: string;
+  postalCode?: string; // New field from SupplyFind reorganization
   phone: string;
   website?: string;
   hours?: string;
@@ -29,9 +30,20 @@ type Branch = {
   tags?: string[];
   notes?: string;
   source?: string;
+  sources?: string[]; // New field from SupplyFind reorganization
   last_verified?: string;
   trades?: string[];
   primaryTrade?: string;
+  operatingName?: string; // New field from SupplyFind reorganization
+  verification?: { // New field from SupplyFind reorganization
+    coords_verified?: string;
+    geocoding_method?: string;
+    notes?: string;
+    addressVerified?: boolean;
+    addressSource?: string;
+    addressVerifiedDate?: string;
+  };
+  coordsStatus?: string; // New field from SupplyFind reorganization
 };
 
 type CountryIndex = {
@@ -54,6 +66,13 @@ type StateIndex = {
 
 type MetroFile = {
   branches: Branch[];
+  // New audit metadata fields from SupplyFind reorganization
+  version?: string;
+  updated?: string;
+  auditStatus?: string;
+  auditNotes?: string[];
+  state?: string;
+  metro?: string;
 };
 
 const BASE_PATH = "supply-house-directory";
@@ -92,8 +111,17 @@ function getRoutingCoordinates(branch: Branch): { lat: number; lon: number } {
 }
 
 /**
+ * Get postal code from branch, handling both 'zip' and 'postalCode' field names.
+ * Fallback mechanism for schema differences between old and new SupplyFind data.
+ */
+function getPostalCode(branch: Branch): string {
+  return branch.zip || branch.postalCode || '';
+}
+
+/**
  * Format branch address as a string for Google Maps.
  * Returns a formatted address string suitable for Google Maps search API.
+ * Handles both zip and postalCode field names for compatibility.
  */
 function formatAddress(branch: Branch): string {
   const parts = [
@@ -101,7 +129,7 @@ function formatAddress(branch: Branch): string {
     branch.address2,
     branch.city,
     branch.state,
-    branch.zip
+    getPostalCode(branch)
   ].filter(Boolean);
   return parts.join(", ");
 }
@@ -304,8 +332,21 @@ export default function SupplyPage() {
 
               try {
                 const metro = await fetchJsonWithFallback<MetroFile>(metroRel);
+                // Handle both array and object with branches array
+                // Also handle potential missing metadata gracefully
                 const bs = Array.isArray(metro.data.branches) ? metro.data.branches : [];
+                
+                // Log metadata if in audit status for debugging
+                if (metro.data.auditStatus && metro.data.auditStatus !== 'complete') {
+                  console.info(`[SupplyFind] Metro file ${metroRel} has audit status: ${metro.data.auditStatus}`);
+                }
+                
                 for (const b of bs) {
+                  // Validate essential fields before adding
+                  if (!b?.id || !b?.name || !Number.isFinite(b?.lat) || !Number.isFinite(b?.lon)) {
+                    loadErrors.push(`Invalid branch in ${metroRel}: missing required fields`);
+                    continue;
+                  }
                   addBranch(b);
                   if (all.length >= maxBranches) break;
                 }
@@ -382,7 +423,7 @@ export default function SupplyPage() {
         b.chain,
         b.city,
         b.state,
-        b.zip,
+        getPostalCode(b),
         b.address1,
         b.address2 || "",
         (b.brandsRep || []).join(" "),
@@ -698,7 +739,7 @@ const sorted = useMemo(() => {
                   aria-label={`View map for ${b.name}`}
                 >
                   {b.address1}
-                  {b.address2 ? `, ${b.address2}` : ""}, {b.city}, {b.state} {b.zip}
+                  {b.address2 ? `, ${b.address2}` : ""}, {b.city}, {b.state} {getPostalCode(b)}
                 </button>
               </div>
 
