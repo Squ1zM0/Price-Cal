@@ -12,7 +12,6 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
   const [faceIDError, setFaceIDError] = useState("");
   const [mounted, setMounted] = useState(false);
   const isMountedRef = useRef(true);
-  const modalRef = useRef<HTMLDivElement>(null);
   const authenticateButtonRef = useRef<HTMLButtonElement>(null);
 
   // Wait for client-side mount to prevent hydration issues
