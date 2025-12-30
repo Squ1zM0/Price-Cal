@@ -29,12 +29,17 @@ const TRADE_MAPPINGS = {
 
 /**
  * Normalize a single trade value to standard casing
+ * @param {string} trade - Raw trade value to normalize
+ * @param {Set} unknownTrades - Set to collect unknown trade values for reporting
+ * @returns {string|null} - Normalized trade value or null
  */
-function normalizeTrade(trade) {
+function normalizeTrade(trade, unknownTrades = null) {
   if (!trade) return null;
   const normalized = TRADE_MAPPINGS[trade.trim()];
   if (!normalized) {
-    console.warn(`  ⚠️  Unknown trade value: "${trade}"`);
+    if (unknownTrades) {
+      unknownTrades.add(trade);
+    }
     // Title case fallback
     return trade.charAt(0).toUpperCase() + trade.slice(1).toLowerCase();
   }
@@ -43,8 +48,11 @@ function normalizeTrade(trade) {
 
 /**
  * Normalize trades for a single branch
+ * @param {object} branch - Branch object to normalize
+ * @param {Set} unknownTrades - Set to collect unknown trade values for reporting
+ * @returns {object} - Normalized branch object
  */
-function normalizeBranch(branch) {
+function normalizeBranch(branch, unknownTrades = null) {
   const normalized = { ...branch };
   
   // Collect all trade values
@@ -52,7 +60,7 @@ function normalizeBranch(branch) {
   
   // From legacy "trade" field
   if (branch.trade && typeof branch.trade === 'string') {
-    const standardTrade = normalizeTrade(branch.trade);
+    const standardTrade = normalizeTrade(branch.trade, unknownTrades);
     if (standardTrade) {
       tradeSet.add(standardTrade);
     }
@@ -61,7 +69,7 @@ function normalizeBranch(branch) {
   // From "trades" array
   if (Array.isArray(branch.trades)) {
     branch.trades.forEach(t => {
-      const standardTrade = normalizeTrade(t);
+      const standardTrade = normalizeTrade(t, unknownTrades);
       if (standardTrade) {
         tradeSet.add(standardTrade);
       }
@@ -76,7 +84,7 @@ function normalizeBranch(branch) {
   
   // Preserve primaryTrade if it exists, normalizing its value
   if (branch.primaryTrade) {
-    normalized.primaryTrade = normalizeTrade(branch.primaryTrade);
+    normalized.primaryTrade = normalizeTrade(branch.primaryTrade, unknownTrades);
   }
   
   return normalized;
@@ -84,8 +92,11 @@ function normalizeBranch(branch) {
 
 /**
  * Process a single JSON file
+ * @param {string} filePath - Path to JSON file to process
+ * @param {Set} unknownTrades - Set to collect unknown trade values for reporting
+ * @returns {object} - Processing statistics
  */
-function processFile(filePath) {
+function processFile(filePath, unknownTrades) {
   console.log(`\n📄 Processing: ${path.relative(process.cwd(), filePath)}`);
   
   try {
@@ -99,7 +110,7 @@ function processFile(filePath) {
     
     let changedCount = 0;
     const normalizedBranches = data.branches.map(branch => {
-      const normalized = normalizeBranch(branch);
+      const normalized = normalizeBranch(branch, unknownTrades);
       
       // Check if anything changed
       const originalTrade = JSON.stringify({ trade: branch.trade, trades: branch.trades, primaryTrade: branch.primaryTrade });
@@ -130,6 +141,8 @@ function processFile(filePath) {
 
 /**
  * Find all JSON files recursively
+ * @param {string} dir - Directory to search
+ * @returns {string[]} - Array of file paths
  */
 function findJsonFiles(dir) {
   const files = [];
@@ -142,8 +155,12 @@ function findJsonFiles(dir) {
       
       if (entry.isDirectory()) {
         walk(fullPath);
-      } else if (entry.isFile() && entry.name.endsWith('.json') && !entry.name.startsWith('_')) {
-        files.push(fullPath);
+      } else if (entry.isFile() && entry.name.endsWith('.json')) {
+        // Exclude files starting with underscore (e.g., _needs_verification.json)
+        // These are typically work-in-progress or metadata files
+        if (!entry.name.startsWith('_')) {
+          files.push(fullPath);
+        }
       }
     }
   }
@@ -172,9 +189,10 @@ function main() {
   
   let totalProcessed = 0;
   let totalChanged = 0;
+  const unknownTrades = new Set();
   
   for (const file of jsonFiles) {
-    const { processed, changed } = processFile(file);
+    const { processed, changed } = processFile(file, unknownTrades);
     totalProcessed += processed;
     totalChanged += changed;
   }
@@ -183,6 +201,14 @@ function main() {
   console.log('✨ Normalization Complete!');
   console.log(`   Total branches processed: ${totalProcessed}`);
   console.log(`   Total branches changed: ${totalChanged}`);
+  
+  if (unknownTrades.size > 0) {
+    console.log('\n⚠️  Unknown trade values encountered:');
+    Array.from(unknownTrades).forEach(trade => {
+      console.log(`   - "${trade}"`);
+    });
+  }
+  
   console.log('='.repeat(50) + '\n');
 }
 
