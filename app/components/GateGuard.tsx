@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useGate } from "../contexts/GateContext";
 
@@ -10,12 +10,15 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
   const { isApproved, isFaceIDEnabled, isAuthenticated, checkFaceID, setAuthenticated, clearApproval } = useGate();
   const [showFaceIDPrompt, setShowFaceIDPrompt] = useState(false);
   const [faceIDError, setFaceIDError] = useState("");
+  const isMountedRef = useRef(true);
 
   // Handle visibility change to detect app coming to foreground
   useEffect(() => {
+    isMountedRef.current = true;
+    
     const handleVisibilityChange = () => {
       // When app comes to foreground
-      if (document.visibilityState === "visible" && isApproved && isFaceIDEnabled && !isAuthenticated) {
+      if (isMountedRef.current && document.visibilityState === "visible" && isApproved && isFaceIDEnabled && !isAuthenticated) {
         // Don't show prompt on gate page
         if (pathname !== "/gate") {
           setShowFaceIDPrompt(true);
@@ -32,6 +35,7 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
     }
 
     return () => {
+      isMountedRef.current = false;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [isApproved, isFaceIDEnabled, isAuthenticated, pathname]);
@@ -80,7 +84,7 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
     return (
       <>
         {children}
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50">
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50" role="dialog" aria-modal="true" aria-labelledby="face-id-modal-title">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Modal panel */}
             <div className="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-sm sm:w-full sm:p-6">
@@ -101,7 +105,7 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
                   </svg>
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                  <h3 id="face-id-modal-title" className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
                     Authentication Required
                   </h3>
                   <div className="mt-2">

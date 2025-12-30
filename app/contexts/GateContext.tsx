@@ -47,9 +47,7 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
         setIsApproved(true);
         setIsFaceIDEnabled(faceIDEnabled === "1");
         // If Face ID is not enabled, mark as authenticated immediately
-        if (faceIDEnabled !== "1") {
-          setIsAuthenticated(true);
-        }
+        setIsAuthenticated(faceIDEnabled !== "1");
       }
     } catch (error) {
       console.warn("Failed to access localStorage:", error);
