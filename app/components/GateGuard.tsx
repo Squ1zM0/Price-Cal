@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useGate } from "../contexts/GateContext";
 
@@ -10,47 +10,47 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
   const { isApproved, isFaceIDEnabled, isAuthenticated, checkFaceID, setAuthenticated, clearApproval } = useGate();
   const [showFaceIDPrompt, setShowFaceIDPrompt] = useState(false);
   const [faceIDError, setFaceIDError] = useState("");
+  const [mounted, setMounted] = useState(false);
   const isMountedRef = useRef(true);
+  const authenticateButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Wait for client-side mount to prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Handle visibility change to detect app coming to foreground
   useEffect(() => {
+    if (!mounted || pathname === "/gate") return;
+    
     isMountedRef.current = true;
     
     const handleVisibilityChange = () => {
       // When app comes to foreground
       if (isMountedRef.current && document.visibilityState === "visible" && isApproved && isFaceIDEnabled && !isAuthenticated) {
-        // Don't show prompt on gate page
-        if (pathname !== "/gate") {
+        // Use setTimeout to defer state update and avoid update-during-render warnings
+        setTimeout(() => {
           setShowFaceIDPrompt(true);
           setFaceIDError("");
-        }
+        }, 0);
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     
     // Also check on mount if Face ID is required
-    if (isApproved && isFaceIDEnabled && !isAuthenticated && pathname !== "/gate") {
-      setShowFaceIDPrompt(true);
+    // Use setTimeout to defer state update and avoid conflicts with router
+    if (isApproved && isFaceIDEnabled && !isAuthenticated) {
+      setTimeout(() => {
+        setShowFaceIDPrompt(true);
+      }, 0);
     }
 
     return () => {
       isMountedRef.current = false;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isApproved, isFaceIDEnabled, isAuthenticated, pathname]);
-
-  useEffect(() => {
-    // Skip gate check if we're already on the gate page
-    if (pathname === "/gate") {
-      return;
-    }
-
-    // Redirect to gate if not approved
-    if (!isApproved) {
-      router.push("/gate");
-    }
-  }, [isApproved, pathname, router]);
+  }, [mounted, isApproved, isFaceIDEnabled, isAuthenticated, pathname]);
 
   const handleAuthenticateFaceID = async () => {
     setFaceIDError("");
@@ -62,16 +62,61 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleCancelFaceID = () => {
+  const handleCancelFaceID = useCallback(() => {
     // Clear approval and redirect to gate
     clearApproval();
     setShowFaceIDPrompt(false);
     router.push("/gate");
-  };
+  }, [clearApproval, router]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
+    // Skip gate check if we're already on the gate page
+    if (pathname === "/gate") {
+      return;
+    }
+
+    // Redirect to gate if not approved
+    if (!isApproved) {
+      router.push("/gate");
+    }
+  }, [mounted, isApproved, pathname, router]);
+
+  // Handle modal focus and keyboard events
+  useEffect(() => {
+    if (!showFaceIDPrompt) return;
+
+    // Focus the authenticate button when modal opens
+    const timeout = setTimeout(() => {
+      if (authenticateButtonRef.current) {
+        authenticateButtonRef.current.focus();
+      }
+    }, 100);
+
+    // Handle escape key to close modal
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCancelFaceID();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showFaceIDPrompt, handleCancelFaceID]);
 
   // Don't block the gate page itself
   if (pathname === "/gate") {
     return <>{children}</>;
+  }
+
+  // Prevent hydration mismatch - don't render until mounted
+  if (!mounted) {
+    return null;
   }
 
   // Show nothing while checking approval to prevent flash
@@ -79,13 +124,13 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  // Show Face ID prompt if needed
-  if (showFaceIDPrompt) {
-    return (
-      <>
-        <div className="blur-lg">
-          {children}
-        </div>
+  // Always render children, but show modal overlay if Face ID is required
+  return (
+    <>
+      <div className={showFaceIDPrompt ? "blur-lg" : ""}>
+        {children}
+      </div>
+      {showFaceIDPrompt && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50" role="dialog" aria-modal="true" aria-labelledby="face-id-modal-title">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Modal panel */}
@@ -124,6 +169,7 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
               </div>
               <div className="mt-5 sm:mt-6 space-y-3">
                 <button
+                  ref={authenticateButtonRef}
                   type="button"
                   onClick={handleAuthenticateFaceID}
                   className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm transition-colors"
@@ -141,9 +187,7 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </div>
-      </>
-    );
-  }
-
-  return <>{children}</>;
+      )}
+    </>
+  );
 }
