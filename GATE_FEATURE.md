@@ -10,10 +10,11 @@ This application implements a simple client-only access gate as a **convenience 
 - Password is stored in environment variable `NEXT_PUBLIC_GATE_PASSWORD`
 - **WARNING**: The password is exposed in the client bundle - this is acceptable only because it's a convenience lock
 
-### 2. Optional Face ID/Biometric Authentication
-- After successful password entry, users are prompted to enable Face ID
+### 2. Mandatory Face ID/Biometric Authentication
+- After successful password entry, users are prompted to set up Face ID
 - Uses WebAuthn/Passkeys for platform biometric authentication
-- Users can skip and still get "stay logged in" functionality
+- Face ID setup is required for enhanced security (users cannot skip)
+- If Face ID setup fails or is cancelled, the device is still approved without Face ID as a fallback
 - Face ID only works on devices with platform authenticators (Touch ID, Face ID, Windows Hello, etc.)
 
 ### 3. Device Approval Persistence
@@ -47,9 +48,10 @@ This application implements a simple client-only access gate as a **convenience 
 1. User navigates to app → automatically redirected to `/gate`
 2. User enters setup password
 3. If correct:
-   - Modal appears asking "Enable Face ID?"
-   - If enabled: WebAuthn credential is created and stored
-   - If skipped: Device is approved without Face ID
+   - Modal appears requiring Face ID setup
+   - User clicks "Set Up Face ID" to proceed with enrollment
+   - If Face ID setup succeeds: WebAuthn credential is created and stored
+   - If Face ID setup fails or is cancelled: Device is approved without Face ID as a fallback
 4. User is redirected to `/calculator` (or intended page)
 5. Approval is saved to localStorage
 

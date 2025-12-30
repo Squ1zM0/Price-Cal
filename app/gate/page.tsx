@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent, useEffect } from "react";
+import { useState, FormEvent, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useGate } from "../contexts/GateContext";
 import { getGatePassword } from "../lib/gate";
@@ -13,6 +13,7 @@ export default function GatePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [showFaceIDModal, setShowFaceIDModal] = useState(false);
   const [isWebAuthnSupported, setIsWebAuthnSupported] = useState(false);
+  const modalRef = useRef<HTMLDivElement>(null);
 
   // Check WebAuthn support
   useEffect(() => {
@@ -28,6 +29,13 @@ export default function GatePage() {
       router.push("/calculator");
     }
   }, [isApproved, router]);
+
+  // Focus management for modal
+  useEffect(() => {
+    if (showFaceIDModal && modalRef.current) {
+      modalRef.current.focus();
+    }
+  }, [showFaceIDModal]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -73,19 +81,6 @@ export default function GatePage() {
       // If Face ID fails, still approve without it
       await approveDevice(false);
       router.push("/calculator");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleSkipFaceID = async () => {
-    setIsLoading(true);
-    try {
-      await approveDevice(false);
-      router.push("/calculator");
-    } catch (err) {
-      console.error("Approval error:", err);
-      setError("Failed to approve device. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -147,12 +142,12 @@ export default function GatePage() {
 
       {/* Face ID Modal */}
       {showFaceIDModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div ref={modalRef} tabIndex={-1} className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="faceid-modal-title" aria-describedby="faceid-modal-description">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Background overlay */}
             <div
               className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75"
-              onClick={handleSkipFaceID}
+              aria-hidden="true"
             />
 
             {/* Modal panel */}
@@ -174,32 +169,24 @@ export default function GatePage() {
                   </svg>
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                    Enable Face ID?
+                  <h3 id="faceid-modal-title" className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                    Set Up Face ID
                   </h3>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Use Face ID or biometric authentication for faster unlock on this device?
+                    <p id="faceid-modal-description" className="text-sm text-gray-500 dark:text-gray-400">
+                      Face ID will be set up for convenient access to this device. If setup fails, you can still use the app.
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="mt-5 sm:mt-6 space-y-3">
+              <div className="mt-5 sm:mt-6">
                 <button
                   type="button"
                   onClick={handleEnableFaceID}
                   disabled={isLoading}
                   className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm transition-colors"
                 >
-                  {isLoading ? "Setting up..." : "Enable Face ID"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSkipFaceID}
-                  disabled={isLoading}
-                  className="w-full inline-flex justify-center rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm transition-colors"
-                >
-                  Skip
+                  {isLoading ? "Setting up..." : "Set Up Face ID"}
                 </button>
               </div>
             </div>
