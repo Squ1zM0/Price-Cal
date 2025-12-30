@@ -56,13 +56,18 @@ This application implements a simple client-only access gate as a **convenience 
 ### Subsequent Visits
 - User navigates to app
 - GateGuard checks localStorage for `pc_device_approved`
-- If approved: User proceeds to app
+- If approved and Face ID is NOT enabled: User proceeds to app immediately
+- If approved and Face ID IS enabled: User is prompted to authenticate with Face ID
 - If not approved: User is redirected to `/gate`
 
-### Face ID Flow (Optional)
-- If Face ID is enabled, the app can prompt for biometric verification
-- This is handled by the `checkFaceID()` function in GateContext
-- Currently implemented but not actively used in the UI flow
+### Face ID Flow
+- When Face ID is enabled during setup, it becomes required for all subsequent app opens
+- The app prompts for Face ID authentication when:
+  - The app is reopened after being closed or terminated
+  - The app comes to foreground after being backgrounded
+  - On initial load if Face ID is enabled
+- The Page Visibility API is used to detect when the app returns to foreground
+- If Face ID authentication fails or is cancelled, the user is redirected to `/gate` to re-authenticate with password
 
 ## Security Considerations
 
@@ -72,6 +77,8 @@ This application implements a simple client-only access gate as a **convenience 
 ✅ Prevents casual access by people who don't know the password  
 ✅ Provides a smooth UX with biometric unlock  
 ✅ Works entirely client-side with no backend required  
+✅ Requires Face ID authentication on every app reopen when Face ID is enabled  
+✅ Detects when app comes to foreground and prompts for authentication  
 
 ### What This Does NOT Do
 ❌ Does NOT protect against determined attackers  
