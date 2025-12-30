@@ -134,11 +134,12 @@ export default function GatePage() {
 
       {/* Face ID Modal */}
       {showFaceIDModal && (
-        <div className="fixed inset-0 z-50 overflow-y-auto">
+        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="faceid-modal-title" aria-describedby="faceid-modal-description">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Background overlay */}
             <div
               className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75"
+              aria-hidden="true"
             />
 
             {/* Modal panel */}
@@ -160,12 +161,12 @@ export default function GatePage() {
                   </svg>
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
-                  <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                  <h3 id="faceid-modal-title" className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
                     Set Up Face ID
                   </h3>
                   <div className="mt-2">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Face ID authentication is required for enhanced security on this device.
+                    <p id="faceid-modal-description" className="text-sm text-gray-500 dark:text-gray-400">
+                      Face ID authentication is required for enhanced security on this device. If setup is not available or fails, you will still be able to access the app.
                     </p>
                   </div>
                 </div>
