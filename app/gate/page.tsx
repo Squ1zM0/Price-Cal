@@ -78,19 +78,6 @@ export default function GatePage() {
     }
   };
 
-  const handleSkipFaceID = async () => {
-    setIsLoading(true);
-    try {
-      await approveDevice(false);
-      router.push("/calculator");
-    } catch (err) {
-      console.error("Approval error:", err);
-      setError("Failed to approve device. Please try again.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   if (isApproved) {
     return null; // Will redirect
   }
@@ -152,7 +139,6 @@ export default function GatePage() {
             {/* Background overlay */}
             <div
               className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75 dark:bg-gray-900 dark:bg-opacity-75"
-              onClick={handleSkipFaceID}
             />
 
             {/* Modal panel */}
@@ -175,31 +161,23 @@ export default function GatePage() {
                 </div>
                 <div className="mt-3 text-center sm:mt-5">
                   <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
-                    Enable Face ID?
+                    Set Up Face ID
                   </h3>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      Use Face ID or biometric authentication for faster unlock on this device?
+                      Face ID authentication is required for enhanced security on this device.
                     </p>
                   </div>
                 </div>
               </div>
-              <div className="mt-5 sm:mt-6 space-y-3">
+              <div className="mt-5 sm:mt-6">
                 <button
                   type="button"
                   onClick={handleEnableFaceID}
                   disabled={isLoading}
                   className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm transition-colors"
                 >
-                  {isLoading ? "Setting up..." : "Enable Face ID"}
-                </button>
-                <button
-                  type="button"
-                  onClick={handleSkipFaceID}
-                  disabled={isLoading}
-                  className="w-full inline-flex justify-center rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed sm:text-sm transition-colors"
-                >
-                  Skip
+                  {isLoading ? "Setting up..." : "Set Up Face ID"}
                 </button>
               </div>
             </div>
