@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useGate } from "../contexts/GateContext";
 
@@ -10,10 +10,20 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
   const { isApproved, isFaceIDEnabled, isAuthenticated, checkFaceID, setAuthenticated, clearApproval } = useGate();
   const [showFaceIDPrompt, setShowFaceIDPrompt] = useState(false);
   const [faceIDError, setFaceIDError] = useState("");
+  const [mounted, setMounted] = useState(false);
   const isMountedRef = useRef(true);
+  const modalRef = useRef<HTMLDivElement>(null);
+  const authenticateButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Wait for client-side mount to prevent hydration issues
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Handle visibility change to detect app coming to foreground
   useEffect(() => {
+    if (!mounted) return;
+    
     isMountedRef.current = true;
     
     const handleVisibilityChange = () => {
@@ -38,19 +48,7 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
       isMountedRef.current = false;
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [isApproved, isFaceIDEnabled, isAuthenticated, pathname]);
-
-  useEffect(() => {
-    // Skip gate check if we're already on the gate page
-    if (pathname === "/gate") {
-      return;
-    }
-
-    // Redirect to gate if not approved
-    if (!isApproved) {
-      router.push("/gate");
-    }
-  }, [isApproved, pathname, router]);
+  }, [mounted, isApproved, isFaceIDEnabled, isAuthenticated, pathname]);
 
   const handleAuthenticateFaceID = async () => {
     setFaceIDError("");
@@ -62,16 +60,61 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const handleCancelFaceID = () => {
+  const handleCancelFaceID = useCallback(() => {
     // Clear approval and redirect to gate
     clearApproval();
     setShowFaceIDPrompt(false);
     router.push("/gate");
-  };
+  }, [clearApproval, router]);
+
+  useEffect(() => {
+    if (!mounted) return;
+    
+    // Skip gate check if we're already on the gate page
+    if (pathname === "/gate") {
+      return;
+    }
+
+    // Redirect to gate if not approved
+    if (!isApproved) {
+      router.push("/gate");
+    }
+  }, [mounted, isApproved, pathname, router]);
+
+  // Handle modal focus and keyboard events
+  useEffect(() => {
+    if (!showFaceIDPrompt) return;
+
+    // Focus the authenticate button when modal opens
+    const timeout = setTimeout(() => {
+      if (authenticateButtonRef.current) {
+        authenticateButtonRef.current.focus();
+      }
+    }, 100);
+
+    // Handle escape key to close modal
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        handleCancelFaceID();
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      clearTimeout(timeout);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showFaceIDPrompt, handleCancelFaceID]);
 
   // Don't block the gate page itself
   if (pathname === "/gate") {
     return <>{children}</>;
+  }
+
+  // Prevent hydration mismatch - don't render until mounted
+  if (!mounted) {
+    return null;
   }
 
   // Show nothing while checking approval to prevent flash
@@ -124,6 +167,7 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
               </div>
               <div className="mt-5 sm:mt-6 space-y-3">
                 <button
+                  ref={authenticateButtonRef}
                   type="button"
                   onClick={handleAuthenticateFaceID}
                   className="w-full inline-flex justify-center rounded-lg border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:text-sm transition-colors"

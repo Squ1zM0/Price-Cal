@@ -38,7 +38,6 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
 
   // Initialize state from localStorage
   useEffect(() => {
-    setMounted(true);
     try {
       const approved = localStorage.getItem(STORAGE_KEYS.APPROVED);
       const faceIDEnabled = localStorage.getItem(STORAGE_KEYS.FACE_ID_ENABLED);
@@ -52,6 +51,8 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.warn("Failed to access localStorage:", error);
     }
+    // Set mounted after state is initialized to prevent hydration mismatch
+    setMounted(true);
   }, []);
 
   // Approve device and optionally set up Face ID
@@ -62,55 +63,63 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
       localStorage.setItem(STORAGE_KEYS.APPROVED_AT, now);
       
       if (useFaceID && isWebAuthnSupported()) {
-        try {
-          // Create a WebAuthn credential for this device
-          const challenge = new Uint8Array(32);
-          crypto.getRandomValues(challenge);
-          
-          // Generate random user ID for this credential
-          const userId = new Uint8Array(16);
-          crypto.getRandomValues(userId);
-          
-          const credential = await navigator.credentials.create({
-            publicKey: {
-              challenge,
-              rp: {
-                name: "Price Calculator",
-                id: window.location.hostname,
-              },
-              user: {
-                id: userId,
-                name: "device-user",
-                displayName: "Device User",
-              },
-              pubKeyCredParams: [
-                { type: "public-key", alg: -7 },  // ES256
-                { type: "public-key", alg: -257 }, // RS256
-              ],
-              authenticatorSelection: {
-                authenticatorAttachment: "platform",
-                userVerification: "required",
-              },
-              timeout: 60000,
-              attestation: "none",
-            },
-          });
-
-          if (credential && credential instanceof PublicKeyCredential) {
-            // Store credential ID for future verification
-            const rawId = (credential as PublicKeyCredential & { rawId: ArrayBuffer }).rawId;
-            const credentialId = btoa(String.fromCharCode(...new Uint8Array(rawId)));
-            localStorage.setItem(STORAGE_KEYS.CREDENTIAL_ID, credentialId);
-            localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "1");
-            setIsFaceIDEnabled(true);
-            setIsAuthenticated(true);
-          }
-        } catch (error) {
-          console.warn("Face ID setup failed:", error);
-          // Still approve the device even if Face ID fails
+        // Additional safety check for navigator.credentials
+        if (!navigator.credentials || !navigator.credentials.create) {
+          console.warn("navigator.credentials.create is not available");
           localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "0");
           setIsFaceIDEnabled(false);
           setIsAuthenticated(true);
+        } else {
+          try {
+            // Create a WebAuthn credential for this device
+            const challenge = new Uint8Array(32);
+            crypto.getRandomValues(challenge);
+            
+            // Generate random user ID for this credential
+            const userId = new Uint8Array(16);
+            crypto.getRandomValues(userId);
+            
+            const credential = await navigator.credentials.create({
+              publicKey: {
+                challenge,
+                rp: {
+                  name: "Price Calculator",
+                  id: window.location.hostname,
+                },
+                user: {
+                  id: userId,
+                  name: "device-user",
+                  displayName: "Device User",
+                },
+                pubKeyCredParams: [
+                  { type: "public-key", alg: -7 },  // ES256
+                  { type: "public-key", alg: -257 }, // RS256
+                ],
+                authenticatorSelection: {
+                  authenticatorAttachment: "platform",
+                  userVerification: "required",
+                },
+                timeout: 60000,
+                attestation: "none",
+              },
+            });
+
+            if (credential && credential instanceof PublicKeyCredential) {
+              // Store credential ID for future verification
+              const rawId = (credential as PublicKeyCredential & { rawId: ArrayBuffer }).rawId;
+              const credentialId = btoa(String.fromCharCode(...new Uint8Array(rawId)));
+              localStorage.setItem(STORAGE_KEYS.CREDENTIAL_ID, credentialId);
+              localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "1");
+              setIsFaceIDEnabled(true);
+              setIsAuthenticated(true);
+            }
+          } catch (error) {
+            console.warn("Face ID setup failed:", error);
+            // Still approve the device even if Face ID fails
+            localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "0");
+            setIsFaceIDEnabled(false);
+            setIsAuthenticated(true);
+          }
         }
       } else {
         localStorage.setItem(STORAGE_KEYS.FACE_ID_ENABLED, "0");
@@ -128,6 +137,12 @@ export function GateProvider({ children }: { children: React.ReactNode }) {
   // Check Face ID authentication
   const checkFaceID = useCallback(async (): Promise<boolean> => {
     if (!isFaceIDEnabled || !isWebAuthnSupported()) {
+      return false;
+    }
+
+    // Additional safety check for navigator.credentials
+    if (!navigator.credentials || !navigator.credentials.get) {
+      console.warn("navigator.credentials.get is not available");
       return false;
     }
 
