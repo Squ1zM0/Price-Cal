@@ -83,7 +83,9 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
   if (showFaceIDPrompt) {
     return (
       <>
-        {children}
+        <div className="blur-lg">
+          {children}
+        </div>
         <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50" role="dialog" aria-modal="true" aria-labelledby="face-id-modal-title">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Modal panel */}
