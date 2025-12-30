@@ -166,7 +166,7 @@ export default function GatePage() {
                   </h3>
                   <div className="mt-2">
                     <p id="faceid-modal-description" className="text-sm text-gray-500 dark:text-gray-400">
-                      Face ID authentication is required for enhanced security on this device. If setup is not available or fails, you will still be able to access the app.
+                      Face ID is required for quick access to this device. If setup is not available or fails, you will still be able to access the app.
                     </p>
                   </div>
                 </div>
