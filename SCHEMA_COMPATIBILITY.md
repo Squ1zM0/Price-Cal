@@ -155,7 +155,7 @@ if (branch.coordsStatus === 'verified') {
 
 ## Version History
 
-- **2025-12-30**: Initial schema compatibility updates
+- **2025-12-27**: Initial schema compatibility updates
   - Added new SupplyFind fields
   - Added postal code fallback mechanism
   - Added error handling improvements

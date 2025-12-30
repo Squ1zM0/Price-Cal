@@ -332,8 +332,7 @@ export default function SupplyPage() {
 
               try {
                 const metro = await fetchJsonWithFallback<MetroFile>(metroRel);
-                // Handle both array and object with branches array
-                // Also handle potential missing metadata gracefully
+                // Safely extract branches array and handle missing metadata gracefully
                 const bs = Array.isArray(metro.data.branches) ? metro.data.branches : [];
                 
                 // Log metadata if in audit status for debugging
@@ -343,8 +342,16 @@ export default function SupplyPage() {
                 
                 for (const b of bs) {
                   // Validate essential fields before adding
-                  if (!b?.id || !b?.name || !Number.isFinite(b?.lat) || !Number.isFinite(b?.lon)) {
-                    loadErrors.push(`Invalid branch in ${metroRel}: missing required fields`);
+                  if (!b?.id) {
+                    loadErrors.push(`Invalid branch in ${metroRel}: missing id field`);
+                    continue;
+                  }
+                  if (!b?.name) {
+                    loadErrors.push(`Invalid branch in ${metroRel} (${b.id}): missing name field`);
+                    continue;
+                  }
+                  if (!Number.isFinite(b?.lat) || !Number.isFinite(b?.lon)) {
+                    loadErrors.push(`Invalid branch in ${metroRel} (${b.id}): missing or invalid coordinates (lat: ${b?.lat}, lon: ${b?.lon})`);
                     continue;
                   }
                   addBranch(b);
