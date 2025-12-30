@@ -22,26 +22,29 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
 
   // Handle visibility change to detect app coming to foreground
   useEffect(() => {
-    if (!mounted) return;
+    if (!mounted || pathname === "/gate") return;
     
     isMountedRef.current = true;
     
     const handleVisibilityChange = () => {
       // When app comes to foreground
       if (isMountedRef.current && document.visibilityState === "visible" && isApproved && isFaceIDEnabled && !isAuthenticated) {
-        // Don't show prompt on gate page
-        if (pathname !== "/gate") {
+        // Use setTimeout to defer state update and avoid update-during-render warnings
+        setTimeout(() => {
           setShowFaceIDPrompt(true);
           setFaceIDError("");
-        }
+        }, 0);
       }
     };
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     
     // Also check on mount if Face ID is required
-    if (isApproved && isFaceIDEnabled && !isAuthenticated && pathname !== "/gate") {
-      setShowFaceIDPrompt(true);
+    // Use setTimeout to defer state update and avoid conflicts with router
+    if (isApproved && isFaceIDEnabled && !isAuthenticated) {
+      setTimeout(() => {
+        setShowFaceIDPrompt(true);
+      }, 0);
     }
 
     return () => {
@@ -122,13 +125,13 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
     return null;
   }
 
-  // Show Face ID prompt if needed
-  if (showFaceIDPrompt) {
-    return (
-      <>
-        <div className="blur-lg">
-          {children}
-        </div>
+  // Always render children, but show modal overlay if Face ID is required
+  return (
+    <>
+      <div className={showFaceIDPrompt ? "blur-lg" : ""}>
+        {children}
+      </div>
+      {showFaceIDPrompt && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50" role="dialog" aria-modal="true" aria-labelledby="face-id-modal-title">
           <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:block sm:p-0">
             {/* Modal panel */}
@@ -185,9 +188,7 @@ export function GateGuard({ children }: { children: React.ReactNode }) {
             </div>
           </div>
         </div>
-      </>
-    );
-  }
-
-  return <>{children}</>;
+      )}
+    </>
+  );
 }
