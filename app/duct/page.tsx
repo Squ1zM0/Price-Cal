@@ -162,24 +162,25 @@ function DuctBlock({
       </div>
 
       <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-2">
-        <select
-          value={value.shape}
-          onChange={(e) => onChange({ shape: e.target.value as Shape })}
-          className="w-full rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 text-sm text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500"
+        <button
+          type="button"
+          onClick={() => onChange({ shape: value.shape === "rect" ? "round" : "rect" })}
+          className="w-full rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 text-sm text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
+          aria-label="Duct shape"
+          title="Duct shape - Click to cycle"
         >
-          <option value="rect">Rectangular</option>
-          <option value="round">Round</option>
-        </select>
+          {value.shape === "rect" ? "Rectangular" : "Round"}
+        </button>
 
-        <select
-          value={value.dir}
-          onChange={(e) => onChange({ dir: e.target.value as Dir })}
-          className="w-full rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 text-sm text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500"
-          title="One-way = single duct. Two-way = two identical ducts (doubled area)."
+        <button
+          type="button"
+          onClick={() => onChange({ dir: value.dir === "one" ? "two" : "one" })}
+          className="w-full rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 text-sm text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
+          aria-label="Duct direction"
+          title="One-way = single duct. Two-way = two identical ducts (doubled area). Click to cycle."
         >
-          <option value="one">One-way</option>
-          <option value="two">Two-way</option>
-        </select>
+          {value.dir === "one" ? "One-way" : "Two-way"}
+        </button>
 
         {value.shape === "round" ? (
           <input
