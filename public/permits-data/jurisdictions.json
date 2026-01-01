@@ -96,35 +96,78 @@
       "name": "Colorado Springs",
       "type": "City",
       "region": "Pikes Peak",
-      "population_tier": "major",
+      "elevation": "6,035 ft",
       "permit_requirements": {
         "residential": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$45-$125",
-          "notes": "Simple residential HVAC replacements can be done online"
+          "notes": "Simple residential HVAC replacements can be done online. Like-for-like equipment swaps qualify for expedited review.",
+          "processing_time": "Same-day to 1 business day for online permits"
         },
         "commercial": {
           "required": true,
           "online_application": false,
           "typical_fee_range": "$150-$400+",
-          "notes": "In-person or mail application for commercial"
+          "notes": "In-person or mail application required for commercial projects. Plan review required for new installations or substantial modifications.",
+          "processing_time": "3-7 business days depending on project complexity"
         }
       },
       "inspection_stages": [
-        "Rough-in",
-        "Final"
+        {
+          "stage": "Rough-in",
+          "when": "Before concealment of gas piping, ductwork, or venting systems",
+          "inspector_focus": "Gas line pressure testing (minimum 15 minutes at 1.5x operating pressure), duct installation and sealing, combustion air adequacy for high altitude, equipment placement and clearances"
+        },
+        {
+          "stage": "Final",
+          "when": "After complete installation and equipment startup",
+          "inspector_focus": "Equipment operation verification, altitude-specific derating confirmation, proper venting termination (especially critical at 6,035 ft), condensate drainage, safety device testing"
+        }
       ],
-      "local_amendments": [],
-      "common_callouts": [
-        "High altitude considerations (6,035 ft elevation)",
-        "Equipment derating requirements",
-        "Proper combustion air for altitude"
+      "code_amendments": [
+        {
+          "section": "IMC 304.5",
+          "title": "High Altitude Combustion Air",
+          "base_requirement": "Standard combustion air sizing per IMC",
+          "denver_requirement": "At 6,035 ft elevation, combustion air openings must be sized at 115% of calculated requirements. Outdoor air intakes preferred over indoor combustion air.",
+          "rationale": "Significant altitude requires enhanced combustion air due to reduced oxygen density",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "For installations above 6,000 feet, combustion air openings shall be sized at not less than 115% of calculated requirements per IMC 304. Direct outdoor air supply is preferred for all Category I appliances."
+        },
+        {
+          "section": "IFGC 402.4",
+          "title": "Gas Equipment Derating",
+          "base_requirement": "Equipment rated capacity",
+          "denver_requirement": "All gas-fired equipment must be derated 4% per 1,000 feet above sea level. At 6,035 ft, minimum 24% capacity reduction must be documented.",
+          "rationale": "High altitude significantly impacts combustion efficiency",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "Natural gas and propane equipment shall be derated per manufacturer specifications for altitude. Documentation of derated capacity shall be provided with permit application for equipment over 100,000 BTU."
+        }
+      ],
+      "enforcement_notes": [
+        {
+          "topic": "Equipment Derating Documentation",
+          "requirement": "Submit manufacturer altitude deration charts with permit application for all equipment over 100,000 BTU input",
+          "common_failure": "Installing equipment without verifying altitude limitations or capacity impacts"
+        },
+        {
+          "topic": "Combustion Air Verification",
+          "requirement": "Inspectors will calculate required combustion air based on total BTU input (derated) and verify opening sizes meet 115% of calculated minimum",
+          "common_failure": "Using standard combustion air calculations without altitude adjustment"
+        },
+        {
+          "topic": "Venting System Sizing",
+          "requirement": "Verify all venting is sized per manufacturer high-altitude specifications. Common vents must account for reduced draft at elevation.",
+          "common_failure": "Undersized venting causing spillage or improper combustion"
+        }
       ],
       "contacts": {
         "phone": "(719) 385-5905",
+        "email": "pcdcustomerservice@coloradosprings.gov",
         "website": "https://coloradosprings.gov/pcd",
-        "permit_office": "30 S Nevada Ave"
+        "permit_office": "30 S Nevada Ave, Colorado Springs, CO 80903",
+        "hours": "Monday-Friday 7:30 AM - 4:30 PM"
       }
     },
     {
@@ -132,47 +175,97 @@
       "name": "Boulder",
       "type": "City",
       "region": "Boulder County",
-      "population_tier": "medium",
+      "elevation": "5,430 ft",
       "permit_requirements": {
         "residential": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$60-$175",
-          "notes": "Boulder has additional energy efficiency requirements"
+          "notes": "Boulder has enhanced energy efficiency requirements beyond state code. SmartRegs program may apply to properties being sold. Online portal available for most residential work.",
+          "processing_time": "1-3 business days for standard residential permits"
         },
         "commercial": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$200-$600+",
-          "notes": "Enhanced energy code compliance required"
+          "notes": "Commercial projects require enhanced energy code compliance and may require commissioning documentation. Boulder has adopted reach codes beyond IECC baseline.",
+          "processing_time": "5-10 business days with energy compliance review"
         }
       },
       "inspection_stages": [
-        "Rough-in",
-        "Energy compliance verification",
-        "Final"
-      ],
-      "local_amendments": [
         {
-          "section": "Energy Efficiency",
-          "requirement": "Boulder Climate Action Plan requires higher efficiency standards",
-          "enforcement": "Strictly enforced"
+          "stage": "Rough-in",
+          "when": "Before concealment of ductwork, piping, and venting",
+          "inspector_focus": "Gas piping and pressure testing, duct installation with emphasis on sealing, equipment sizing verification against Manual J calculations, combustion air adequacy"
         },
         {
-          "section": "Refrigerants",
-          "requirement": "Restrictions on high-GWP refrigerants",
-          "enforcement": "Enforced"
+          "stage": "Energy Compliance",
+          "when": "Often combined with rough-in or final, may be separate for complex projects",
+          "inspector_focus": "Duct leakage testing (required for many installations), insulation R-values, equipment efficiency verification, thermostat programming for setback capability"
+        },
+        {
+          "stage": "Final",
+          "when": "After complete installation and startup",
+          "inspector_focus": "Equipment operation and efficiency verification, refrigerant type compliance, proper condensate drainage, smart thermostat functionality if required"
         }
       ],
-      "common_callouts": [
-        "Energy efficiency documentation required",
-        "Manual J/S calculations may be requested",
-        "Stricter duct sealing requirements"
+      "code_amendments": [
+        {
+          "section": "IECC C403.3.6",
+          "title": "Enhanced Duct Sealing Requirements",
+          "base_requirement": "Duct sealing per IECC with visual inspection",
+          "denver_requirement": "All ductwork in unconditioned spaces requires post-construction duct leakage testing. Maximum 4 CFM per 100 sq ft of conditioned floor area at 25 Pascals for new construction.",
+          "rationale": "Boulder Climate Action Plan targets for energy efficiency",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "Duct systems shall be tested for air leakage. Testing shall be conducted in accordance with ANSI/RESNET/ICC 380 or ASTM E1554. Maximum leakage rates: New construction 4 CFM/100 sq ft, alterations 8 CFM/100 sq ft."
+        },
+        {
+          "section": "Boulder Refrigerant Ordinance",
+          "title": "Refrigerant GWP Restrictions",
+          "base_requirement": "No specific refrigerant restrictions in IMC",
+          "denver_requirement": "New installations shall not use refrigerants with GWP > 2,500 when lower-GWP alternatives are available. R-410A is permitted but R-32 or other lower-GWP refrigerants are encouraged.",
+          "rationale": "Climate action and greenhouse gas reduction goals",
+          "enforcement_level": "Enforced",
+          "code_text": "Refrigerant selection shall consider global warming potential. High-GWP refrigerants may be restricted for new installations when suitable alternatives exist per Boulder Climate Action Plan."
+        },
+        {
+          "section": "Boulder Energy Code",
+          "title": "HVAC Efficiency Requirements",
+          "base_requirement": "Federal minimum efficiency standards",
+          "denver_requirement": "Minimum SEER 15 for AC, 95% AFUE for furnaces in residential applications. ENERGY STAR certification required for most equipment.",
+          "rationale": "Local energy efficiency targets",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "HVAC equipment shall meet or exceed Boulder's enhanced efficiency requirements. Residential: SEER 15 minimum AC, 95% AFUE furnace. Equipment must be ENERGY STAR certified where applicable."
+        }
+      ],
+      "enforcement_notes": [
+        {
+          "topic": "Manual J Load Calculations",
+          "requirement": "Manual J heating and cooling load calculations required for all new systems and full replacements. Manual D duct design required for new duct systems.",
+          "common_failure": "Installing equipment without proper load calculations, leading to oversized systems"
+        },
+        {
+          "topic": "Duct Leakage Testing",
+          "requirement": "Post-installation duct leakage test required. Must be performed by certified tester. Test results must be submitted before final approval.",
+          "common_failure": "Assuming visual inspection is sufficient - Boulder requires actual testing"
+        },
+        {
+          "topic": "Smart Thermostats",
+          "requirement": "Programmable or smart thermostats with 7-day scheduling required for all installations. Must demonstrate setup during final inspection.",
+          "common_failure": "Installing basic thermostats without scheduling capability"
+        },
+        {
+          "topic": "SmartRegs Compliance",
+          "requirement": "Properties being sold may trigger SmartRegs energy efficiency requirements including HVAC upgrades. Verify if project is SmartRegs-triggered.",
+          "common_failure": "Not identifying SmartRegs applicability early in project"
+        }
       ],
       "contacts": {
         "phone": "(303) 441-1880",
+        "email": "buildingservices@bouldercolorado.gov",
         "website": "https://bouldercolorado.gov/services/building-services",
-        "permit_office": "1739 Broadway"
+        "permit_office": "1739 Broadway, Boulder, CO 80302",
+        "hours": "Monday-Friday 8:00 AM - 4:00 PM"
       }
     },
     {
@@ -180,34 +273,83 @@
       "name": "Aurora",
       "type": "City",
       "region": "Metro Denver",
-      "population_tier": "major",
+      "elevation": "5,471 ft",
       "permit_requirements": {
         "residential": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$50-$140",
-          "notes": "Same-day permits available for simple replacements"
+          "notes": "Same-day permits available for simple like-for-like equipment replacements through online portal. More complex installations require standard review process.",
+          "processing_time": "Same-day for simple replacements, 1-2 business days for standard permits"
         },
         "commercial": {
           "required": true,
           "online_application": false,
           "typical_fee_range": "$150-$500+",
-          "notes": "Plan submittal required"
+          "notes": "Commercial permits require plan submittal. Larger projects may require mechanical engineer stamp. Submit through Community Development Department.",
+          "processing_time": "5-10 business days depending on project scope and completeness"
         }
       },
       "inspection_stages": [
-        "Rough-in",
-        "Final"
+        {
+          "stage": "Rough-in",
+          "when": "Before concealment of any mechanical work, gas piping, or ductwork",
+          "inspector_focus": "Gas line installation and mandatory pressure testing (minimum 15 minutes), duct installation and sealing, equipment location and clearances, combustion air provisions, venting pathway verification"
+        },
+        {
+          "stage": "Final",
+          "when": "After complete installation, startup, and system commissioning",
+          "inspector_focus": "Equipment operational testing, proper venting termination and clearances, condensate drainage function, safety control verification, thermostat operation, gas leak check at all connections"
+        }
       ],
-      "local_amendments": [],
-      "common_callouts": [
-        "Gas line pressure testing required",
-        "Proper equipment sizing documentation"
+      "code_amendments": [
+        {
+          "section": "IMC 306.3",
+          "title": "Service Clearance Requirements",
+          "base_requirement": "30-inch minimum working clearance",
+          "denver_requirement": "Aurora requires 36-inch minimum working space in front of all equipment control panels. Attic installations must have level working platform extending 30 inches beyond equipment on service side.",
+          "rationale": "Enhanced safety and serviceability standards",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "Working space of not less than 36 inches (914 mm) shall be provided in front of equipment requiring service or adjustment. Attic equipment shall have rigid working platform."
+        },
+        {
+          "section": "IFGC 406.4",
+          "title": "Gas Piping Pressure Testing",
+          "base_requirement": "Test at 1.5x operating pressure or 3 psi minimum",
+          "denver_requirement": "All new or modified gas piping systems must be pressure tested at 1.5x operating pressure for minimum 30 minutes. Inspector must witness test or see logged digital gauge results.",
+          "rationale": "Enhanced gas safety verification",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "Gas piping shall be tested at 1.5 times operating pressure for not less than 30 minutes. Testing shall be witnessed by inspector or documented with time-stamped digital gauge."
+        }
+      ],
+      "enforcement_notes": [
+        {
+          "topic": "Gas Line Pressure Testing Duration",
+          "requirement": "30-minute minimum hold time required for all gas piping tests. Inspector may witness or accept time-stamped digital gauge photos. Pressure drop exceeding 0.5 psi fails test.",
+          "common_failure": "Testing for insufficient duration or not documenting test properly"
+        },
+        {
+          "topic": "Equipment Sizing Documentation",
+          "requirement": "For complete system replacements, provide documentation showing equipment sizing is appropriate for space (Manual J or similar). Oversizing discouraged.",
+          "common_failure": "Installing significantly oversized equipment without justification"
+        },
+        {
+          "topic": "Attic Access and Platforms",
+          "requirement": "Attic equipment must be accessible via code-compliant opening (minimum 22x30 inches) and have rigid working platform, not plywood on joists. Platform must support 300 lbs.",
+          "common_failure": "Inadequate access opening size or unstable working surface"
+        },
+        {
+          "topic": "Condensate Drainage Termination",
+          "requirement": "Primary condensate drains must terminate to approved location - not onto roofs, near building foundations, or adjacent to walkways where freezing creates hazard.",
+          "common_failure": "Terminating condensate in locations that create slip hazards or drainage issues"
+        }
       ],
       "contacts": {
         "phone": "(303) 739-7390",
+        "email": "pds@auroragov.org",
         "website": "https://www.auroragov.org/city_hall/departments/planning___development_services",
-        "permit_office": "15151 E Alameda Pkwy"
+        "permit_office": "15151 E Alameda Pkwy, Aurora, CO 80012",
+        "hours": "Monday-Friday 7:30 AM - 4:30 PM"
       }
     },
     {
@@ -215,40 +357,92 @@
       "name": "Fort Collins",
       "type": "City",
       "region": "Northern Colorado",
-      "population_tier": "medium",
+      "elevation": "5,003 ft",
       "permit_requirements": {
         "residential": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$55-$150",
-          "notes": "Online permitting system available"
+          "notes": "Fort Collins has robust online permitting system. Like-for-like replacements can typically be permitted online with same-day or next-day approval. Enhanced energy requirements apply.",
+          "processing_time": "Same-day to 2 business days for residential permits"
         },
         "commercial": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$175-$450+",
-          "notes": "Energy modeling may be required for larger projects"
+          "notes": "Commercial projects require energy code compliance documentation. Projects over 25,000 sq ft may require energy modeling and commissioning. Online application available but may require follow-up plan review.",
+          "processing_time": "3-7 business days for standard commercial, longer for complex projects requiring energy modeling"
         }
       },
       "inspection_stages": [
-        "Rough-in",
-        "Final"
-      ],
-      "local_amendments": [
         {
-          "section": "Energy Code",
-          "requirement": "Fort Collins has adopted stretch energy code provisions",
-          "enforcement": "Enforced"
+          "stage": "Rough-in",
+          "when": "Before concealment of ductwork, gas piping, or venting systems",
+          "inspector_focus": "Gas piping installation and pressure testing, duct sealing and insulation, combustion air adequacy, equipment placement and service clearances, proper venting materials and slope"
+        },
+        {
+          "stage": "Final",
+          "when": "After installation complete and equipment operational",
+          "inspector_focus": "Startup verification and commissioning for commercial, proper venting termination, condensate drainage, safety controls operation, energy code compliance (programmable thermostats, efficiency ratings)"
         }
       ],
-      "common_callouts": [
-        "Enhanced commissioning for commercial",
-        "Duct testing requirements"
+      "code_amendments": [
+        {
+          "section": "Fort Collins Energy Code",
+          "title": "Enhanced Energy Efficiency Standards",
+          "base_requirement": "Colorado-adopted IECC 2021",
+          "denver_requirement": "Fort Collins has adopted portions of IECC 2024 early as stretch code. Residential: minimum SEER 15 AC, 95% AFUE furnace. Commercial: enhanced economizer requirements and commissioning for systems > 25,000 sq ft.",
+          "rationale": "Local climate action and energy reduction goals",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "HVAC systems shall meet Fort Collins enhanced efficiency standards per adopted energy code amendments. Documentation of equipment efficiency ratings required with permit application."
+        },
+        {
+          "section": "IMC 403.3.3",
+          "title": "Duct System Testing",
+          "base_requirement": "Sealing per IMC, visual verification",
+          "denver_requirement": "Duct leakage testing required for new duct systems and major modifications. Maximum 6 CFM per 100 sq ft at 25 Pascals for new residential construction. Testing by certified technician required.",
+          "rationale": "Energy efficiency and comfort performance",
+          "enforcement_level": "Enforced for new construction and substantial alterations",
+          "code_text": "New duct systems and duct systems serving additions > 500 sq ft shall be tested for leakage. Testing shall comply with RESNET standards. Test documentation required before final."
+        },
+        {
+          "section": "Commercial Commissioning",
+          "title": "HVAC Commissioning Requirements",
+          "base_requirement": "No commissioning required by base code for most projects",
+          "denver_requirement": "Commercial HVAC systems serving spaces > 25,000 sq ft require functional performance testing and commissioning documentation per ASHRAE Guideline 0 or 1.1.",
+          "rationale": "Ensure proper commercial system operation and energy performance",
+          "enforcement_level": "Enforced",
+          "code_text": "Commercial HVAC systems serving conditioned floor area exceeding 25,000 square feet shall be commissioned by certified commissioning provider. Commissioning report required."
+        }
+      ],
+      "enforcement_notes": [
+        {
+          "topic": "Energy Code Documentation",
+          "requirement": "Submit equipment efficiency specifications with permit application. AHRI certificates or manufacturer cut sheets showing SEER, AFUE, or EER ratings required for verification.",
+          "common_failure": "Not providing efficiency documentation upfront, delaying permit approval"
+        },
+        {
+          "topic": "Duct Testing Requirements",
+          "requirement": "Duct leakage testing required for new duct systems. Certified tester must perform test and provide written results. Tests typically scheduled with final inspection.",
+          "common_failure": "Assuming duct testing not required or attempting to test without certification"
+        },
+        {
+          "topic": "Programmable Thermostat Requirement",
+          "requirement": "All new HVAC systems must include programmable or smart thermostats with 7-day scheduling capability. Installer must demonstrate programming during final inspection.",
+          "common_failure": "Installing basic non-programmable thermostats"
+        },
+        {
+          "topic": "Commercial Economizer Verification",
+          "requirement": "Commercial AC systems > 54,000 BTU must have economizers unless exempted. Inspector will verify economizer installation, damper operation, and control sequence.",
+          "common_failure": "Omitting economizers when required or improper control integration"
+        }
       ],
       "contacts": {
         "phone": "(970) 221-6760",
+        "email": "buildingpermits@fcgov.com",
         "website": "https://www.fcgov.com/building",
-        "permit_office": "281 N College Ave"
+        "permit_office": "281 N College Ave, Fort Collins, CO 80524",
+        "hours": "Monday-Friday 8:00 AM - 5:00 PM"
       }
     },
     {
@@ -256,34 +450,92 @@
       "name": "Jefferson County",
       "type": "County",
       "region": "Metro Denver",
-      "population_tier": "major",
+      "elevation": "5,600-9,000 ft (varies by location)",
       "permit_requirements": {
         "residential": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$50-$130",
-          "notes": "Unincorporated Jefferson County areas"
+          "notes": "Applies to unincorporated Jefferson County areas only. Many mountain communities within Jeffco have variable elevations - verify specific property elevation. Online permitting available for standard installations.",
+          "processing_time": "1-3 business days for residential permits"
         },
         "commercial": {
           "required": true,
           "online_application": false,
           "typical_fee_range": "$150-$450+",
-          "notes": "Plan review required"
+          "notes": "Commercial permits require plan review and submittal. Mountain locations may require additional engineering review for equipment rated for altitude. Submit to Building Division.",
+          "processing_time": "5-10 business days for plan review and approval"
         }
       },
       "inspection_stages": [
-        "Rough-in",
-        "Final"
+        {
+          "stage": "Rough-in",
+          "when": "Before concealment of gas piping, ductwork, or venting systems",
+          "inspector_focus": "Gas line pressure testing (critical in mountain areas with limited service access), duct installation and support (wind and snow load considerations in mountain areas), combustion air sizing for specific elevation, equipment access in confined mountain locations"
+        },
+        {
+          "stage": "Final",
+          "when": "After complete installation and equipment startup",
+          "inspector_focus": "Equipment operation at altitude, proper derating for elevation, venting adequacy and termination (wind considerations), condensate management (freeze protection in mountain areas), emergency shutoff accessibility"
+        }
       ],
-      "local_amendments": [],
-      "common_callouts": [
-        "Mountain elevation considerations in foothill areas",
-        "Equipment access in tight mountain locations"
+      "code_amendments": [
+        {
+          "section": "IMC 304 / IFGC 304",
+          "title": "Variable Elevation Combustion Air Requirements",
+          "base_requirement": "Standard combustion air sizing per IMC",
+          "denver_requirement": "Combustion air requirements vary significantly by property elevation within Jefferson County. Foothills areas (7,000-9,000 ft) require 120% of calculated combustion air openings. Verify property-specific elevation before sizing.",
+          "rationale": "Wide elevation range within county requires location-specific requirements",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "For properties above 7,000 feet elevation, combustion air openings shall be sized at 120% of calculated requirements. Verify property elevation with permit application and size accordingly."
+        },
+        {
+          "section": "Mountain Area Access",
+          "title": "Equipment Service Access in Mountain Terrain",
+          "base_requirement": "Standard access requirements per IMC 306",
+          "denver_requirement": "Mountain properties with limited access must demonstrate code-compliant access to equipment or utilize equipment suitable for limited-access locations. Steep terrain installations may require additional engineered supports.",
+          "rationale": "Mountainous terrain creates unique access and installation challenges",
+          "enforcement_level": "Enforced",
+          "code_text": "Equipment installed in locations with terrain challenges shall comply with access requirements of IMC 306. Where terrain prevents code access, alternative access methods subject to approval."
+        },
+        {
+          "section": "Snow and Wind Load Considerations",
+          "title": "Mountain Climate Equipment Protection",
+          "base_requirement": "Standard equipment installation per manufacturer",
+          "denver_requirement": "Outdoor equipment in mountain areas must be installed with consideration for heavy snow loads and high winds. Elevated platforms or snow shields required where seasonal snow depth exceeds equipment height.",
+          "rationale": "Mountain weather impacts equipment durability and operation",
+          "enforcement_level": "Enforced",
+          "code_text": "Outdoor equipment shall be installed to prevent snow blockage and wind damage. Equipment in areas with snow accumulation exceeding 24 inches requires elevated platform or protective measures."
+        }
+      ],
+      "enforcement_notes": [
+        {
+          "topic": "Elevation-Specific Requirements",
+          "requirement": "Property elevation must be stated on permit application. Jeffco areas range from ~5,600 ft (Wheat Ridge area) to 9,000+ ft (mountain communities). Inspectors verify combustion air and derating match stated elevation.",
+          "common_failure": "Using generic elevation assumptions rather than property-specific elevation"
+        },
+        {
+          "topic": "Mountain Area Equipment Access",
+          "requirement": "Steep terrain installations must demonstrate equipment can be accessed for service and replacement. Service path must be stable and safe. Document access route with permit application for mountain properties.",
+          "common_failure": "Installing equipment in locations that become inaccessible due to terrain or seasonal conditions"
+        },
+        {
+          "topic": "Condensate Freeze Protection",
+          "requirement": "In mountain areas where temperatures regularly fall below 20°F, condensate lines must be heat-traced or routed through conditioned space. Exposed condensate lines fail inspection.",
+          "common_failure": "Running condensate lines through unconditioned attics or along exterior walls in mountain climates"
+        },
+        {
+          "topic": "Emergency Shutoff Accessibility",
+          "requirement": "Gas and electrical shutoffs must remain accessible year-round, including during heavy snow. Mark shutoff locations clearly. Snow-prone areas may require elevated or protected shutoffs.",
+          "common_failure": "Installing shutoffs that become buried or inaccessible during winter"
+        }
       ],
       "contacts": {
         "phone": "(303) 271-8700",
+        "email": "building@jeffco.us",
         "website": "https://www.jeffco.us/1199/Building-Division",
-        "permit_office": "100 Jefferson County Pkwy"
+        "permit_office": "100 Jefferson County Pkwy, Golden, CO 80419",
+        "hours": "Monday-Friday 7:30 AM - 4:30 PM"
       }
     },
     {
@@ -291,34 +543,83 @@
       "name": "Arapahoe County",
       "type": "County",
       "region": "Metro Denver",
-      "population_tier": "major",
+      "elevation": "5,350-5,680 ft",
       "permit_requirements": {
         "residential": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$50-$135",
-          "notes": "Covers unincorporated areas only"
+          "notes": "Covers unincorporated Arapahoe County areas only (many areas are within city limits of Aurora, Centennial, etc.). Online permitting available for standard residential HVAC work. Simple replacements qualify for expedited review.",
+          "processing_time": "1-2 business days for standard residential permits"
         },
         "commercial": {
           "required": true,
           "online_application": false,
           "typical_fee_range": "$150-$500+",
-          "notes": "Commercial plan submittal required"
+          "notes": "Commercial permits require plan submittal and review. Projects over $50,000 in value or with complex mechanical systems may require engineered drawings and stamped calculations. Submit to Building Division.",
+          "processing_time": "5-10 business days depending on project complexity"
         }
       },
       "inspection_stages": [
-        "Rough-in",
-        "Final"
+        {
+          "stage": "Rough-in",
+          "when": "Before concealment of mechanical systems, gas piping, ductwork, or venting",
+          "inspector_focus": "Gas piping installation and mandatory pressure testing (15-minute minimum hold), duct installation and sealing at joints, combustion air provisions, equipment location and clearances, venting materials and installation"
+        },
+        {
+          "stage": "Final",
+          "when": "After complete installation and equipment operational testing",
+          "inspector_focus": "Equipment startup and operation verification, proper venting termination and clearances, condensate drainage functionality, safety control testing, gas leak check at connections and unions, thermostat operation"
+        }
       ],
-      "local_amendments": [],
-      "common_callouts": [
-        "Standard state code enforcement",
-        "Proper venting termination"
+      "code_amendments": [
+        {
+          "section": "IMC 307.2.3",
+          "title": "Condensate Drain Requirements",
+          "base_requirement": "Condensate drain to approved location",
+          "denver_requirement": "Primary condensate drains shall not discharge onto roofs, within 10 feet of building foundations, or in areas creating slip/fall hazards. Secondary drain or overflow switch required for all equipment in attics or above occupied spaces.",
+          "rationale": "Prevent property damage and safety hazards from condensate",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "Condensate drainage shall terminate to approved location per plumbing code, minimum 10 feet from foundation, or to approved drywell. Equipment above ceilings requires secondary drain or overflow switch."
+        },
+        {
+          "section": "IFGC 406.4.1",
+          "title": "Gas Piping Test Pressure and Duration",
+          "base_requirement": "Test at 1.5x operating pressure",
+          "denver_requirement": "Gas piping systems shall be tested at 1.5 times operating pressure (minimum 3 psi) for not less than 15 minutes with no pressure loss exceeding 0.5 psi. Inspector may witness test or accept time-stamped documentation.",
+          "rationale": "Enhanced gas safety verification",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "All gas piping shall be pressure tested before concealment and before gas is introduced. Test at 1.5x operating pressure, minimum 15-minute duration. Pressure loss exceeding 0.5 psi constitutes failure."
+        }
+      ],
+      "enforcement_notes": [
+        {
+          "topic": "Standard State Code Enforcement",
+          "requirement": "Arapahoe County follows Colorado state code baseline closely with few local amendments. Inspectors enforce IMC 2021 and IFGC 2021 as adopted by state. Know the state code requirements thoroughly.",
+          "common_failure": "Assuming local amendments where none exist - state code is the authority"
+        },
+        {
+          "topic": "Venting Termination Clearances",
+          "requirement": "Strictly enforce venting termination clearances per IFGC 503.8. Common measurement points: 4 feet below/beside openings, 1 foot above openings, 3 feet from forced air inlets, property line clearances. Measure and verify before installation.",
+          "common_failure": "Improper clearances from windows, doors, or air intake locations"
+        },
+        {
+          "topic": "Proper Equipment Support",
+          "requirement": "All equipment must be properly supported and secured. Rooftop units require structural verification. Furnaces and water heaters must be strapped or secured against displacement where required by seismic provisions.",
+          "common_failure": "Inadequate support for rooftop equipment or failure to secure equipment in seismic areas"
+        },
+        {
+          "topic": "Combustion Air Documentation",
+          "requirement": "For installations with combustion appliances, inspectors may request to see combustion air calculations. Be prepared to demonstrate sizing methodology and measurements of actual openings.",
+          "common_failure": "Unable to provide combustion air sizing justification when requested"
+        }
       ],
       "contacts": {
         "phone": "(720) 874-6650",
+        "email": "buildinginspections@arapahoegov.com",
         "website": "https://www.arapahoegov.com/243/Building-Division",
-        "permit_office": "6954 S Lima St"
+        "permit_office": "6954 S Lima St, Centennial, CO 80112",
+        "hours": "Monday-Friday 7:30 AM - 4:30 PM"
       }
     },
     {
@@ -326,34 +627,83 @@
       "name": "Pueblo",
       "type": "City",
       "region": "Southern Colorado",
-      "population_tier": "medium",
+      "elevation": "4,695 ft",
       "permit_requirements": {
         "residential": {
           "required": true,
           "online_application": false,
           "typical_fee_range": "$40-$120",
-          "notes": "Walk-in or mail permits"
+          "notes": "Walk-in or mail permits required - no online option currently. Permit applications available at Building Inspection office. Simple replacements can be permitted over the counter with same-day approval.",
+          "processing_time": "Same-day for simple over-the-counter permits, 2-3 business days for mailed applications"
         },
         "commercial": {
           "required": true,
           "online_application": false,
           "typical_fee_range": "$125-$400+",
-          "notes": "Plan review for commercial"
+          "notes": "Commercial permits require plan review and submittal. Engineered drawings required for systems over 100,000 BTU or complex installations. Submit complete plans to Building Inspection Department.",
+          "processing_time": "5-10 business days for plan review depending on project complexity"
         }
       },
       "inspection_stages": [
-        "Rough-in",
-        "Final"
+        {
+          "stage": "Rough-in",
+          "when": "Before concealment of gas piping, ductwork, venting, or other mechanical work",
+          "inspector_focus": "Gas piping installation and pressure testing, duct installation and sealing, equipment placement and clearances, combustion air adequacy, venting pathway and materials"
+        },
+        {
+          "stage": "Final",
+          "when": "After installation complete and equipment operational",
+          "inspector_focus": "Equipment startup and operational testing, venting termination and clearances, condensate drainage, safety control verification, gas connection leak testing, proper labeling"
+        }
       ],
-      "local_amendments": [],
-      "common_callouts": [
-        "Lower elevation (4,695 ft) - standard equipment ratings apply",
-        "Wind load considerations for rooftop equipment"
+      "code_amendments": [
+        {
+          "section": "Pueblo Equipment Installation",
+          "title": "Wind Load Considerations for Rooftop Equipment",
+          "base_requirement": "Equipment installed per manufacturer instructions",
+          "denver_requirement": "Pueblo experiences significant wind events. Rooftop equipment must be secured with enhanced wind restraints. Equipment over 200 lbs requires engineered tie-down calculations for wind loads. Curb adapters must be properly sealed and secured.",
+          "rationale": "High wind conditions in Southern Colorado require additional equipment protection",
+          "enforcement_level": "Enforced",
+          "code_text": "Rooftop HVAC equipment shall be secured against wind loads per ASCE 7. Equipment exceeding 200 pounds requires engineered calculations demonstrating adequate restraint for local wind conditions."
+        },
+        {
+          "section": "IMC 304 Application",
+          "title": "Lower Elevation Standard Equipment Ratings",
+          "base_requirement": "Equipment derated per manufacturer for altitude",
+          "denver_requirement": "At 4,695 ft elevation, most equipment operates near sea-level capacity with minimal derating. Standard combustion air calculations apply without altitude multipliers (unlike higher elevation Colorado jurisdictions).",
+          "rationale": "Pueblo's lower elevation allows standard equipment ratings with minimal altitude impact",
+          "enforcement_level": "Standard enforcement",
+          "code_text": "Equipment capacity and combustion air sizing follows standard code requirements. Altitude derating minimal at Pueblo elevation but verify manufacturer specifications for equipment over 150,000 BTU."
+        }
+      ],
+      "enforcement_notes": [
+        {
+          "topic": "Lower Altitude Advantage",
+          "requirement": "Pueblo's relatively low elevation (4,695 ft vs. 5,280 ft+ for most Colorado cities) means equipment operates closer to rated capacity and combustion air requirements are less stringent. Standard IMC calculations apply without significant altitude adjustments.",
+          "common_failure": "Over-correcting for altitude when minimal adjustment needed"
+        },
+        {
+          "topic": "Wind Considerations",
+          "requirement": "Pueblo area experiences high winds, especially in spring. Outdoor equipment must be properly anchored. Rooftop equipment requires secure mounting - inspectors verify tie-downs and structural support. Venting terminations must account for wind effects.",
+          "common_failure": "Inadequate equipment anchoring leading to wind damage or displacement"
+        },
+        {
+          "topic": "Gas Pressure Testing",
+          "requirement": "Gas piping must be pressure tested at 1.5x operating pressure for minimum 15 minutes. Test must hold pressure with no detectable loss. Inspector may witness test or accept documented results.",
+          "common_failure": "Testing for insufficient duration or at inadequate pressure"
+        },
+        {
+          "topic": "Equipment Labeling",
+          "requirement": "All equipment must retain manufacturer labels showing model, serial number, fuel type, and BTU input. Gas shutoffs must be clearly labeled. Inspectors verify proper labeling at final inspection.",
+          "common_failure": "Damaged or removed equipment labels during installation"
+        }
       ],
       "contacts": {
         "phone": "(719) 553-2652",
+        "email": "buildinginspection@pueblo.us",
         "website": "https://www.pueblo.us/151/Building-Inspection",
-        "permit_office": "211 E D St"
+        "permit_office": "211 E D St, Pueblo, CO 81003",
+        "hours": "Monday-Friday 8:00 AM - 5:00 PM"
       }
     }
   ]

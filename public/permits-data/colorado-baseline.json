@@ -189,6 +189,70 @@
           "enforcement_notes": "Secondary drain must discharge to conspicuous location or have overflow switch"
         }
       ]
+    },
+    {
+      "section": "IMC 301.18",
+      "title": "Seismic Supports",
+      "subsections": [
+        {
+          "number": "301.18",
+          "title": "Seismic Restraint Requirements",
+          "base_text": "HVAC equipment shall be supported and restrained to resist seismic forces in accordance with Chapter 16 of the International Building Code.",
+          "colorado_amendment": "Colorado jurisdictions vary in seismic requirements. Denver requires seismic restraints for ALL equipment regardless of size. Other jurisdictions may follow IBC seismic design categories. Verify local requirements.",
+          "applicability": "All mechanical equipment installations",
+          "enforcement_notes": "Denver strictly enforces for all equipment; other jurisdictions enforce per IBC Seismic Design Category"
+        }
+      ]
+    },
+    {
+      "section": "IMC 608",
+      "title": "Duct Insulation",
+      "subsections": [
+        {
+          "number": "608.3",
+          "title": "Duct Insulation R-value",
+          "base_text": "Supply ducts and return air ducts operating at temperatures below 55°F (13°C) or above 120°F (49°C) in unconditioned spaces shall be insulated to prevent condensation and energy loss.",
+          "colorado_amendment": null,
+          "applicability": "Ducts in unconditioned spaces (attics, crawlspaces, garages)",
+          "enforcement_notes": "IECC requires minimum R-8 for supply ducts in attics, R-6 for return ducts"
+        }
+      ]
+    },
+    {
+      "section": "IFGC 404",
+      "title": "Piping Materials",
+      "subsections": [
+        {
+          "number": "404.1",
+          "title": "General",
+          "base_text": "Piping materials shall conform to the standards cited in this section. Materials not covered by referenced standards shall be approved by the building official prior to installation.",
+          "colorado_amendment": null,
+          "applicability": "All gas piping installations",
+          "enforcement_notes": "Black steel, CSST (where approved), and approved brass fittings. Galvanized steel typically not permitted for gas piping"
+        },
+        {
+          "number": "404.12",
+          "title": "Support of Piping",
+          "base_text": "Piping shall be supported with metal pipe hooks, metal pipe straps, metal bands, metal brackets, or building structural components suitable for the size of piping and installed in accordance with manufacturers' instructions.",
+          "colorado_amendment": null,
+          "applicability": "All gas piping",
+          "enforcement_notes": "Horizontal pipes: support every 6 feet maximum. Vertical pipes: support at each floor level minimum. CSST requires support per manufacturer specifications"
+        }
+      ]
+    },
+    {
+      "section": "IFGC 408",
+      "title": "Drips and Sloped Piping",
+      "subsections": [
+        {
+          "number": "408.4",
+          "title": "Sediment Trap (Drip Leg)",
+          "base_text": "A sediment trap shall be provided upstream of the appliance gas control valve. The sediment trap shall be either a tee fitting with a capped nipple in the bottom opening of the run of the tee, or other device approved as an effective sediment trap.",
+          "colorado_amendment": null,
+          "applicability": "All gas appliances",
+          "enforcement_notes": "Required for ALL gas appliances. Must be minimum 3 inches deep. Install upstream of appliance shutoff valve, not downstream"
+        }
+      ]
     }
   ],
   "permit_requirements": {
