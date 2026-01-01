@@ -102,8 +102,7 @@ export default function CalculatorPage() {
     const beforeOverhead = matWithTax + labor;
     const afterOverhead = beforeOverhead / 0.65;
     const afterWarranty = warrantyIncluded ? afterOverhead * 1.05 : afterOverhead;
-    const afterMembership = membershipIncluded ? afterWarranty * 1.1 : afterWarranty;
-    const afterOffset = afterMembership * 1.1;
+    const afterOffset = !membershipIncluded ? afterWarranty * 1.1 : afterWarranty;
     return roundCents(afterOffset);
   }, [material, taxIncluded, taxRate, hours, hourlyRate, warrantyIncluded, membershipIncluded]);
 
@@ -118,15 +117,13 @@ export default function CalculatorPage() {
     const beforeOverhead = matWithTax + labor;
     const afterOverhead = beforeOverhead / 0.65;
     const afterWarranty = warrantyIncluded ? afterOverhead * 1.05 : afterOverhead;
-    const afterMembership = membershipIncluded ? afterWarranty * 1.1 : afterWarranty;
-    const afterOffset = afterMembership * 1.1;
+    const afterOffset = !membershipIncluded ? afterWarranty * 1.1 : afterWarranty;
     return {
       matWithTax: roundCents(matWithTax),
       labor: roundCents(labor),
       beforeOverhead: roundCents(beforeOverhead),
       afterOverhead: roundCents(afterOverhead),
       afterWarranty: roundCents(afterWarranty),
-      afterMembership: roundCents(afterMembership),
       afterOffset: roundCents(afterOffset),
     };
   }, [material, taxIncluded, taxRate, hours, hourlyRate, warrantyIncluded, membershipIncluded]);
@@ -317,7 +314,7 @@ export default function CalculatorPage() {
                 <div className="flex items-center justify-between gap-3 rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 px-3 py-3 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 shadow-sm transition-all duration-300">
                   <div>
                     <div className="text-xs font-bold text-slate-900 dark:text-white">
-                      {membershipIncluded ? "Membership applied" : "No membership"}
+                      {membershipIncluded ? "Member rate" : "Non-member rate"}
                     </div>
                   </div>
                   <button
@@ -446,8 +443,7 @@ export default function CalculatorPage() {
                 <StatRow label="Subtotal" value={moneyFmt.format(breakdown.beforeOverhead)} />
                 <StatRow label="After overhead (/0.65)" value={moneyFmt.format(breakdown.afterOverhead)} />
                 {warrantyIncluded && <StatRow label="After warranty (×1.05)" value={moneyFmt.format(breakdown.afterWarranty)} />}
-                {membershipIncluded && <StatRow label="After membership (×1.10)" value={moneyFmt.format(breakdown.afterMembership)} />}
-                <StatRow label="After offset (×1.10)" value={moneyFmt.format(breakdown.afterOffset)} />
+                {!membershipIncluded && <StatRow label="Non-member offset (×1.10)" value={moneyFmt.format(breakdown.afterOffset)} />}
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -482,7 +478,7 @@ export default function CalculatorPage() {
               </div>
 
               <div className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
-                Formula: (Material + Tax) + (Hours × Rate) ÷ 0.65{warrantyIncluded ? " × 1.05" : ""}{membershipIncluded ? " × 1.10" : ""} × 1.10
+                Formula: (Material + Tax) + (Hours × Rate) ÷ 0.65{warrantyIncluded ? " × 1.05" : ""}{!membershipIncluded ? " × 1.10" : ""}
               </div>
             </section>
           </div>
