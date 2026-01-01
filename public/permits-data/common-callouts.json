@@ -1,0 +1,251 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-01-01",
+  "description": "Common code violations and inspection callouts for Colorado HVAC work",
+  "categories": [
+    {
+      "category": "Combustion Air",
+      "risk_level": "high",
+      "items": [
+        {
+          "violation": "Insufficient combustion air opening size",
+          "code_reference": "IMC 304 / IFGC 304",
+          "common_cause": "Not accounting for high altitude (reduced air density)",
+          "prevention": "Calculate required air openings per code, add 10% for altitude above 5,000 ft",
+          "inspection_notes": "Inspectors will measure openings and verify against BTU input"
+        },
+        {
+          "violation": "Combustion air openings obstructed or terminated incorrectly",
+          "code_reference": "IMC 304.5",
+          "common_cause": "Homeowner modifications, landscaping changes",
+          "prevention": "Document air intake locations, educate customer on maintaining clearances",
+          "inspection_notes": "Must terminate to outdoors or to spaces per code requirements"
+        },
+        {
+          "violation": "Missing or undersized makeup air for exhaust fans",
+          "code_reference": "IMC 403.3",
+          "common_cause": "Not accounting for kitchen exhaust, bath fans when sizing combustion air",
+          "prevention": "Total all exhaust CFM and provide adequate makeup air",
+          "inspection_notes": "Required when exhaust exceeds supply by certain thresholds"
+        }
+      ]
+    },
+    {
+      "category": "Venting & Chimneys",
+      "risk_level": "high",
+      "items": [
+        {
+          "violation": "Improper vent termination clearances",
+          "code_reference": "IFGC 503.8 / IMC 803",
+          "common_cause": "Not maintaining required clearances from windows, doors, property lines",
+          "prevention": "Verify all clearances per manufacturer and code before installation",
+          "inspection_notes": "Inspectors measure clearances to openings, mechanical air intakes, property lines"
+        },
+        {
+          "violation": "Incorrect vent pipe material or sizing",
+          "code_reference": "IFGC 503",
+          "common_cause": "Using wrong category vent pipe, undersized vent",
+          "prevention": "Match vent category to appliance, use manufacturer vent sizing tables",
+          "inspection_notes": "Must be listed for appliance type and temperature rating"
+        },
+        {
+          "violation": "Excessive vent length or too many elbows",
+          "code_reference": "IFGC 503.10",
+          "common_cause": "Exceeding maximum equivalent length per manufacturer",
+          "prevention": "Calculate equivalent length including elbows, stay within limits",
+          "inspection_notes": "Manufacturer's installation manual governs"
+        },
+        {
+          "violation": "Missing or improper vent slope",
+          "code_reference": "IFGC 503.10.8",
+          "common_cause": "Horizontal vents not sloped 1/4 inch per foot minimum toward appliance",
+          "prevention": "Use level to verify proper slope during installation",
+          "inspection_notes": "Condensate must drain back to appliance or approved drain"
+        }
+      ]
+    },
+    {
+      "category": "Equipment Access & Clearances",
+      "risk_level": "medium",
+      "items": [
+        {
+          "violation": "Insufficient working space in front of equipment",
+          "code_reference": "IMC 306.3",
+          "common_cause": "Equipment installed in tight spaces without considering service access",
+          "prevention": "Maintain 30-inch minimum (some jurisdictions require 36 inches)",
+          "inspection_notes": "Measured from front of service access panel to obstruction"
+        },
+        {
+          "violation": "Missing or inadequate access door/opening",
+          "code_reference": "IMC 306.2",
+          "common_cause": "Attic or crawl space equipment without code-compliant access",
+          "prevention": "Minimum 22x30 inch opening required, larger for equipment removal",
+          "inspection_notes": "Must be able to remove and replace equipment through access"
+        },
+        {
+          "violation": "Clearance to combustibles not maintained",
+          "code_reference": "IMC 304.10 / IFGC 303",
+          "common_cause": "Installing equipment closer to wood than manufacturer allows",
+          "prevention": "Check listing label and installation manual for required clearances",
+          "inspection_notes": "Inspectors verify clearances match equipment label"
+        }
+      ]
+    },
+    {
+      "category": "Gas Piping",
+      "risk_level": "high",
+      "items": [
+        {
+          "violation": "Undersized gas pipe",
+          "code_reference": "IFGC 402",
+          "common_cause": "Not accounting for total BTU load or pipe length",
+          "prevention": "Calculate using longest length method, include all appliances",
+          "inspection_notes": "Inspector may request pressure drop test or sizing calculations"
+        },
+        {
+          "violation": "Improper pipe material or fittings",
+          "code_reference": "IFGC 403.5",
+          "common_cause": "Using unapproved materials or fittings (e.g., compression fittings)",
+          "prevention": "Use only approved materials: black steel, CSST (if allowed), brass fittings",
+          "inspection_notes": "Galvanized not allowed for gas in most jurisdictions"
+        },
+        {
+          "violation": "Missing or improper sediment trap (drip leg)",
+          "code_reference": "IFGC 408.4",
+          "common_cause": "Omitting drip leg or installing downstream of appliance valve",
+          "prevention": "Install drip leg upstream of appliance valve, minimum 3 inches deep",
+          "inspection_notes": "Required for all gas appliances"
+        },
+        {
+          "violation": "Gas pipe not properly supported",
+          "code_reference": "IFGC 404.12",
+          "common_cause": "Spans too long, improper hanger spacing",
+          "prevention": "Support horizontal pipe every 6 feet minimum",
+          "inspection_notes": "CSST requires support per manufacturer specifications"
+        }
+      ]
+    },
+    {
+      "category": "Ductwork",
+      "risk_level": "medium",
+      "items": [
+        {
+          "violation": "Ductwork not properly sealed",
+          "code_reference": "IMC 603.9 / IECC",
+          "common_cause": "Missing mastic or tape on duct joints",
+          "prevention": "Seal all joints and seams with mastic or UL 181 tape",
+          "inspection_notes": "Some jurisdictions require duct leakage testing"
+        },
+        {
+          "violation": "Return air pathway through unconditioned space",
+          "code_reference": "IMC 602.2",
+          "common_cause": "Using building cavities in unconditioned areas for return air",
+          "prevention": "Use listed ducting in all unconditioned spaces (attics, crawls)",
+          "inspection_notes": "No panned floor joists or stud bays in unconditioned areas"
+        },
+        {
+          "violation": "Inadequate duct insulation",
+          "code_reference": "IECC 403.3.3",
+          "common_cause": "Not meeting R-value requirements in unconditioned spaces",
+          "prevention": "R-8 minimum for supply ducts in attics, R-6 for return",
+          "inspection_notes": "Energy code compliance verification"
+        }
+      ]
+    },
+    {
+      "category": "Condensate Drainage",
+      "risk_level": "medium",
+      "items": [
+        {
+          "violation": "Condensate drain improperly terminated",
+          "code_reference": "IMC 307.2",
+          "common_cause": "Draining onto roof, near foundation, or into planters",
+          "prevention": "Terminate to approved location per local codes",
+          "inspection_notes": "Cannot create slip/fall hazard or structural damage risk"
+        },
+        {
+          "violation": "Missing auxiliary drain pan or overflow switch",
+          "code_reference": "IMC 307.2.3",
+          "common_cause": "Horizontal units in attics without secondary protection",
+          "prevention": "Install drain pan with separate drain line, or overflow safety switch",
+          "inspection_notes": "Required for units above ceiling or in areas where overflow causes damage"
+        },
+        {
+          "violation": "Condensate trap not properly installed",
+          "code_reference": "IMC 307.2.1",
+          "common_cause": "Trap missing, improper size, or not primed",
+          "prevention": "Install trap per manufacturer, prime before startup",
+          "inspection_notes": "Negative pressure systems require trap to prevent air leakage"
+        }
+      ]
+    },
+    {
+      "category": "Electrical & Controls",
+      "risk_level": "medium",
+      "items": [
+        {
+          "violation": "Missing or improper disconnect",
+          "code_reference": "NEC 440.14",
+          "common_cause": "No visible disconnect within sight of equipment",
+          "prevention": "Install lockable disconnect within sight and reach of equipment",
+          "inspection_notes": "Must be within sight and within 50 feet"
+        },
+        {
+          "violation": "Improper wiring methods or wire sizing",
+          "code_reference": "NEC 440",
+          "common_cause": "Undersized wire for load, improper conduit/cable type",
+          "prevention": "Follow equipment minimum circuit ampacity, use proper wiring method",
+          "inspection_notes": "Outdoor wiring must be in conduit or rated cable"
+        },
+        {
+          "violation": "Missing equipment grounding",
+          "code_reference": "NEC 250",
+          "common_cause": "Equipment not properly bonded to ground",
+          "prevention": "Ensure green/bare ground wire connected to equipment ground lug",
+          "inspection_notes": "Grounding is life safety issue - strictly enforced"
+        }
+      ]
+    },
+    {
+      "category": "Refrigerant Lines",
+      "risk_level": "low",
+      "items": [
+        {
+          "violation": "Refrigerant lines not properly insulated",
+          "code_reference": "IMC 304.11",
+          "common_cause": "Exposed suction line without insulation",
+          "prevention": "Insulate suction line to prevent condensation",
+          "inspection_notes": "Especially important in humid climates or attic installations"
+        },
+        {
+          "violation": "Line set not properly supported",
+          "code_reference": "IMC 304.7",
+          "common_cause": "Long unsupported runs, improper penetrations",
+          "prevention": "Support per manufacturer, protect through penetrations",
+          "inspection_notes": "Avoid vibration and abrasion damage"
+        }
+      ]
+    },
+    {
+      "category": "Seismic Restraints",
+      "risk_level": "medium",
+      "items": [
+        {
+          "violation": "Equipment not seismically restrained",
+          "code_reference": "IMC 301.18",
+          "common_cause": "Omitting restraints in seismic zones",
+          "prevention": "Install seismic restraints per manufacturer and local requirements",
+          "inspection_notes": "Required in designated seismic areas - check local jurisdiction"
+        }
+      ]
+    }
+  ],
+  "inspection_tips": [
+    "Have equipment manuals on site for inspector reference",
+    "Ensure work area is clean and accessible",
+    "Test all safety devices before inspection",
+    "Document all calculations (load calcs, duct sizing, gas pipe sizing)",
+    "Take photos of work before concealment in case of questions later",
+    "Know your jurisdiction's specific requirements - they vary"
+  ]
+}

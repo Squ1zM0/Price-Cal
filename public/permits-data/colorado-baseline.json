@@ -1,0 +1,240 @@
+{
+  "version": "2.0.0",
+  "last_updated": "2026-01-01",
+  "state": "Colorado",
+  "description": "Colorado statewide code baseline for HVAC/Mechanical work - Reviewable code content and requirements",
+  "adopted_codes": [
+    {
+      "code": "IMC",
+      "name": "International Mechanical Code",
+      "edition": "2021",
+      "adoption_date": "2022-10-01",
+      "notes": "Colorado adopted 2021 IMC with state amendments per CRS 24-32-3303"
+    },
+    {
+      "code": "IFGC",
+      "name": "International Fuel Gas Code",
+      "edition": "2021",
+      "adoption_date": "2022-10-01",
+      "notes": "Colorado adopted 2021 IFGC with state amendments per CRS 24-32-3303"
+    },
+    {
+      "code": "IECC",
+      "name": "International Energy Conservation Code",
+      "edition": "2021",
+      "adoption_date": "2022-10-01",
+      "notes": "Energy efficiency requirements for HVAC installations per CRS 24-32-3303"
+    },
+    {
+      "code": "NEC",
+      "name": "National Electrical Code",
+      "edition": "2020",
+      "adoption_date": "2021-01-01",
+      "notes": "Applicable for HVAC electrical connections and controls per CRS 12-115-101"
+    }
+  ],
+  "code_sections": [
+    {
+      "section": "IMC 304",
+      "title": "Combustion Air",
+      "subsections": [
+        {
+          "number": "304.1",
+          "title": "General",
+          "base_text": "Every space containing fuel-burning appliances shall be provided with combustion air in accordance with Sections 304.2 through 304.12.",
+          "colorado_amendment": "For installations above 5,000 feet elevation, combustion air openings shall be sized at 110% of calculated requirements to account for reduced air density.",
+          "applicability": "All fuel-burning appliances",
+          "enforcement_notes": "Inspectors will verify opening sizes match BTU input calculations adjusted for altitude"
+        },
+        {
+          "number": "304.5",
+          "title": "Opening Size and Location",
+          "base_text": "Outdoor combustion air openings shall have a free area of not less than 1 square inch per 4,000 Btu/h (550 mm²/kW) of total input rating of all equipment located in the space.",
+          "colorado_amendment": "At elevations above 5,000 feet, use 1 square inch per 3,600 Btu/h minimum. For elevations above 8,000 feet, use 1 square inch per 3,200 Btu/h.",
+          "applicability": "All appliances using outdoor combustion air",
+          "enforcement_notes": "Common violation: not accounting for altitude when sizing openings"
+        },
+        {
+          "number": "304.6",
+          "title": "Combustion Air Ducts",
+          "base_text": "Combustion air ducts shall be constructed of galvanized steel complying with Chapter 6 or of a material having equivalent corrosion resistance, strength and rigidity.",
+          "colorado_amendment": null,
+          "applicability": "When combustion air is ducted",
+          "enforcement_notes": "Must be rigid duct, flex duct not permitted"
+        }
+      ]
+    },
+    {
+      "section": "IMC 306",
+      "title": "Access and Service Space",
+      "subsections": [
+        {
+          "number": "306.1",
+          "title": "Appliances in Rooms",
+          "base_text": "Rooms containing appliances requiring access shall be provided with a door and an unobstructed passageway measuring not less than 36 inches (914 mm) wide and 80 inches (2032 mm) high.",
+          "colorado_amendment": null,
+          "applicability": "All appliance locations",
+          "enforcement_notes": "Measured as clear opening dimension"
+        },
+        {
+          "number": "306.3",
+          "title": "Appliances in Attics",
+          "base_text": "Attics containing appliances requiring access shall be provided with a passageway having unobstructed height of not less than 30 inches (762 mm) measured from the top of the ceiling framing members to the underside of the roof framing members.",
+          "colorado_amendment": "Working space in front of equipment shall be minimum 30 inches. Some jurisdictions require 36 inches - verify local requirements.",
+          "applicability": "Attic installations",
+          "enforcement_notes": "Level service platform required if equipment exceeds 6 feet above platform"
+        },
+        {
+          "number": "306.5",
+          "title": "Electrical Requirements",
+          "base_text": "A lighting fixture controlled by a switch located at the required passageway opening and a receptacle outlet shall be provided at or near the appliance location.",
+          "colorado_amendment": null,
+          "applicability": "All equipment locations",
+          "enforcement_notes": "Receptacle must be within 25 feet of equipment"
+        }
+      ]
+    },
+    {
+      "section": "IFGC 403",
+      "title": "Venting of Equipment",
+      "subsections": [
+        {
+          "number": "403.1",
+          "title": "General",
+          "base_text": "All fuel-burning appliances shall be vented to the outdoors in accordance with their listing and label and the manufacturer's installation instructions.",
+          "colorado_amendment": "At high altitudes, verify manufacturer's altitude limitations and venting specifications. Some equipment requires special high-altitude venting kits.",
+          "applicability": "All vented appliances",
+          "enforcement_notes": "Manufacturer's installation manual takes precedence over general code"
+        },
+        {
+          "number": "403.4",
+          "title": "Vent Connection",
+          "base_text": "Vent connectors shall be constructed and installed in accordance with Sections 503.10, 503.11 and 503.12.",
+          "colorado_amendment": null,
+          "applicability": "Category I appliances",
+          "enforcement_notes": "Single-wall connectors must maintain clearances to combustibles"
+        }
+      ]
+    },
+    {
+      "section": "IFGC 402",
+      "title": "Piping System Installation",
+      "subsections": [
+        {
+          "number": "402.1",
+          "title": "General",
+          "base_text": "Gas piping shall be installed in accordance with the sizing and installation requirements of this chapter.",
+          "colorado_amendment": null,
+          "applicability": "All gas piping",
+          "enforcement_notes": "Pressure testing required before concealment"
+        },
+        {
+          "number": "402.4",
+          "title": "Pipe Sizing",
+          "base_text": "Gas piping shall be sized in accordance with Section 402.4.1 through 402.4.5 and Table 402.4.",
+          "colorado_amendment": "At elevations above 2,000 feet, gas input ratings shall be reduced in accordance with equipment manufacturer specifications (note: this is a lower threshold than the 5,000 ft combustion air requirement as equipment derating begins earlier). This affects pipe sizing calculations.",
+          "applicability": "All gas piping systems",
+          "enforcement_notes": "Use longest length method for sizing, include all elbows and fittings"
+        }
+      ]
+    },
+    {
+      "section": "IMC 603",
+      "title": "Duct Construction and Installation",
+      "subsections": [
+        {
+          "number": "603.9",
+          "title": "Joints, Seams and Connections",
+          "base_text": "All longitudinal and transverse joints, seams and connections shall be securely fastened and sealed with welds, gaskets, mastics, mastic-plus-embedded-fabric systems or tapes.",
+          "colorado_amendment": null,
+          "applicability": "All ductwork",
+          "enforcement_notes": "Mastic or UL 181 listed tape required. Duct tape not acceptable"
+        },
+        {
+          "number": "603.10",
+          "title": "Support",
+          "base_text": "Ducts shall be supported with approved hangers at intervals not exceeding 10 feet (3048 mm).",
+          "colorado_amendment": null,
+          "applicability": "All ductwork",
+          "enforcement_notes": "Flex duct must be fully extended, no compression or sagging"
+        }
+      ]
+    },
+    {
+      "section": "IMC 307",
+      "title": "Condensate Disposal",
+      "subsections": [
+        {
+          "number": "307.2",
+          "title": "Drain Pipe Materials and Sizes",
+          "base_text": "Components of the condensate disposal system shall be cast iron, galvanized steel, copper, cross-linked polyethylene, polybutylene, polyethylene, ABS, CPVC or PVC pipe and fittings.",
+          "colorado_amendment": null,
+          "applicability": "All condensate drainage",
+          "enforcement_notes": "Minimum 3/4-inch drain line required"
+        },
+        {
+          "number": "307.2.1",
+          "title": "Traps",
+          "base_text": "Condensate drains shall be trapped as required by the equipment or appliance manufacturer.",
+          "colorado_amendment": null,
+          "applicability": "Equipment with induced draft or negative pressure",
+          "enforcement_notes": "Trap must be primed before final inspection"
+        },
+        {
+          "number": "307.2.3",
+          "title": "Auxiliary Drain Pan",
+          "base_text": "Category IV condensing appliances shall be provided with a secondary drain or auxiliary drain pan if the primary drain line blocks.",
+          "colorado_amendment": null,
+          "applicability": "Equipment installed in attics, above ceilings, or where leakage causes damage",
+          "enforcement_notes": "Secondary drain must discharge to conspicuous location or have overflow switch"
+        }
+      ]
+    }
+  ],
+  "permit_requirements": {
+    "when_required": "A permit shall be required for the installation, relocation, replacement or alteration of mechanical systems, including HVAC equipment, ductwork, and fuel gas piping.",
+    "exemptions": [
+      {
+        "description": "Portable heating, cooling or ventilation appliances",
+        "code_reference": "IMC 106.2.1"
+      },
+      {
+        "description": "Replacement of any part that does not alter approval of equipment or make such equipment unsafe",
+        "code_reference": "IMC 106.2.2"
+      },
+      {
+        "description": "Self-contained refrigeration systems containing 10 pounds (4.54 kg) or less of refrigerant or actuated by motors of 1 horsepower (746 W) or less",
+        "code_reference": "IMC 106.2.3"
+      }
+    ],
+    "inspection_requirements": {
+      "rough_in": "Required before any work is concealed. Includes gas piping, ductwork, venting, and equipment placement verification.",
+      "final": "Required after installation is complete and operational. Includes startup, safety device testing, and code compliance verification."
+    }
+  },
+  "altitude_adjustments": {
+    "general": "Colorado's high elevation affects HVAC equipment and code compliance in multiple ways",
+    "key_impacts": [
+      {
+        "category": "Equipment Capacity",
+        "requirement": "Gas and oil-fired equipment must be derated per manufacturer specifications. Typical deration is 4% per 1,000 feet above sea level.",
+        "code_reference": "Manufacturer's installation instructions"
+      },
+      {
+        "category": "Combustion Air",
+        "requirement": "Additional combustion air required due to reduced oxygen content. See IMC 304 amendments above.",
+        "code_reference": "IMC 304.5"
+      },
+      {
+        "category": "Venting",
+        "requirement": "Reduced air density affects draft. Some equipment requires special high-altitude venting configurations.",
+        "code_reference": "IFGC 403, manufacturer specifications"
+      },
+      {
+        "category": "Gas Pressure",
+        "requirement": "Natural gas and LP gas pressures may require adjustment. Verify regulator settings for altitude.",
+        "code_reference": "IFGC Chapter 4"
+      }
+    ]
+  }
+}
