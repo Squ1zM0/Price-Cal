@@ -186,7 +186,7 @@ function DuctBlock({
           <input
             value={value.d}
             onChange={(e) => onChange({ d: e.target.value })}
-            placeholder='Diameter (in)'
+            placeholder='Diameter (")'
             inputMode="decimal"
             className="w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-4 py-3 text-sm text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500"
           />
