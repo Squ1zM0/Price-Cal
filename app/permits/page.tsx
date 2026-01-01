@@ -493,7 +493,20 @@ export default function PermitsPage() {
                           {result.category.category} • {result.category.risk_level} risk
                         </div>
                         <div className="text-sm font-semibold text-slate-900 dark:text-white">{result.item.violation}</div>
-                        <div className="text-xs text-slate-600 dark:text-slate-400">Code: {result.item.code_reference}</div>
+                        <div className="text-xs text-slate-600 dark:text-slate-400">
+                          Code:{" "}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const codeRef = result.item.code_reference.split("/")[0].trim();
+                              setView("baseline");
+                              setGlobalSearch(codeRef);
+                            }}
+                            className="text-blue-600 dark:text-blue-400 hover:underline"
+                          >
+                            {result.item.code_reference}
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -745,6 +758,106 @@ function JurisdictionView({
           </div>
         </div>
 
+        {/* Permit Requirements Overview */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-4 ring-1 ring-inset ring-blue-200 dark:ring-blue-700">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Residential Permits</h3>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Required:</span>{" "}
+                <span className="text-slate-600 dark:text-slate-400">
+                  {selectedJurisdiction.permit_requirements.residential.required ? "Yes" : "No"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Online Application:</span>{" "}
+                <span className="text-slate-600 dark:text-slate-400">
+                  {selectedJurisdiction.permit_requirements.residential.online_application ? "Available" : "Not Available"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Typical Fees:</span>{" "}
+                <span className="text-slate-600 dark:text-slate-400">
+                  {selectedJurisdiction.permit_requirements.residential.typical_fee_range}
+                </span>
+              </div>
+              {selectedJurisdiction.permit_requirements.residential.processing_time && (
+                <div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Processing Time:</span>{" "}
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {selectedJurisdiction.permit_requirements.residential.processing_time}
+                  </span>
+                </div>
+              )}
+              <div className="text-xs italic text-slate-600 dark:text-slate-400 mt-2">
+                {selectedJurisdiction.permit_requirements.residential.notes}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/30 dark:to-purple-800/30 p-4 ring-1 ring-inset ring-purple-200 dark:ring-purple-700">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Commercial Permits</h3>
+            <div className="space-y-2 text-sm">
+              <div>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Required:</span>{" "}
+                <span className="text-slate-600 dark:text-slate-400">
+                  {selectedJurisdiction.permit_requirements.commercial.required ? "Yes" : "No"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Online Application:</span>{" "}
+                <span className="text-slate-600 dark:text-slate-400">
+                  {selectedJurisdiction.permit_requirements.commercial.online_application ? "Available" : "Not Available"}
+                </span>
+              </div>
+              <div>
+                <span className="font-semibold text-slate-700 dark:text-slate-300">Typical Fees:</span>{" "}
+                <span className="text-slate-600 dark:text-slate-400">
+                  {selectedJurisdiction.permit_requirements.commercial.typical_fee_range}
+                </span>
+              </div>
+              {selectedJurisdiction.permit_requirements.commercial.processing_time && (
+                <div>
+                  <span className="font-semibold text-slate-700 dark:text-slate-300">Processing Time:</span>{" "}
+                  <span className="text-slate-600 dark:text-slate-400">
+                    {selectedJurisdiction.permit_requirements.commercial.processing_time}
+                  </span>
+                </div>
+              )}
+              <div className="text-xs italic text-slate-600 dark:text-slate-400 mt-2">
+                {selectedJurisdiction.permit_requirements.commercial.notes}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Inspection Stages */}
+        <div className="rounded-2xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/30 p-4 ring-1 ring-inset ring-green-200 dark:ring-green-700">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Inspection Stages</h3>
+          <div className="space-y-3">
+            {selectedJurisdiction.inspection_stages.map((stage, idx) => {
+              if (typeof stage === "string") {
+                return (
+                  <div key={idx} className="text-sm font-semibold text-slate-900 dark:text-white">
+                    {stage}
+                  </div>
+                );
+              }
+              return (
+                <div key={idx} className="rounded-xl bg-white/50 dark:bg-slate-900/30 p-3">
+                  <div className="text-sm font-semibold text-slate-900 dark:text-white">{stage.stage}</div>
+                  <div className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                    <span className="font-semibold">When:</span> {stage.when}
+                  </div>
+                  <div className="text-xs text-slate-700 dark:text-slate-300 mt-2">
+                    <span className="font-semibold">Inspector Focus:</span> {stage.inspector_focus}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Code Amendments */}
         {selectedJurisdiction.code_amendments && selectedJurisdiction.code_amendments.length > 0 && (
           <div className="space-y-3">
@@ -790,6 +903,17 @@ function JurisdictionView({
                     {amendment.enforcement_level}
                   </div>
                 </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setView("baseline");
+                    setGlobalSearch(amendment.section);
+                  }}
+                  className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  View state code baseline for {amendment.section} →
+                </button>
               </div>
             ))}
           </div>
@@ -908,6 +1032,21 @@ function JurisdictionView({
 
 // Callouts View Component (simplified version from previous)
 function CalloutsView({ calloutsData }: { calloutsData: CalloutsData }) {
+  const [riskFilter, setRiskFilter] = useState<string>("all");
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+
+  const filteredCategories = useMemo(() => {
+    return calloutsData.categories.filter((category) => {
+      const matchesRisk = riskFilter === "all" || category.risk_level === riskFilter;
+      const matchesCategory = categoryFilter === "all" || category.category === categoryFilter;
+      return matchesRisk && matchesCategory;
+    });
+  }, [riskFilter, categoryFilter, calloutsData.categories]);
+
+  const allCategories = useMemo(() => {
+    return calloutsData.categories.map((c) => c.category);
+  }, [calloutsData.categories]);
+
   return (
     <div className="p-4 sm:p-6 space-y-4">
       <div>
@@ -915,7 +1054,62 @@ function CalloutsView({ calloutsData }: { calloutsData: CalloutsData }) {
         <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">{calloutsData.description}</div>
       </div>
 
-      {calloutsData.categories.map((category, idx) => (
+      {/* Filters */}
+      <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 p-4 ring-1 ring-inset ring-slate-200 dark:ring-slate-600">
+        <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              Filter by Risk Level
+            </label>
+            <select
+              value={riskFilter}
+              onChange={(e) => setRiskFilter(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+            >
+              <option value="all">All Risk Levels</option>
+              <option value="high">High Risk</option>
+              <option value="medium">Medium Risk</option>
+              <option value="low">Low Risk</option>
+            </select>
+          </div>
+          <div className="flex-1">
+            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-2">
+              Filter by Category
+            </label>
+            <select
+              value={categoryFilter}
+              onChange={(e) => setCategoryFilter(e.target.value)}
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
+            >
+              <option value="all">All Categories</option>
+              {allCategories.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+        {(riskFilter !== "all" || categoryFilter !== "all") && (
+          <div className="mt-3 text-xs text-slate-600 dark:text-slate-400">
+            Showing {filteredCategories.reduce((acc, cat) => acc + cat.items.length, 0)} violations
+            {riskFilter !== "all" && ` • ${riskFilter} risk`}
+            {categoryFilter !== "all" && ` • ${categoryFilter}`}
+            <button
+              type="button"
+              onClick={() => {
+                setRiskFilter("all");
+                setCategoryFilter("all");
+              }}
+              className="ml-3 text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              Clear filters
+            </button>
+          </div>
+        )}
+      </div>
+
+      {filteredCategories.map((category, idx) => (
         <div
           key={idx}
           className={
@@ -951,7 +1145,19 @@ function CalloutsView({ calloutsData }: { calloutsData: CalloutsData }) {
               >
                 <div className="text-sm font-semibold text-slate-900 dark:text-white">{item.violation}</div>
                 <div className="mt-1 text-xs text-slate-600 dark:text-slate-400">
-                  <span className="font-semibold">Code:</span> {item.code_reference}
+                  <span className="font-semibold">Code:</span>{" "}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Try to find matching code section in baseline data
+                      const codeRef = item.code_reference.split("/")[0].trim();
+                      setView("baseline");
+                      setGlobalSearch(codeRef);
+                    }}
+                    className="text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    {item.code_reference}
+                  </button>
                 </div>
                 <div className="mt-2 text-xs">
                   <div className="text-slate-700 dark:text-slate-300">
