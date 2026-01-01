@@ -570,7 +570,7 @@ export default function DuctPage() {
 
               <div className="mt-3 rounded-2xl bg-white dark:bg-slate-700 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 p-3 transition-all duration-300">
                 <div className="text-xs font-semibold text-slate-700 dark:text-slate-300">Quick add run (measurements)</div>
-                <div className="mt-2 grid grid-cols-3 gap-2">
+                <div className="mt-2 flex flex-col gap-2">
                   <button
                     type="button"
                     onClick={() => setMobileTrunk(mobileTrunk === "return" ? "supply" : "return")}
@@ -579,35 +579,39 @@ export default function DuctPage() {
                     {mobileTrunk === "return" ? "Return" : "Supply"}
                   </button>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const newShape = quickRunShape === "rect" ? "round" : "rect";
-                      setQuickRunShape(newShape);
-                      // Clear incompatible dims when switching.
-                      if (newShape === "round") {
-                        setQuickRunW("");
-                        setQuickRunH("");
-                      } else {
-                        setQuickRunD("");
-                      }
-                    }}
-                    className="w-full rounded-2xl bg-slate-100 dark:bg-slate-600 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-300 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600 hover:scale-105 active:scale-95"
-                    aria-label="Duct shape"
-                    title="Duct shape - Click to cycle"
-                  >
-                    {quickRunShape === "rect" ? "Rectangular" : "Round"}
-                  </button>
+                  <div className="rounded-2xl ring-1 ring-inset ring-slate-300 dark:ring-slate-600 p-2 bg-slate-50/50 dark:bg-slate-800/50">
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newShape = quickRunShape === "rect" ? "round" : "rect";
+                          setQuickRunShape(newShape);
+                          // Clear incompatible dims when switching.
+                          if (newShape === "round") {
+                            setQuickRunW("");
+                            setQuickRunH("");
+                          } else {
+                            setQuickRunD("");
+                          }
+                        }}
+                        className="w-full rounded-2xl bg-slate-100 dark:bg-slate-600 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-300 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600 hover:scale-105 active:scale-95"
+                        aria-label="Duct shape"
+                        title="Duct shape - Click to cycle"
+                      >
+                        {quickRunShape === "rect" ? "Rectangular" : "Round"}
+                      </button>
 
-                  <button
-                    type="button"
-                    onClick={() => setQuickRunDir(quickRunDir === "one" ? "two" : "one")}
-                    className="w-full rounded-2xl bg-slate-100 dark:bg-slate-600 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-300 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600 hover:scale-105 active:scale-95"
-                    aria-label="Duct direction"
-                    title="One-way = single duct. Two-way = two identical ducts (doubled area). Click to cycle."
-                  >
-                    {quickRunDir === "one" ? "One-way" : "Two-way"}
-                  </button>
+                      <button
+                        type="button"
+                        onClick={() => setQuickRunDir(quickRunDir === "one" ? "two" : "one")}
+                        className="w-full rounded-2xl bg-slate-100 dark:bg-slate-600 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-300 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600 hover:scale-105 active:scale-95"
+                        aria-label="Duct direction"
+                        title="One-way = single duct. Two-way = two identical ducts (doubled area). Click to cycle."
+                      >
+                        {quickRunDir === "one" ? "One-way" : "Two-way"}
+                      </button>
+                    </div>
+                  </div>
 
                   {quickRunShape === "round" ? (
                     <>
@@ -763,7 +767,7 @@ export default function DuctPage() {
           {/* Quick add section at the top */}
           <div className="mt-4 rounded-2xl bg-slate-50 dark:bg-slate-700 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 p-4 transition-all duration-300">
             <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-3">Quick add run</div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
               <button
                 type="button"
                 onClick={() => setDesktopQuickRunKind(desktopQuickRunKind === "return" ? "supply" : "return")}
@@ -772,34 +776,38 @@ export default function DuctPage() {
                 {desktopQuickRunKind === "return" ? "Return" : "Supply"}
               </button>
 
-              <button
-                type="button"
-                onClick={() => {
-                  const newShape = desktopQuickRunShape === "rect" ? "round" : "rect";
-                  setDesktopQuickRunShape(newShape);
-                  if (newShape === "round") {
-                    setDesktopQuickRunW("");
-                    setDesktopQuickRunH("");
-                  } else {
-                    setDesktopQuickRunD("");
-                  }
-                }}
-                className="w-full rounded-2xl bg-slate-100 dark:bg-slate-600 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-300 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600 hover:scale-105 active:scale-95"
-                aria-label="Duct shape"
-                title="Duct shape - Click to cycle"
-              >
-                {desktopQuickRunShape === "rect" ? "Rectangular" : "Round"}
-              </button>
+              <div className="sm:col-span-1 lg:col-span-2 rounded-2xl ring-1 ring-inset ring-slate-300 dark:ring-slate-600 p-2 bg-slate-50/50 dark:bg-slate-800/50">
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newShape = desktopQuickRunShape === "rect" ? "round" : "rect";
+                      setDesktopQuickRunShape(newShape);
+                      if (newShape === "round") {
+                        setDesktopQuickRunW("");
+                        setDesktopQuickRunH("");
+                      } else {
+                        setDesktopQuickRunD("");
+                      }
+                    }}
+                    className="w-full rounded-2xl bg-slate-100 dark:bg-slate-600 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-300 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600 hover:scale-105 active:scale-95"
+                    aria-label="Duct shape"
+                    title="Duct shape - Click to cycle"
+                  >
+                    {desktopQuickRunShape === "rect" ? "Rectangular" : "Round"}
+                  </button>
 
-              <button
-                type="button"
-                onClick={() => setDesktopQuickRunDir(desktopQuickRunDir === "one" ? "two" : "one")}
-                className="w-full rounded-2xl bg-slate-100 dark:bg-slate-600 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-300 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600 hover:scale-105 active:scale-95"
-                aria-label="Duct direction"
-                title="One-way = single duct. Two-way = two identical ducts (doubled area). Click to cycle."
-              >
-                {desktopQuickRunDir === "one" ? "One-way" : "Two-way"}
-              </button>
+                  <button
+                    type="button"
+                    onClick={() => setDesktopQuickRunDir(desktopQuickRunDir === "one" ? "two" : "one")}
+                    className="w-full rounded-2xl bg-slate-100 dark:bg-slate-600 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-300 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:bg-slate-200 dark:hover:bg-slate-600 hover:scale-105 active:scale-95"
+                    aria-label="Duct direction"
+                    title="One-way = single duct. Two-way = two identical ducts (doubled area). Click to cycle."
+                  >
+                    {desktopQuickRunDir === "one" ? "One-way" : "Two-way"}
+                  </button>
+                </div>
+              </div>
 
               {desktopQuickRunShape === "round" ? (
                 <input
