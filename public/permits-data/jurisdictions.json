@@ -8,40 +8,87 @@
       "type": "City and County",
       "region": "Front Range",
       "population_tier": "major",
+      "elevation": "5,280 ft",
       "permit_requirements": {
         "residential": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$50-$150",
-          "notes": "Online portal available for residential permits"
+          "notes": "Online portal available at https://www.denvergov.org/eBuild",
+          "processing_time": "1-2 business days for online permits"
         },
         "commercial": {
           "required": true,
           "online_application": true,
           "typical_fee_range": "$150-$500+",
-          "notes": "Plan review required for commercial projects"
+          "notes": "Plan review required for commercial projects. Electronic plan submission available.",
+          "processing_time": "5-10 business days depending on complexity"
         }
       },
       "inspection_stages": [
-        "Rough-in (before concealment)",
-        "Final (after completion)"
-      ],
-      "local_amendments": [
         {
-          "section": "Equipment Access",
-          "requirement": "Minimum 36-inch clearance required (stricter than state)",
-          "enforcement": "Strictly enforced"
+          "stage": "Rough-in",
+          "when": "Before concealment of ductwork, piping, or venting",
+          "inspector_focus": "Gas line pressure testing, duct installation, combustion air verification, equipment placement"
+        },
+        {
+          "stage": "Final",
+          "when": "After installation complete and operational",
+          "inspector_focus": "Startup verification, safety device operation, condensate drainage, clearances"
         }
       ],
-      "common_callouts": [
-        "Platform requirements for rooftop units",
-        "Seismic restraints required for all equipment",
-        "Condensate drain termination location"
+      "code_amendments": [
+        {
+          "section": "IMC 306.3",
+          "title": "Working Space",
+          "base_requirement": "30-inch minimum working clearance",
+          "denver_requirement": "36-inch minimum working clearance in front of all HVAC equipment",
+          "rationale": "Enhanced service access requirement",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "A working space of not less than 36 inches (914 mm) in depth shall be provided in front of the control side of all equipment. The working space shall be the full width and height of the equipment and shall extend from the floor to the required access clearance height."
+        },
+        {
+          "section": "IMC 301.18",
+          "title": "Seismic Restraints",
+          "base_requirement": "Per ICC and manufacturer requirements",
+          "denver_requirement": "Seismic restraints required for ALL mechanical equipment regardless of size or weight",
+          "rationale": "Denver adopted enhanced seismic provisions",
+          "enforcement_level": "Strictly enforced",
+          "code_text": "All HVAC equipment shall be secured against displacement by seismic forces using restraints designed per ASCE 7. Equipment over 400 pounds requires engineered seismic restraint calculations."
+        },
+        {
+          "section": "IMC 307.2.3",
+          "title": "Condensate Drain Termination",
+          "base_requirement": "To approved location",
+          "denver_requirement": "Condensate drains shall not discharge onto roofs, adjacent to building foundations, or within 10 feet of property lines",
+          "rationale": "Prevent structural damage and neighbor complaints",
+          "enforcement_level": "Enforced",
+          "code_text": "Condensate drain lines shall terminate to approved drainage system, minimum 10 feet from foundation, or to approved drywell."
+        }
+      ],
+      "enforcement_notes": [
+        {
+          "topic": "Rooftop Equipment Platforms",
+          "requirement": "All rooftop equipment must be installed on structural platforms designed by a Colorado PE. Platform must provide 36-inch working clearance on all service sides.",
+          "common_failure": "Installing equipment directly on roof membrane without adequate support"
+        },
+        {
+          "topic": "Gas Line Sizing",
+          "requirement": "Gas piping calculations must account for altitude deration and longest length method",
+          "common_failure": "Not accounting for 5,280 ft elevation when sizing pipes"
+        },
+        {
+          "topic": "Duct Sealing",
+          "requirement": "All duct joints must be sealed with mastic or UL 181 tape. Visible gap testing performed.",
+          "common_failure": "Using standard duct tape instead of approved materials"
+        }
       ],
       "contacts": {
         "phone": "311 (Denver)",
+        "email": "denverdevelopmentservices@denvergov.org",
         "website": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development",
-        "permit_office": "201 W Colfax Ave"
+        "permit_office": "201 W Colfax Ave, Denver, CO 80202",
+        "hours": "Monday-Friday 8:00 AM - 5:00 PM"
       }
     },
     {
