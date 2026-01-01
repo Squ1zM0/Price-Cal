@@ -1,0 +1,313 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-01-01",
+  "jurisdictions": [
+    {
+      "id": "denver",
+      "name": "Denver",
+      "type": "City and County",
+      "region": "Front Range",
+      "population_tier": "major",
+      "permit_requirements": {
+        "residential": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$50-$150",
+          "notes": "Online portal available for residential permits"
+        },
+        "commercial": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$150-$500+",
+          "notes": "Plan review required for commercial projects"
+        }
+      },
+      "inspection_stages": [
+        "Rough-in (before concealment)",
+        "Final (after completion)"
+      ],
+      "local_amendments": [
+        {
+          "section": "Equipment Access",
+          "requirement": "Minimum 36-inch clearance required (stricter than state)",
+          "enforcement": "Strictly enforced"
+        }
+      ],
+      "common_callouts": [
+        "Platform requirements for rooftop units",
+        "Seismic restraints required for all equipment",
+        "Condensate drain termination location"
+      ],
+      "contacts": {
+        "phone": "311 (Denver)",
+        "website": "https://www.denvergov.org/Government/Agencies-Departments-Offices/Agencies-Departments-Offices-Directory/Community-Planning-and-Development",
+        "permit_office": "201 W Colfax Ave"
+      }
+    },
+    {
+      "id": "colorado-springs",
+      "name": "Colorado Springs",
+      "type": "City",
+      "region": "Pikes Peak",
+      "population_tier": "major",
+      "permit_requirements": {
+        "residential": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$45-$125",
+          "notes": "Simple residential HVAC replacements can be done online"
+        },
+        "commercial": {
+          "required": true,
+          "online_application": false,
+          "typical_fee_range": "$150-$400+",
+          "notes": "In-person or mail application for commercial"
+        }
+      },
+      "inspection_stages": [
+        "Rough-in",
+        "Final"
+      ],
+      "local_amendments": [],
+      "common_callouts": [
+        "High altitude considerations (6,035 ft elevation)",
+        "Equipment derating requirements",
+        "Proper combustion air for altitude"
+      ],
+      "contacts": {
+        "phone": "(719) 385-5905",
+        "website": "https://coloradosprings.gov/pcd",
+        "permit_office": "30 S Nevada Ave"
+      }
+    },
+    {
+      "id": "boulder",
+      "name": "Boulder",
+      "type": "City",
+      "region": "Boulder County",
+      "population_tier": "medium",
+      "permit_requirements": {
+        "residential": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$60-$175",
+          "notes": "Boulder has additional energy efficiency requirements"
+        },
+        "commercial": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$200-$600+",
+          "notes": "Enhanced energy code compliance required"
+        }
+      },
+      "inspection_stages": [
+        "Rough-in",
+        "Energy compliance verification",
+        "Final"
+      ],
+      "local_amendments": [
+        {
+          "section": "Energy Efficiency",
+          "requirement": "Boulder Climate Action Plan requires higher efficiency standards",
+          "enforcement": "Strictly enforced"
+        },
+        {
+          "section": "Refrigerants",
+          "requirement": "Restrictions on high-GWP refrigerants",
+          "enforcement": "Enforced"
+        }
+      ],
+      "common_callouts": [
+        "Energy efficiency documentation required",
+        "Manual J/S calculations may be requested",
+        "Stricter duct sealing requirements"
+      ],
+      "contacts": {
+        "phone": "(303) 441-1880",
+        "website": "https://bouldercolorado.gov/services/building-services",
+        "permit_office": "1739 Broadway"
+      }
+    },
+    {
+      "id": "aurora",
+      "name": "Aurora",
+      "type": "City",
+      "region": "Metro Denver",
+      "population_tier": "major",
+      "permit_requirements": {
+        "residential": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$50-$140",
+          "notes": "Same-day permits available for simple replacements"
+        },
+        "commercial": {
+          "required": true,
+          "online_application": false,
+          "typical_fee_range": "$150-$500+",
+          "notes": "Plan submittal required"
+        }
+      },
+      "inspection_stages": [
+        "Rough-in",
+        "Final"
+      ],
+      "local_amendments": [],
+      "common_callouts": [
+        "Gas line pressure testing required",
+        "Proper equipment sizing documentation"
+      ],
+      "contacts": {
+        "phone": "(303) 739-7390",
+        "website": "https://www.auroragov.org/city_hall/departments/planning___development_services",
+        "permit_office": "15151 E Alameda Pkwy"
+      }
+    },
+    {
+      "id": "fort-collins",
+      "name": "Fort Collins",
+      "type": "City",
+      "region": "Northern Colorado",
+      "population_tier": "medium",
+      "permit_requirements": {
+        "residential": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$55-$150",
+          "notes": "Online permitting system available"
+        },
+        "commercial": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$175-$450+",
+          "notes": "Energy modeling may be required for larger projects"
+        }
+      },
+      "inspection_stages": [
+        "Rough-in",
+        "Final"
+      ],
+      "local_amendments": [
+        {
+          "section": "Energy Code",
+          "requirement": "Fort Collins has adopted stretch energy code provisions",
+          "enforcement": "Enforced"
+        }
+      ],
+      "common_callouts": [
+        "Enhanced commissioning for commercial",
+        "Duct testing requirements"
+      ],
+      "contacts": {
+        "phone": "(970) 221-6760",
+        "website": "https://www.fcgov.com/building",
+        "permit_office": "281 N College Ave"
+      }
+    },
+    {
+      "id": "jeffco",
+      "name": "Jefferson County",
+      "type": "County",
+      "region": "Metro Denver",
+      "population_tier": "major",
+      "permit_requirements": {
+        "residential": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$50-$130",
+          "notes": "Unincorporated Jefferson County areas"
+        },
+        "commercial": {
+          "required": true,
+          "online_application": false,
+          "typical_fee_range": "$150-$450+",
+          "notes": "Plan review required"
+        }
+      },
+      "inspection_stages": [
+        "Rough-in",
+        "Final"
+      ],
+      "local_amendments": [],
+      "common_callouts": [
+        "Mountain elevation considerations in foothill areas",
+        "Equipment access in tight mountain locations"
+      ],
+      "contacts": {
+        "phone": "(303) 271-8700",
+        "website": "https://www.jeffco.us/1199/Building-Division",
+        "permit_office": "100 Jefferson County Pkwy"
+      }
+    },
+    {
+      "id": "arapahoe-county",
+      "name": "Arapahoe County",
+      "type": "County",
+      "region": "Metro Denver",
+      "population_tier": "major",
+      "permit_requirements": {
+        "residential": {
+          "required": true,
+          "online_application": true,
+          "typical_fee_range": "$50-$135",
+          "notes": "Covers unincorporated areas only"
+        },
+        "commercial": {
+          "required": true,
+          "online_application": false,
+          "typical_fee_range": "$150-$500+",
+          "notes": "Commercial plan submittal required"
+        }
+      },
+      "inspection_stages": [
+        "Rough-in",
+        "Final"
+      ],
+      "local_amendments": [],
+      "common_callouts": [
+        "Standard state code enforcement",
+        "Proper venting termination"
+      ],
+      "contacts": {
+        "phone": "(720) 874-6650",
+        "website": "https://www.arapahoegov.com/243/Building-Division",
+        "permit_office": "6954 S Lima St"
+      }
+    },
+    {
+      "id": "pueblo",
+      "name": "Pueblo",
+      "type": "City",
+      "region": "Southern Colorado",
+      "population_tier": "medium",
+      "permit_requirements": {
+        "residential": {
+          "required": true,
+          "online_application": false,
+          "typical_fee_range": "$40-$120",
+          "notes": "Walk-in or mail permits"
+        },
+        "commercial": {
+          "required": true,
+          "online_application": false,
+          "typical_fee_range": "$125-$400+",
+          "notes": "Plan review for commercial"
+        }
+      },
+      "inspection_stages": [
+        "Rough-in",
+        "Final"
+      ],
+      "local_amendments": [],
+      "common_callouts": [
+        "Lower elevation (4,695 ft) - standard equipment ratings apply",
+        "Wind load considerations for rooftop equipment"
+      ],
+      "contacts": {
+        "phone": "(719) 553-2652",
+        "website": "https://www.pueblo.us/151/Building-Inspection",
+        "permit_office": "211 E D St"
+      }
+    }
+  ]
+}

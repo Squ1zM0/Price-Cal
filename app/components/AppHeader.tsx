@@ -13,6 +13,7 @@ const PAGES: PageItem[] = [
   { href: "/duct", label: "Ductulator" },
   { href: "/directory", label: "Directory" },
   { href: "/supply", label: "Supply Houses" },
+  { href: "/permits", label: "Permits" },
 ];
 
 export function AppHeader({

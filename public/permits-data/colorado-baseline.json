@@ -1,0 +1,80 @@
+{
+  "version": "1.0.0",
+  "last_updated": "2026-01-01",
+  "state": "Colorado",
+  "description": "Colorado statewide code baseline for HVAC/Mechanical work",
+  "adopted_codes": [
+    {
+      "code": "IMC",
+      "name": "International Mechanical Code",
+      "edition": "2021",
+      "adoption_date": "2022-10-01",
+      "notes": "Colorado adopted 2021 IMC with state amendments"
+    },
+    {
+      "code": "IFGC",
+      "name": "International Fuel Gas Code",
+      "edition": "2021",
+      "adoption_date": "2022-10-01",
+      "notes": "Colorado adopted 2021 IFGC with state amendments"
+    },
+    {
+      "code": "IECC",
+      "name": "International Energy Conservation Code",
+      "edition": "2021",
+      "adoption_date": "2022-10-01",
+      "notes": "Energy efficiency requirements for HVAC installations"
+    },
+    {
+      "code": "NEC",
+      "name": "National Electrical Code",
+      "edition": "2020",
+      "adoption_date": "2021-01-01",
+      "notes": "Applicable for HVAC electrical connections and controls"
+    }
+  ],
+  "statewide_amendments": [
+    {
+      "section": "IMC 304",
+      "title": "Combustion Air",
+      "amendment": "Colorado requires additional combustion air provisions for high-altitude installations above 5,000 feet",
+      "impact": "high"
+    },
+    {
+      "section": "IFGC 403",
+      "title": "Venting",
+      "amendment": "Special venting requirements for high-altitude areas",
+      "impact": "high"
+    },
+    {
+      "section": "IMC 306",
+      "title": "Access and Service Space",
+      "amendment": "Minimum 30-inch working space required in front of equipment",
+      "impact": "medium"
+    }
+  ],
+  "general_requirements": [
+    {
+      "category": "Permits",
+      "requirement": "Permit required for installation, replacement, or alteration of mechanical equipment",
+      "exemptions": [
+        "Portable heating, cooling, or ventilation appliances",
+        "Replacement of parts that do not alter approval of equipment",
+        "Self-contained refrigeration systems containing 10 pounds or less of refrigerant"
+      ]
+    },
+    {
+      "category": "Inspections",
+      "requirement": "Rough-in inspection before concealment, final inspection after completion",
+      "typical_stages": [
+        "Rough-in (before concealment)",
+        "Final (after installation complete)"
+      ]
+    },
+    {
+      "category": "Altitude Considerations",
+      "requirement": "Most of Colorado is above 5,000 feet elevation - affects equipment sizing and combustion air",
+      "notes": "Consult manufacturer specifications for high-altitude derating"
+    }
+  ]
+}
