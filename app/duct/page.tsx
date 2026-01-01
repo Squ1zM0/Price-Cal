@@ -884,9 +884,9 @@ export default function DuctPage() {
                         d: diameter,
                       });
                     }}
-                    className="rounded-full px-3 py-1 text-xs font-semibold bg-white dark:bg-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-500 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 active:scale-95 transition"
+                    className="rounded-full px-4 py-2 text-xs font-bold bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-800 dark:to-blue-900 text-blue-900 dark:text-blue-100 hover:shadow-sm hover:scale-105 ring-1 ring-inset ring-blue-200 dark:ring-blue-600 active:scale-95 transition focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-500"
                   >
-                    {diameter}&quot;
+                    + {diameter}&quot;
                   </button>
                 ))}
               </div>
