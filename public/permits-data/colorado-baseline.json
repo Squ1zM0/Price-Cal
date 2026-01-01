@@ -132,7 +132,7 @@
           "number": "402.4",
           "title": "Pipe Sizing",
           "base_text": "Gas piping shall be sized in accordance with Section 402.4.1 through 402.4.5 and Table 402.4.",
-          "colorado_amendment": "At elevations above 2,000 feet, gas input ratings shall be reduced in accordance with equipment manufacturer specifications. This affects pipe sizing calculations.",
+          "colorado_amendment": "At elevations above 2,000 feet, gas input ratings shall be reduced in accordance with equipment manufacturer specifications (note: this is a lower threshold than the 5,000 ft combustion air requirement as equipment derating begins earlier). This affects pipe sizing calculations.",
           "applicability": "All gas piping systems",
           "enforcement_notes": "Use longest length method for sizing, include all elbows and fittings"
         }
