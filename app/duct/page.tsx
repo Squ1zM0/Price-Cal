@@ -592,7 +592,7 @@ export default function DuctPage() {
                         setQuickRunD("");
                       }
                     }}
-                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-sm text-center flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
+                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
                     aria-label="Duct shape"
                     title="Duct shape - Click to cycle"
                   >
@@ -602,7 +602,7 @@ export default function DuctPage() {
                   <button
                     type="button"
                     onClick={() => setQuickRunDir(quickRunDir === "one" ? "two" : "one")}
-                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-sm text-center flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
+                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
                     aria-label="Duct direction"
                     title="One-way = single duct. Two-way = two identical ducts (doubled area). Click to cycle."
                   >
@@ -784,7 +784,7 @@ export default function DuctPage() {
                     setDesktopQuickRunD("");
                   }
                 }}
-                className="w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-sm text-center flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
+                className="w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
                 aria-label="Duct shape"
                 title="Duct shape - Click to cycle"
               >
@@ -794,7 +794,7 @@ export default function DuctPage() {
               <button
                 type="button"
                 onClick={() => setDesktopQuickRunDir(desktopQuickRunDir === "one" ? "two" : "one")}
-                className="w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-sm text-center flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
+                className="w-full rounded-2xl bg-slate-50 dark:bg-slate-700 px-4 py-3 text-sm flex items-center justify-center text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
                 aria-label="Duct direction"
                 title="One-way = single duct. Two-way = two identical ducts (doubled area). Click to cycle."
               >
