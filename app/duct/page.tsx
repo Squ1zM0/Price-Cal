@@ -94,6 +94,9 @@ function groupRunsBySize(runs: Run[]): Map<string, Run[]> {
 // Visual offset (in pixels) for stacking pill effect when grouping same-size runs
 const PILL_STACK_OFFSET_PX = 8;
 
+// Available FPM (Feet Per Minute) velocity options for trunk ducts
+const VELOCITY_OPTIONS = ["700", "800", "900"] as const;
+
 // IMPORTANT: keep this component at module scope (not inside DuctPage).
 // Defining it inside DuctPage causes React to treat it as a new component
 // type on each render, which can remount inputs and make iOS/desktop lose
@@ -136,8 +139,9 @@ function DuctBlock({
           <button
             type="button"
             onClick={() => {
-              const nextValue = velocityValue === "700" ? "800" : velocityValue === "800" ? "900" : "700";
-              onVelocityChange(nextValue);
+              const currentIndex = VELOCITY_OPTIONS.indexOf(velocityValue);
+              const nextIndex = (currentIndex + 1) % VELOCITY_OPTIONS.length;
+              onVelocityChange(VELOCITY_OPTIONS[nextIndex]);
             }}
             className="rounded-2xl bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 hover:ring-blue-300 dark:hover:ring-blue-500 hover:scale-105 active:scale-95"
             aria-label={`${kind} velocity`}
