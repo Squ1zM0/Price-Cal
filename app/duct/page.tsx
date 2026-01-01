@@ -710,15 +710,27 @@ export default function DuctPage() {
                         return sum + cfmFrom(area, vel);
                       }, 0);
                       const label = getRunLabel(groupRuns[0].input);
+                      const isSupply = mobileTrunk === "supply";
                       return (
-                        <div key={key} className="rounded-full bg-slate-100 dark:bg-slate-700 px-4 py-2 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 flex items-center gap-2 transition-all duration-300">
-                          <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                        <div 
+                          key={key} 
+                          className={
+                            isSupply
+                              ? "rounded-full bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/50 dark:to-blue-800/50 px-3 py-1.5 ring-1 ring-inset ring-blue-200 dark:ring-blue-700 flex items-center gap-2 transition-all duration-300 hover:shadow-md hover:scale-[1.02]"
+                              : "rounded-full bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-3 py-1.5 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 flex items-center gap-2 transition-all duration-300 hover:shadow-md hover:scale-[1.02]"
+                          }
+                        >
+                          <span className={isSupply ? "text-sm font-semibold text-blue-900 dark:text-blue-100" : "text-sm font-semibold text-slate-900 dark:text-white"}>
                             {label}
                           </span>
-                          <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-600 rounded-full px-2 py-0.5">
+                          <span className={
+                            isSupply
+                              ? "text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-200 dark:bg-blue-800 rounded-full px-2 py-0.5"
+                              : "text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-600 rounded-full px-2 py-0.5"
+                          }>
                             ×{groupRuns.length}
                           </span>
-                          <span className="text-xs text-slate-600 dark:text-slate-300">
+                          <span className={isSupply ? "text-xs text-blue-700 dark:text-blue-300" : "text-xs text-slate-600 dark:text-slate-300"}>
                             {round1(totalCfm)} CFM
                           </span>
                           {groupRuns.length > 1 && (
@@ -727,7 +739,11 @@ export default function DuctPage() {
                               onClick={() => {
                                 removeRun(groupRuns[0].id);
                               }}
-                              className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                              className={
+                                isSupply
+                                  ? "ml-1 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 transition-colors"
+                                  : "ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                              }
                               title="Remove one"
                             >
                               −
@@ -738,7 +754,11 @@ export default function DuctPage() {
                             onClick={() => {
                               groupRuns.forEach((r) => removeRun(r.id));
                             }}
-                            className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                            className={
+                              isSupply
+                                ? "ml-1 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 transition-colors"
+                                : "ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                            }
                             title="Remove all"
                           >
                             ✕
@@ -913,7 +933,7 @@ export default function DuctPage() {
                               return (
                                 <div
                                   key={index}
-                                  className="absolute rounded-full bg-slate-100 dark:bg-slate-700 px-4 py-2 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300"
+                                  className="absolute rounded-full bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 px-3 py-1.5 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300 hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600"
                                   style={{
                                     left: `${index * PILL_STACK_OFFSET_PX}px`,
                                     top: `${index * PILL_STACK_OFFSET_PX}px`,
@@ -925,7 +945,7 @@ export default function DuctPage() {
                                       <span className="text-sm font-semibold text-slate-900 dark:text-white">
                                         {label}
                                       </span>
-                                      <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-600 rounded-full px-2 py-0.5">
+                                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-600 rounded-full px-2 py-0.5">
                                         ×{groupRuns.length}
                                       </span>
                                       <span className="text-xs text-slate-600 dark:text-slate-300">
@@ -986,7 +1006,7 @@ export default function DuctPage() {
                             {groupRuns.map((_, index) => (
                               <div
                                 key={index}
-                                className="absolute rounded-full bg-slate-100 dark:bg-slate-700 px-4 py-2 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 transition-all duration-300"
+                                className="absolute rounded-full bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/50 dark:to-blue-800/50 px-3 py-1.5 ring-1 ring-inset ring-blue-200 dark:ring-blue-700 transition-all duration-300 hover:shadow-md hover:scale-[1.02] focus:outline-none focus:ring-2 focus:ring-blue-300 dark:focus:ring-blue-600"
                                 style={{
                                   left: `${index * PILL_STACK_OFFSET_PX}px`,
                                   top: `${index * PILL_STACK_OFFSET_PX}px`,
@@ -994,13 +1014,13 @@ export default function DuctPage() {
                                 }}
                               >
                                 <div className="flex items-center gap-2" style={{ visibility: index === groupRuns.length - 1 ? 'visible' : 'hidden' }}>
-                                  <span className="text-sm font-semibold text-slate-900 dark:text-white">
+                                  <span className="text-sm font-semibold text-blue-900 dark:text-blue-100">
                                     {label}
                                   </span>
-                                  <span className="text-xs font-semibold text-slate-600 dark:text-slate-300 bg-slate-200 dark:bg-slate-600 rounded-full px-2 py-0.5">
+                                  <span className="text-xs font-bold text-blue-700 dark:text-blue-300 bg-blue-200 dark:bg-blue-800 rounded-full px-2 py-0.5">
                                     ×{groupRuns.length}
                                   </span>
-                                  <span className="text-xs text-slate-600 dark:text-slate-300">
+                                  <span className="text-xs text-blue-700 dark:text-blue-300">
                                     {round1(totalCfm)} CFM
                                   </span>
                                   {groupRuns.length > 1 && (
@@ -1009,7 +1029,7 @@ export default function DuctPage() {
                                       onClick={() => {
                                         removeRun(groupRuns[0].id);
                                       }}
-                                      className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                                      className="ml-1 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 transition-colors"
                                       title="Remove one"
                                     >
                                       −
@@ -1020,7 +1040,7 @@ export default function DuctPage() {
                                     onClick={() => {
                                       groupRuns.forEach((r) => removeRun(r.id));
                                     }}
-                                    className="ml-1 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+                                    className="ml-1 text-blue-500 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-200 transition-colors"
                                     title="Remove all"
                                   >
                                     ✕
