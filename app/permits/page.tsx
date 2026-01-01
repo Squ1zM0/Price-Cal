@@ -539,11 +539,23 @@ export default function PermitsPage() {
                 selectedJurisdiction={selectedJurisdiction}
                 onSelectJurisdiction={(j) => setSelectedJurisdiction(j)}
                 onBack={() => setSelectedJurisdiction(null)}
+                onViewCodeSection={(codeRef) => {
+                  setView("baseline");
+                  setGlobalSearch(codeRef);
+                }}
               />
             )}
 
             {/* Callouts View */}
-            {view === "callouts" && calloutsData && <CalloutsView calloutsData={calloutsData} />}
+            {view === "callouts" && calloutsData && (
+              <CalloutsView
+                calloutsData={calloutsData}
+                onViewCodeSection={(codeRef) => {
+                  setView("baseline");
+                  setGlobalSearch(codeRef);
+                }}
+              />
+            )}
           </div>
         </section>
 
@@ -644,7 +656,6 @@ function StateCodeBaselineView({
         <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">{baselineData.description}</div>
       </div>
 
-      {/* Adopted Codes */}
       <div className="rounded-2xl bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-700 dark:to-slate-800 p-4 ring-1 ring-inset ring-slate-200 dark:ring-slate-600">
         <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3">Adopted Codes</h3>
         <div className="space-y-2">
@@ -657,6 +668,9 @@ function StateCodeBaselineView({
               <div className="text-xs text-slate-600 dark:text-slate-400 italic mt-0.5">{code.notes}</div>
             </div>
           ))}
+        </div>
+        <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-600 text-xs text-slate-500 dark:text-slate-400">
+          Last updated: {baselineData.last_updated} • Version {baselineData.version}
         </div>
       </div>
 
@@ -717,17 +731,18 @@ function StateCodeBaselineView({
   );
 }
 
-// Jurisdiction View Component
 function JurisdictionView({
   jurisdictions,
   selectedJurisdiction,
   onSelectJurisdiction,
   onBack,
+  onViewCodeSection,
 }: {
   jurisdictions: Jurisdiction[];
   selectedJurisdiction: Jurisdiction | null;
   onSelectJurisdiction: (j: Jurisdiction) => void;
   onBack: () => void;
+  onViewCodeSection: (codeRef: string) => void;
 }) {
   if (selectedJurisdiction) {
     return (
@@ -755,6 +770,9 @@ function JurisdictionView({
           <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">
             {selectedJurisdiction.type} • {selectedJurisdiction.region}
             {selectedJurisdiction.elevation && <span> • Elevation: {selectedJurisdiction.elevation}</span>}
+          </div>
+          <div className="mt-2 text-xs text-slate-500 dark:text-slate-500">
+            ℹ️ Information should be verified with jurisdiction. Contact details provided below.
           </div>
         </div>
 
@@ -907,8 +925,7 @@ function JurisdictionView({
                 <button
                   type="button"
                   onClick={() => {
-                    setView("baseline");
-                    setGlobalSearch(amendment.section);
+                    onViewCodeSection(amendment.section);
                   }}
                   className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
                 >
@@ -990,7 +1007,12 @@ function JurisdictionView({
 
   return (
     <div className="p-4 sm:p-6 space-y-4">
-      <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Colorado Jurisdictions</h2>
+      <div>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-white">Colorado Jurisdictions</h2>
+        <div className="mt-1 text-sm text-slate-600 dark:text-slate-400">
+          Select a jurisdiction to view detailed permit requirements and local code amendments
+        </div>
+      </div>
       <div className="grid gap-3">
         {jurisdictions.map((jurisdiction) => (
           <button
@@ -1031,7 +1053,13 @@ function JurisdictionView({
 }
 
 // Callouts View Component (simplified version from previous)
-function CalloutsView({ calloutsData }: { calloutsData: CalloutsData }) {
+function CalloutsView({
+  calloutsData,
+  onViewCodeSection,
+}: {
+  calloutsData: CalloutsData;
+  onViewCodeSection: (codeRef: string) => void;
+}) {
   const [riskFilter, setRiskFilter] = useState<string>("all");
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
@@ -1149,10 +1177,8 @@ function CalloutsView({ calloutsData }: { calloutsData: CalloutsData }) {
                   <button
                     type="button"
                     onClick={() => {
-                      // Try to find matching code section in baseline data
                       const codeRef = item.code_reference.split("/")[0].trim();
-                      setView("baseline");
-                      setGlobalSearch(codeRef);
+                      onViewCodeSection(codeRef);
                     }}
                     className="text-blue-600 dark:text-blue-400 hover:underline"
                   >
@@ -1175,6 +1201,27 @@ function CalloutsView({ calloutsData }: { calloutsData: CalloutsData }) {
           </div>
         </div>
       ))}
+
+      {filteredCategories.length === 0 && (
+        <div className="text-center py-12 text-slate-600 dark:text-slate-400">
+          No violations match the selected filters
+        </div>
+      )}
+
+      <div className="rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 p-4 ring-1 ring-inset ring-blue-200 dark:ring-blue-700">
+        <h3 className="text-base font-bold text-slate-900 dark:text-white mb-2">Inspection Tips</h3>
+        <ul className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
+          {calloutsData.inspection_tips.map((tip, idx) => (
+            <li key={idx} className="flex gap-2">
+              <span className="text-blue-600 dark:text-blue-400">•</span>
+              <span>{tip}</span>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-3 pt-3 border-t border-blue-200 dark:border-blue-700 text-xs text-slate-500 dark:text-slate-400">
+          Last updated: {calloutsData.last_updated} • Version {calloutsData.version}
+        </div>
+      </div>
     </div>
   );
 }
