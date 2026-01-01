@@ -616,7 +616,7 @@ export default function DuctPage() {
                         placeholder='Diameter (")'
                         value={quickRunD}
                         onChange={(e) => setQuickRunD(e.target.value)}
-                        className="col-span-3 w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
+                        className="col-span-3 w-full rounded-2xl bg-slate-50 dark:bg-slate-500 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                       />
                       {mobileTrunk === "supply" && (
                         <div className="col-span-3 flex flex-wrap gap-2 justify-center">
@@ -647,14 +647,14 @@ export default function DuctPage() {
                         placeholder='Width (")'
                         value={quickRunW}
                         onChange={(e) => setQuickRunW(e.target.value)}
-                        className="w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
+                        className="w-full rounded-2xl bg-slate-50 dark:bg-slate-500 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                       />
                       <input
                         inputMode="decimal"
                         placeholder='Height (")'
                         value={quickRunH}
                         onChange={(e) => setQuickRunH(e.target.value)}
-                        className="w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
+                        className="w-full rounded-2xl bg-slate-50 dark:bg-slate-500 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                       />
                     </>
                   )}
@@ -807,7 +807,7 @@ export default function DuctPage() {
                   placeholder='Diameter (")'
                   value={desktopQuickRunD}
                   onChange={(e) => setDesktopQuickRunD(e.target.value)}
-                  className="w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
+                  className="w-full rounded-2xl bg-slate-50 dark:bg-slate-500 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                 />
               ) : (
                 <>
@@ -816,14 +816,14 @@ export default function DuctPage() {
                     placeholder='Width (")'
                     value={desktopQuickRunW}
                     onChange={(e) => setDesktopQuickRunW(e.target.value)}
-                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
+                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-500 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                   />
                   <input
                     inputMode="decimal"
                     placeholder='Height (")'
                     value={desktopQuickRunH}
                     onChange={(e) => setDesktopQuickRunH(e.target.value)}
-                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-600 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
+                    className="w-full rounded-2xl bg-slate-50 dark:bg-slate-500 px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                   />
                 </>
               )}
