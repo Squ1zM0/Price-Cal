@@ -616,10 +616,10 @@ export default function DuctPage() {
                         placeholder='Diameter (")'
                         value={quickRunD}
                         onChange={(e) => setQuickRunD(e.target.value)}
-                        className="col-span-2 w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
+                        className="col-span-3 w-full rounded-2xl bg-white dark:bg-slate-600 px-3 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-400 ring-1 ring-inset ring-slate-200 dark:ring-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 transition-all duration-300"
                       />
                       {mobileTrunk === "supply" && (
-                        <div className="col-span-2 flex flex-wrap gap-2 justify-center">
+                        <div className="col-span-3 flex flex-wrap gap-2 justify-center">
                           {["4", "5", "6", "7", "8"].map((diameter) => (
                             <button
                               key={diameter}
@@ -627,7 +627,7 @@ export default function DuctPage() {
                               onClick={() => {
                                 addRun(mobileTrunk, {
                                   shape: "round",
-                                  dir: "one",
+                                  dir: quickRunDir,
                                   d: diameter,
                                 });
                                 setQuickRunD("");
@@ -664,7 +664,7 @@ export default function DuctPage() {
                     onClick={addQuickRun}
                     disabled={!quickRunReady}
                     className={
-                      "col-span-2 rounded-2xl px-4 py-3 text-sm font-semibold ring-1 ring-inset transition-all duration-300 " +
+                      "col-span-3 rounded-2xl px-4 py-3 text-sm font-semibold ring-1 ring-inset transition-all duration-300 " +
                       (quickRunReady
                         ? "bg-slate-900 dark:bg-blue-600 text-white ring-slate-900 dark:ring-blue-600 hover:bg-slate-800 dark:hover:bg-blue-500 active:scale-[0.99]"
                         : "bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 ring-slate-200 dark:ring-slate-600")
@@ -673,7 +673,7 @@ export default function DuctPage() {
                     + Add {mobileTrunk === "return" ? "Return" : "Supply"} run
                   </button>
 
-                  <div className="col-span-2 -mt-1 text-[11px] text-slate-500 dark:text-slate-400">
+                  <div className="col-span-3 -mt-1 text-[11px] text-slate-500 dark:text-slate-400">
                     Tip: enter measurements here, then tap a run pill below to edit details.
                   </div>
                 </div>
@@ -852,7 +852,7 @@ export default function DuctPage() {
                     onClick={() => {
                       addRun(desktopQuickRunKind, {
                         shape: "round",
-                        dir: "one",
+                        dir: desktopQuickRunDir,
                         d: diameter,
                       });
                     }}
