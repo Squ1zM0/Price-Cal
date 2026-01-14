@@ -178,13 +178,12 @@ export function calculateHazenWilliamsHeadLoss(
   cValue: number,
   diameterInches: number
 ): number {
-  // h_f = 0.2083 * (100/C)^1.852 * (Q^1.852 / d^4.8655) * L
+  // Standard Hazen-Williams formula for US customary units:
+  // h_f (ft) = 4.52 * L (ft) * Q (gpm)^1.85 / [C^1.85 * d (in)^4.87]
   // where Q is in GPM, d is in inches, L is in feet
   
-  const term1 = 0.2083 * Math.pow(100 / cValue, 1.852);
-  const term2 = Math.pow(flowGPM, 1.852) / Math.pow(diameterInches, 4.8655);
-  
-  return term1 * term2 * lengthFt;
+  return (4.52 * lengthFt * Math.pow(flowGPM, 1.85)) / 
+         (Math.pow(cValue, 1.85) * Math.pow(diameterInches, 4.87));
 }
 
 /**
