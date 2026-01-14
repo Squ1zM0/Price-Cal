@@ -152,6 +152,7 @@ export default function PumpSizingPage() {
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [expandedZoneDetails, setExpandedZoneDetails] = useState<Record<string, boolean>>({});
+  const [expandedZoneId, setExpandedZoneId] = useState<string>("zone-1");
   const [advancedSettings, setAdvancedSettings] = useLocalStorage<AdvancedSettings>(
     "pump-sizing:advanced",
     {
@@ -339,11 +340,30 @@ export default function PumpSizingPage() {
       fittings: { "90° Elbow": 0, "45° Elbow": 0, "Tee (through)": 0 },
     };
     setZones([...zones, newZone]);
+    setExpandedZoneId(newId);
+    
+    // Scroll to the new zone after it's rendered
+    requestAnimationFrame(() => {
+      const element = document.getElementById(`zone-${newId}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
   }
 
   function deleteZone(id: string) {
     if (zones.length === 1) return; // Keep at least one zone
-    setZones(zones.filter((z) => z.id !== id));
+    
+    const deletedIndex = zones.findIndex((z) => z.id === id);
+    const newZones = zones.filter((z) => z.id !== id);
+    setZones(newZones);
+    
+    // If the deleted zone was expanded, expand the nearest zone
+    if (expandedZoneId === id) {
+      // Try to expand the next zone, or the previous one if deleting the last
+      const newExpandedIndex = deletedIndex < newZones.length ? deletedIndex : deletedIndex - 1;
+      setExpandedZoneId(newZones[newExpandedIndex].id);
+    }
   }
 
   function updateZone(id: string, updates: Partial<Zone>) {
@@ -356,6 +376,18 @@ export default function PumpSizingPage() {
         z.id === id ? { ...z, fittings: { ...z.fittings, [fittingType]: Math.max(0, count) } } : z
       )
     );
+  }
+
+  function toggleZoneExpanded(id: string) {
+    setExpandedZoneId(id);
+    
+    // Scroll to the zone when expanded
+    requestAnimationFrame(() => {
+      const element = document.getElementById(`zone-${id}`);
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
   }
 
   return (
@@ -396,23 +428,92 @@ export default function PumpSizingPage() {
           {zones.map((zone, idx) => {
             const result = zoneResults[idx];
             const availableSizes = getAvailableSizes(zone.material);
+            const isExpanded = expandedZoneId === zone.id;
 
             return (
               <div
                 key={zone.id}
-                className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg ring-1 ring-slate-200 dark:ring-slate-700 p-5 transition-all duration-300"
+                id={`zone-${zone.id}`}
+                className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg ring-1 ring-slate-200 dark:ring-slate-700 transition-all duration-300"
               >
-                {/* Zone header */}
-                <div className="flex items-center justify-between gap-3 mb-4">
-                  <input
-                    type="text"
-                    value={zone.name}
-                    onChange={(e) => updateZone(zone.id, { name: e.target.value })}
-                    className="text-xl font-bold text-slate-900 dark:text-white bg-transparent border-b-2 border-transparent hover:border-blue-500 focus:border-blue-500 focus:outline-none transition-all"
-                  />
+                {/* Zone header - always visible and clickable */}
+                <div 
+                  className="flex items-center justify-between gap-3 p-5 cursor-pointer"
+                  onClick={() => toggleZoneExpanded(zone.id)}
+                  role="button"
+                  aria-expanded={isExpanded}
+                  aria-controls={`zone-content-${zone.id}`}
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleZoneExpanded(zone.id);
+                    }
+                  }}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <input
+                        type="text"
+                        value={zone.name}
+                        onChange={(e) => {
+                          e.stopPropagation();
+                          updateZone(zone.id, { name: e.target.value });
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        className="text-xl font-bold text-slate-900 dark:text-white bg-transparent border-b-2 border-transparent hover:border-blue-500 focus:border-blue-500 focus:outline-none transition-all"
+                      />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2.5}
+                        stroke="currentColor"
+                        className={`w-5 h-5 transition-transform duration-200 text-slate-500 dark:text-slate-400 ${
+                          isExpanded ? "rotate-180" : ""
+                        }`}
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      </svg>
+                    </div>
+                    
+                    {/* Collapsed view - show key info */}
+                    {!isExpanded && (
+                      <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
+                        <div>
+                          <span className="text-slate-500 dark:text-slate-400">Flow: </span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {zone.flowGPM ? `${parseNum(zone.flowGPM).toFixed(1)} GPM` : "—"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 dark:text-slate-400">Pipe: </span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {zone.material} {zone.size}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 dark:text-slate-400">Length: </span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {result.valid ? `${result.totalEffectiveLength.toFixed(1)} ft` : "—"}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-slate-500 dark:text-slate-400">Head Loss: </span>
+                          <span className="font-semibold text-red-600 dark:text-red-400">
+                            {result.valid ? `${result.headLoss.toFixed(2)} ft` : "—"}
+                          </span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
                   <button
                     type="button"
-                    onClick={() => deleteZone(zone.id)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      deleteZone(zone.id);
+                    }}
                     disabled={zones.length === 1}
                     className="text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
                     title="Delete zone"
@@ -434,242 +535,247 @@ export default function PumpSizingPage() {
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {/* Inputs */}
-                  <div className="space-y-4">
-                    {/* Flow */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                        Design Flow (GPM)
-                      </label>
-                      <input
-                        type="text"
-                        value={zone.flowGPM}
-                        onChange={(e) => updateZone(zone.id, { flowGPM: e.target.value })}
-                        inputMode="decimal"
-                        placeholder="0.0"
-                        className={[
-                          "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
-                          result.flowError
-                            ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
-                            : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
-                        ].join(" ")}
-                      />
-                      {result.flowError && (
-                        <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
-                          {result.flowError}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Material */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
-                        Pipe Material
-                      </label>
-                      <div className="grid grid-cols-3 gap-2">
-                        <PillButton
-                          active={zone.material === "Copper"}
-                          onClick={() => updateZone(zone.id, { material: "Copper", size: "3/4\"" })}
-                        >
-                          Copper
-                        </PillButton>
-                        <PillButton
-                          active={zone.material === "Black Iron"}
-                          onClick={() =>
-                            updateZone(zone.id, { material: "Black Iron", size: "3/4\"" })
-                          }
-                        >
-                          Black Iron
-                        </PillButton>
-                        <PillButton
-                          active={zone.material === "PEX"}
-                          onClick={() => updateZone(zone.id, { material: "PEX", size: "3/4\"" })}
-                        >
-                          PEX
-                        </PillButton>
-                      </div>
-                    </div>
-
-                    {/* Size */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
-                        Pipe Size
-                      </label>
-                      <div className="grid grid-cols-4 gap-2">
-                        {availableSizes.map((size) => (
-                          <PillButton
-                            key={size}
-                            active={zone.size === size}
-                            onClick={() => updateZone(zone.id, { size })}
-                          >
-                            {size}
-                          </PillButton>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Straight length */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                        Straight Pipe Length (ft)
-                      </label>
-                      <input
-                        type="text"
-                        value={zone.straightLength}
-                        onChange={(e) => updateZone(zone.id, { straightLength: e.target.value })}
-                        inputMode="decimal"
-                        placeholder="0.0"
-                        className={[
-                          "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
-                          result.straightLengthError
-                            ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
-                            : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
-                        ].join(" ")}
-                      />
-                      {result.straightLengthError && (
-                        <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
-                          {result.straightLengthError}
-                        </p>
-                      )}
-                    </div>
-
-                    {/* Fittings */}
-                    <div>
-                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
-                        Fittings
-                      </label>
-                      <div className="space-y-2">
-                        <FittingCounter
-                          label="90° Elbow"
-                          count={zone.fittings["90° Elbow"]}
-                          onIncrement={() =>
-                            updateZoneFitting(zone.id, "90° Elbow", zone.fittings["90° Elbow"] + 1)
-                          }
-                          onDecrement={() =>
-                            updateZoneFitting(zone.id, "90° Elbow", zone.fittings["90° Elbow"] - 1)
-                          }
-                        />
-                        <FittingCounter
-                          label="45° Elbow"
-                          count={zone.fittings["45° Elbow"]}
-                          onIncrement={() =>
-                            updateZoneFitting(zone.id, "45° Elbow", zone.fittings["45° Elbow"] + 1)
-                          }
-                          onDecrement={() =>
-                            updateZoneFitting(zone.id, "45° Elbow", zone.fittings["45° Elbow"] - 1)
-                          }
-                        />
-                        <FittingCounter
-                          label="Tee (through-run)"
-                          count={zone.fittings["Tee (through)"]}
-                          onIncrement={() =>
-                            updateZoneFitting(
-                              zone.id,
-                              "Tee (through)",
-                              zone.fittings["Tee (through)"] + 1
-                            )
-                          }
-                          onDecrement={() =>
-                            updateZoneFitting(
-                              zone.id,
-                              "Tee (through)",
-                              zone.fittings["Tee (through)"] - 1
-                            )
-                          }
-                          helpText="Flow assumed to continue straight through the run (not branching)"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Results */}
-                  <div className="rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 p-4">
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
-                      Zone Results
-                    </h3>
-                    {result.valid ? (
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-slate-600 dark:text-slate-400">Straight pipe:</span>
-                          <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
-                            {result.straightLength.toFixed(1)} ft
-                          </span>
-                        </div>
+                {/* Zone content - only visible when expanded */}
+                {isExpanded && (
+                  <div id={`zone-content-${zone.id}`} className="px-5 pb-5">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                      {/* Inputs */}
+                      <div className="space-y-4">
+                        {/* Flow */}
                         <div>
-                          <div className="flex justify-between">
-                            <span className="text-slate-600 dark:text-slate-400">
-                              Fitting equivalent:
-                            </span>
-                            <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
-                              {result.fittingEquivalentLength.toFixed(1)} ft
-                            </span>
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                            Design Flow (GPM)
+                          </label>
+                          <input
+                            type="text"
+                            value={zone.flowGPM}
+                            onChange={(e) => updateZone(zone.id, { flowGPM: e.target.value })}
+                            inputMode="decimal"
+                            placeholder="0.0"
+                            className={[
+                              "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
+                              result.flowError
+                                ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
+                                : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
+                            ].join(" ")}
+                          />
+                          {result.flowError && (
+                            <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
+                              {result.flowError}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Material */}
+                        <div>
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
+                            Pipe Material
+                          </label>
+                          <div className="grid grid-cols-3 gap-2">
+                            <PillButton
+                              active={zone.material === "Copper"}
+                              onClick={() => updateZone(zone.id, { material: "Copper", size: "3/4\"" })}
+                            >
+                              Copper
+                            </PillButton>
+                            <PillButton
+                              active={zone.material === "Black Iron"}
+                              onClick={() =>
+                                updateZone(zone.id, { material: "Black Iron", size: "3/4\"" })
+                              }
+                            >
+                              Black Iron
+                            </PillButton>
+                            <PillButton
+                              active={zone.material === "PEX"}
+                              onClick={() => updateZone(zone.id, { material: "PEX", size: "3/4\"" })}
+                            >
+                              PEX
+                            </PillButton>
                           </div>
-                          {result.fittingBreakdown && result.fittingBreakdown.length > 0 && (
-                            <div className="mt-1">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setExpandedZoneDetails({
-                                    ...expandedZoneDetails,
-                                    [zone.id]: !expandedZoneDetails[zone.id],
-                                  })
-                                }
-                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                        </div>
+
+                        {/* Size */}
+                        <div>
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
+                            Pipe Size
+                          </label>
+                          <div className="grid grid-cols-4 gap-2">
+                            {availableSizes.map((size) => (
+                              <PillButton
+                                key={size}
+                                active={zone.size === size}
+                                onClick={() => updateZone(zone.id, { size })}
                               >
-                                {expandedZoneDetails[zone.id] ? "Hide" : "Show"} details
-                              </button>
-                              {expandedZoneDetails[zone.id] && (
-                                <div className="mt-2 space-y-1 pl-3 border-l-2 border-slate-300 dark:border-slate-600">
-                                  {result.fittingBreakdown.map((fitting, idx) => (
-                                    <div key={idx} className="text-xs text-slate-600 dark:text-slate-400">
-                                      {fitting.type} × {fitting.count} = {fitting.total.toFixed(1)} ft
-                                      <span className="text-slate-500 dark:text-slate-500">
-                                        {" "}
-                                        ({fitting.eqLengthEach.toFixed(1)} ft each)
-                                      </span>
+                                {size}
+                              </PillButton>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Straight length */}
+                        <div>
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                            Straight Pipe Length (ft)
+                          </label>
+                          <input
+                            type="text"
+                            value={zone.straightLength}
+                            onChange={(e) => updateZone(zone.id, { straightLength: e.target.value })}
+                            inputMode="decimal"
+                            placeholder="0.0"
+                            className={[
+                              "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
+                              result.straightLengthError
+                                ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
+                                : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
+                            ].join(" ")}
+                          />
+                          {result.straightLengthError && (
+                            <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
+                              {result.straightLengthError}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Fittings */}
+                        <div>
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
+                            Fittings
+                          </label>
+                          <div className="space-y-2">
+                            <FittingCounter
+                              label="90° Elbow"
+                              count={zone.fittings["90° Elbow"]}
+                              onIncrement={() =>
+                                updateZoneFitting(zone.id, "90° Elbow", zone.fittings["90° Elbow"] + 1)
+                              }
+                              onDecrement={() =>
+                                updateZoneFitting(zone.id, "90° Elbow", zone.fittings["90° Elbow"] - 1)
+                              }
+                            />
+                            <FittingCounter
+                              label="45° Elbow"
+                              count={zone.fittings["45° Elbow"]}
+                              onIncrement={() =>
+                                updateZoneFitting(zone.id, "45° Elbow", zone.fittings["45° Elbow"] + 1)
+                              }
+                              onDecrement={() =>
+                                updateZoneFitting(zone.id, "45° Elbow", zone.fittings["45° Elbow"] - 1)
+                              }
+                            />
+                            <FittingCounter
+                              label="Tee (through-run)"
+                              count={zone.fittings["Tee (through)"]}
+                              onIncrement={() =>
+                                updateZoneFitting(
+                                  zone.id,
+                                  "Tee (through)",
+                                  zone.fittings["Tee (through)"] + 1
+                                )
+                              }
+                              onDecrement={() =>
+                                updateZoneFitting(
+                                  zone.id,
+                                  "Tee (through)",
+                                  zone.fittings["Tee (through)"] - 1
+                                )
+                              }
+                              helpText="Flow assumed to continue straight through the run (not branching)"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Results */}
+                      <div className="rounded-2xl bg-gradient-to-br from-slate-100 to-slate-50 dark:from-slate-700 dark:to-slate-800 ring-1 ring-inset ring-slate-200 dark:ring-slate-600 p-4">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-3">
+                          Zone Results
+                        </h3>
+                        {result.valid ? (
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">Straight pipe:</span>
+                              <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                {result.straightLength.toFixed(1)} ft
+                              </span>
+                            </div>
+                            <div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-600 dark:text-slate-400">
+                                  Fitting equivalent:
+                                </span>
+                                <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                  {result.fittingEquivalentLength.toFixed(1)} ft
+                                </span>
+                              </div>
+                              {result.fittingBreakdown && result.fittingBreakdown.length > 0 && (
+                                <div className="mt-1">
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setExpandedZoneDetails({
+                                        ...expandedZoneDetails,
+                                        [zone.id]: !expandedZoneDetails[zone.id],
+                                      })
+                                    }
+                                    className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                                  >
+                                    {expandedZoneDetails[zone.id] ? "Hide" : "Show"} details
+                                  </button>
+                                  {expandedZoneDetails[zone.id] && (
+                                    <div className="mt-2 space-y-1 pl-3 border-l-2 border-slate-300 dark:border-slate-600">
+                                      {result.fittingBreakdown.map((fitting, idx) => (
+                                        <div key={idx} className="text-xs text-slate-600 dark:text-slate-400">
+                                          {fitting.type} × {fitting.count} = {fitting.total.toFixed(1)} ft
+                                          <span className="text-slate-500 dark:text-slate-500">
+                                            {" "}
+                                            ({fitting.eqLengthEach.toFixed(1)} ft each)
+                                          </span>
+                                        </div>
+                                      ))}
                                     </div>
-                                  ))}
+                                  )}
                                 </div>
                               )}
                             </div>
-                          )}
-                        </div>
-                        <div className="flex justify-between pt-2 border-t border-slate-300 dark:border-slate-600">
-                          <span className="font-bold text-slate-900 dark:text-white">
-                            Total effective length:
-                          </span>
-                          <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">
-                            {result.totalEffectiveLength.toFixed(1)} ft
-                          </span>
-                        </div>
-                        <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
-                        <div className="flex justify-between">
-                          <span className="text-slate-600 dark:text-slate-400">Velocity:</span>
-                          <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
-                            {result.velocity.toFixed(2)} ft/s
-                          </span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600 dark:text-slate-400">Reynolds:</span>
-                          <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
-                            {result.reynolds.toFixed(0)}
-                          </span>
-                        </div>
-                        <div className="flex justify-between pt-2 border-t border-slate-300 dark:border-slate-600">
-                          <span className="font-bold text-slate-900 dark:text-white">Head loss:</span>
-                          <span className="font-bold text-red-600 dark:text-red-400 tabular-nums">
-                            {result.headLoss.toFixed(2)} ft
-                          </span>
-                        </div>
+                            <div className="flex justify-between pt-2 border-t border-slate-300 dark:border-slate-600">
+                              <span className="font-bold text-slate-900 dark:text-white">
+                                Total effective length:
+                              </span>
+                              <span className="font-bold text-blue-600 dark:text-blue-400 tabular-nums">
+                                {result.totalEffectiveLength.toFixed(1)} ft
+                              </span>
+                            </div>
+                            <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">Velocity:</span>
+                              <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                {result.velocity.toFixed(2)} ft/s
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">Reynolds:</span>
+                              <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                {result.reynolds.toFixed(0)}
+                              </span>
+                            </div>
+                            <div className="flex justify-between pt-2 border-t border-slate-300 dark:border-slate-600">
+                              <span className="font-bold text-slate-900 dark:text-white">Head loss:</span>
+                              <span className="font-bold text-red-600 dark:text-red-400 tabular-nums">
+                                {result.headLoss.toFixed(2)} ft
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="text-sm text-slate-500 dark:text-slate-400">
+                            {result.flowError || result.straightLengthError || "Enter flow rate and pipe length to see results"}
+                          </div>
+                        )}
                       </div>
-                    ) : (
-                      <div className="text-sm text-slate-500 dark:text-slate-400">
-                        {result.flowError || result.straightLengthError || "Enter flow rate and pipe length to see results"}
-                      </div>
-                    )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             );
           })}
