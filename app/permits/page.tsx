@@ -516,7 +516,7 @@ export default function PermitsPage() {
                   searchResults.jurisdictions.length === 0 &&
                   searchResults.callouts.length === 0 && (
                     <div className="text-center py-12 text-slate-600 dark:text-slate-400">
-                      No results found for "{globalSearch}"
+                      No results found for &quot;{globalSearch}&quot;
                     </div>
                   )}
               </div>
