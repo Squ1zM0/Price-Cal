@@ -11,6 +11,7 @@ type PageItem = { href: string; label: string };
 const PAGES: PageItem[] = [
   { href: "/calculator", label: "Calculator" },
   { href: "/duct", label: "Ductulator" },
+  { href: "/pump-sizing", label: "Pump Sizing" },
   { href: "/directory", label: "Directory" },
   { href: "/supply", label: "Supply Houses" },
   { href: "/permits", label: "Permits" },
