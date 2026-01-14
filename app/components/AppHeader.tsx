@@ -14,6 +14,7 @@ const PAGES: PageItem[] = [
   { href: "/directory", label: "Directory" },
   { href: "/supply", label: "Supply Houses" },
   { href: "/permits", label: "Permits" },
+  { href: "/pump-monitor", label: "Pump Monitor" },
 ];
 
 export function AppHeader({
