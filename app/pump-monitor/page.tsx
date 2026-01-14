@@ -54,7 +54,7 @@ export default function PumpMonitorPage() {
     }
   }, []);
 
-  // FFT-like frequency detection using autocorrelation
+  // Frequency detection using peak detection in time domain
   const detectDominantFrequency = useCallback((data: number[], sampleRate: number): number => {
     if (data.length < 20) return 0;
 
@@ -327,8 +327,9 @@ export default function PumpMonitorPage() {
                   </label>
                   <input
                     type="number"
+                    min="1"
                     value={calibration.cyclesPerRevolution}
-                    onChange={(e) => saveCalibration({ ...calibration, cyclesPerRevolution: parseInt(e.target.value) || 1 })}
+                    onChange={(e) => saveCalibration({ ...calibration, cyclesPerRevolution: Math.max(1, parseInt(e.target.value) || 1) })}
                     className="w-full px-3 py-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-900 dark:text-white text-sm"
                   />
                 </div>
