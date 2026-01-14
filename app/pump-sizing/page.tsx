@@ -169,17 +169,18 @@ export default function PumpSizingPage() {
 
   // Helper to check if flow is valid
   function isFlowValid(flowStr: string): { valid: boolean; flow: number; error?: string } {
-    const flow = parseNum(flowStr);
+    const trimmed = flowStr.trim();
     
-    if (flowStr.trim() === "") {
+    if (trimmed === "") {
       return { valid: false, flow: 0 };
     }
     
-    // Check for negative flow
-    const rawValue = parseFloat(flowStr);
-    if (rawValue < 0 || flowStr.includes("-")) {
+    // Check for explicit negative sign at the start (excluding scientific notation)
+    if (trimmed.startsWith("-") && !trimmed.includes("e")) {
       return { valid: false, flow: 0, error: "Flow rate must be positive" };
     }
+    
+    const flow = parseNum(flowStr);
     
     if (flow === 0) {
       return { valid: false, flow: 0, error: "Enter a positive flow rate" };
