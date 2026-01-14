@@ -94,35 +94,44 @@ function FittingCounter({
   count,
   onIncrement,
   onDecrement,
+  helpText,
 }: {
   label: string;
   count: number;
   onIncrement: () => void;
   onDecrement: () => void;
+  helpText?: string;
 }) {
   return (
-    <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 px-3 py-2 ring-1 ring-inset ring-slate-200 dark:ring-slate-700">
-      <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          onClick={onDecrement}
-          disabled={count === 0}
-          className="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold ring-1 ring-inset ring-slate-300 dark:ring-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
-        >
-          −
-        </button>
-        <span className="w-8 text-center font-bold text-slate-900 dark:text-white tabular-nums">
-          {count}
-        </span>
-        <button
-          type="button"
-          onClick={onIncrement}
-          className="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold ring-1 ring-inset ring-slate-300 dark:ring-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition-all duration-200"
-        >
-          +
-        </button>
+    <div className="space-y-1">
+      <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-slate-800 px-3 py-2 ring-1 ring-inset ring-slate-200 dark:ring-slate-700">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{label}</span>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={onDecrement}
+            disabled={count === 0}
+            className="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold ring-1 ring-inset ring-slate-300 dark:ring-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-200"
+          >
+            −
+          </button>
+          <span className="w-8 text-center font-bold text-slate-900 dark:text-white tabular-nums">
+            {count}
+          </span>
+          <button
+            type="button"
+            onClick={onIncrement}
+            className="w-8 h-8 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-white font-bold ring-1 ring-inset ring-slate-300 dark:ring-slate-600 hover:bg-slate-100 dark:hover:bg-slate-600 transition-all duration-200"
+          >
+            +
+          </button>
+        </div>
       </div>
+      {helpText && (
+        <p className="text-xs text-slate-500 dark:text-slate-400 px-1">
+          {helpText}
+        </p>
+      )}
     </div>
   );
 }
@@ -142,6 +151,7 @@ export default function PumpSizingPage() {
   ]);
 
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [expandedZoneDetails, setExpandedZoneDetails] = useState<Record<string, boolean>>({});
   const [advancedSettings, setAdvancedSettings] = useLocalStorage<AdvancedSettings>(
     "pump-sizing:advanced",
     {
@@ -157,6 +167,36 @@ export default function PumpSizingPage() {
     }
   );
 
+  // Helper to check if flow is valid
+  function isFlowValid(flowStr: string): { valid: boolean; flow: number; error?: string } {
+    const trimmed = flowStr.trim();
+    
+    if (trimmed === "") {
+      return { valid: false, flow: 0 };
+    }
+    
+    // Check for explicit negative sign at the start (excluding scientific notation)
+    if (trimmed.startsWith("-") && !trimmed.includes("e")) {
+      return { valid: false, flow: 0, error: "Flow rate must be positive" };
+    }
+    
+    const flow = parseNum(flowStr);
+    
+    if (flow === 0) {
+      return { valid: false, flow: 0, error: "Enter a positive flow rate" };
+    }
+    
+    return { valid: true, flow };
+  }
+
+  // Check for invalid Hazen-Williams usage with non-water fluids
+  const hasInvalidHazenWilliams = useMemo(() => {
+    return (
+      advancedSettings.calculationMethod === "Hazen-Williams" &&
+      advancedSettings.fluidType !== "Water"
+    );
+  }, [advancedSettings.calculationMethod, advancedSettings.fluidType]);
+
   // Calculations
   const zoneResults = useMemo(() => {
     const temp = parseNum(advancedSettings.temperature);
@@ -168,16 +208,18 @@ export default function PumpSizingPage() {
     );
 
     return zones.map((zone) => {
-      const flowGPM = parseNum(zone.flowGPM);
+      const flowCheck = isFlowValid(zone.flowGPM);
       const straightLength = parseNum(zone.straightLength);
       const pipeData = getPipeData(zone.material, zone.size);
 
-      if (!pipeData || flowGPM === 0) {
+      if (!pipeData || !flowCheck.valid) {
         return {
           zone,
           valid: false,
+          flowError: flowCheck.error,
           straightLength: 0,
           fittingEquivalentLength: 0,
+          fittingBreakdown: [],
           totalEffectiveLength: 0,
           headLoss: 0,
           velocity: 0,
@@ -185,12 +227,25 @@ export default function PumpSizingPage() {
         };
       }
 
-      // Calculate fitting equivalent length
+      const flowGPM = flowCheck.flow;
+
+      // Calculate fitting equivalent length and breakdown
       let fittingEquivalentLength = 0;
+      const fittingBreakdown: Array<{ type: string; count: number; eqLengthEach: number; total: number }> = [];
+      
       (Object.keys(zone.fittings) as FittingType[]).forEach((fittingType) => {
         const count = zone.fittings[fittingType];
-        const eqLength = getFittingEquivalentLength(fittingType, zone.material, zone.size);
-        fittingEquivalentLength += count * eqLength;
+        if (count > 0) {
+          const eqLength = getFittingEquivalentLength(fittingType, zone.material, zone.size);
+          const total = count * eqLength;
+          fittingEquivalentLength += total;
+          fittingBreakdown.push({
+            type: fittingType,
+            count,
+            eqLengthEach: eqLength,
+            total,
+          });
+        }
       });
 
       const customRoughness = advancedSettings.customRoughness
@@ -214,8 +269,10 @@ export default function PumpSizingPage() {
       return {
         zone,
         valid: true,
+        flowError: undefined,
         straightLength,
         fittingEquivalentLength,
+        fittingBreakdown,
         totalEffectiveLength: calc.totalEffectiveLength,
         headLoss: calc.headLoss,
         velocity: calc.velocity,
@@ -366,8 +423,18 @@ export default function PumpSizingPage() {
                         onChange={(e) => updateZone(zone.id, { flowGPM: e.target.value })}
                         inputMode="decimal"
                         placeholder="0.0"
-                        className="mt-1 w-full rounded-xl bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={[
+                          "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
+                          result.flowError
+                            ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
+                            : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
+                        ].join(" ")}
                       />
+                      {result.flowError && (
+                        <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
+                          {result.flowError}
+                        </p>
+                      )}
                     </div>
 
                     {/* Material */}
@@ -459,7 +526,7 @@ export default function PumpSizingPage() {
                           }
                         />
                         <FittingCounter
-                          label="Tee (through)"
+                          label="Tee (through-run)"
                           count={zone.fittings["Tee (through)"]}
                           onIncrement={() =>
                             updateZoneFitting(
@@ -475,6 +542,7 @@ export default function PumpSizingPage() {
                               zone.fittings["Tee (through)"] - 1
                             )
                           }
+                          helpText="Flow assumed to continue straight through the run (not branching)"
                         />
                       </div>
                     </div>
@@ -493,13 +561,44 @@ export default function PumpSizingPage() {
                             {result.straightLength.toFixed(1)} ft
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-slate-600 dark:text-slate-400">
-                            Fitting equivalent:
-                          </span>
-                          <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
-                            {result.fittingEquivalentLength.toFixed(1)} ft
-                          </span>
+                        <div>
+                          <div className="flex justify-between">
+                            <span className="text-slate-600 dark:text-slate-400">
+                              Fitting equivalent:
+                            </span>
+                            <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                              {result.fittingEquivalentLength.toFixed(1)} ft
+                            </span>
+                          </div>
+                          {result.fittingBreakdown && result.fittingBreakdown.length > 0 && (
+                            <div className="mt-1">
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setExpandedZoneDetails({
+                                    ...expandedZoneDetails,
+                                    [zone.id]: !expandedZoneDetails[zone.id],
+                                  })
+                                }
+                                className="text-xs text-blue-600 dark:text-blue-400 hover:underline"
+                              >
+                                {expandedZoneDetails[zone.id] ? "Hide" : "Show"} details
+                              </button>
+                              {expandedZoneDetails[zone.id] && (
+                                <div className="mt-2 space-y-1 pl-3 border-l-2 border-slate-300 dark:border-slate-600">
+                                  {result.fittingBreakdown.map((fitting, idx) => (
+                                    <div key={idx} className="text-xs text-slate-600 dark:text-slate-400">
+                                      {fitting.type} × {fitting.count} = {fitting.total.toFixed(1)} ft
+                                      <span className="text-slate-500 dark:text-slate-500">
+                                        {" "}
+                                        ({fitting.eqLengthEach.toFixed(1)} ft each)
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
                         </div>
                         <div className="flex justify-between pt-2 border-t border-slate-300 dark:border-slate-600">
                           <span className="font-bold text-slate-900 dark:text-white">
@@ -531,7 +630,7 @@ export default function PumpSizingPage() {
                       </div>
                     ) : (
                       <div className="text-sm text-slate-500 dark:text-slate-400">
-                        Enter flow rate to see results
+                        {result.flowError || "Enter flow rate to see results"}
                       </div>
                     )}
                   </div>
@@ -551,25 +650,48 @@ export default function PumpSizingPage() {
 
         {/* Advanced Settings */}
         <section className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg ring-1 ring-slate-200 dark:ring-slate-700 p-5">
-          <button
-            type="button"
-            onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between text-left"
-          >
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Advanced Settings</h2>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={2.5}
-              stroke="currentColor"
-              className={`w-6 h-6 transition-transform duration-200 ${
-                showAdvanced ? "rotate-180" : ""
-              }`}
+          <div className="flex items-center justify-between gap-4">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              className="flex-1 flex items-center justify-between text-left"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-            </svg>
-          </button>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Advanced Settings</h2>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2.5}
+                stroke="currentColor"
+                className={`w-6 h-6 transition-transform duration-200 ${
+                  showAdvanced ? "rotate-180" : ""
+                }`}
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+              </svg>
+            </button>
+            {showAdvanced && (
+              <button
+                type="button"
+                onClick={() =>
+                  setAdvancedSettings({
+                    fluidType: "Water",
+                    temperature: "140",
+                    customDensity: "62.4",
+                    customViscosity: "0.000008",
+                    calculationMethod: "Darcy-Weisbach",
+                    customRoughness: "",
+                    customCValue: "",
+                    headSafetyFactor: "10",
+                    flowSafetyFactor: "0",
+                  })
+                }
+                className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+              >
+                Reset to Defaults
+              </button>
+            )}
+          </div>
 
           {showAdvanced && (
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -640,6 +762,52 @@ export default function PumpSizingPage() {
                 </div>
               </div>
 
+              {/* Hazen-Williams warning for non-water fluids */}
+              {hasInvalidHazenWilliams && (
+                <div className="col-span-2 rounded-xl bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-400 dark:border-yellow-600 p-4">
+                  <div className="flex gap-3">
+                    <div className="flex-shrink-0">
+                      <svg 
+                        className="w-6 h-6 text-yellow-600 dark:text-yellow-400" 
+                        fill="none" 
+                        viewBox="0 0 24 24" 
+                        stroke="currentColor"
+                      >
+                        <path 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          strokeWidth={2} 
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" 
+                        />
+                      </svg>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="text-sm font-bold text-yellow-900 dark:text-yellow-200 mb-1">
+                        ⚠️ Invalid Calculation Method
+                      </h4>
+                      <p className="text-sm text-yellow-800 dark:text-yellow-300 mb-2">
+                        <strong>Hazen-Williams is not valid for {advancedSettings.fluidType}.</strong>
+                        <br />
+                        This equation is only accurate for water. Glycol solutions have different viscosity 
+                        characteristics that require Darcy-Weisbach for correct results.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setAdvancedSettings({
+                            ...advancedSettings,
+                            calculationMethod: "Darcy-Weisbach",
+                          })
+                        }
+                        className="text-sm font-semibold text-yellow-900 dark:text-yellow-200 underline hover:no-underline"
+                      >
+                        Switch to Darcy-Weisbach (recommended)
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Safety factors */}
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -658,6 +826,9 @@ export default function PumpSizingPage() {
                     inputMode="decimal"
                     className="mt-1 w-full rounded-xl bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Accounts for uncertainty in fittings, aging, and fouling
+                  </p>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
@@ -675,6 +846,9 @@ export default function PumpSizingPage() {
                     inputMode="decimal"
                     className="mt-1 w-full rounded-xl bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
+                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    Accounts for future load growth and additional zones
+                  </p>
                 </div>
               </div>
 
