@@ -194,7 +194,7 @@ export default function PumpSizingPage() {
     const trimmed = lengthStr.trim();
     
     if (trimmed === "") {
-      return { valid: false, length: 0, error: "Enter straight pipe length" };
+      return { valid: false, length: 0 };
     }
     
     // Check for explicit negative sign at the start (excluding scientific notation)
