@@ -189,6 +189,28 @@ export default function PumpSizingPage() {
     return { valid: true, flow };
   }
 
+  // Helper to check if straight pipe length is valid
+  function isStraightLengthValid(lengthStr: string): { valid: boolean; length: number; error?: string } {
+    const trimmed = lengthStr.trim();
+    
+    if (trimmed === "") {
+      return { valid: false, length: 0 };
+    }
+    
+    // Check for explicit negative sign at the start (excluding scientific notation)
+    if (trimmed.startsWith("-") && !trimmed.includes("e")) {
+      return { valid: false, length: 0, error: "Pipe length must be positive" };
+    }
+    
+    const length = parseNum(lengthStr);
+    
+    if (length === 0) {
+      return { valid: false, length: 0, error: "Enter a positive pipe length" };
+    }
+    
+    return { valid: true, length };
+  }
+
   // Check for invalid Hazen-Williams usage with non-water fluids
   const hasInvalidHazenWilliams = useMemo(() => {
     return (
@@ -209,14 +231,15 @@ export default function PumpSizingPage() {
 
     return zones.map((zone) => {
       const flowCheck = isFlowValid(zone.flowGPM);
-      const straightLength = parseNum(zone.straightLength);
+      const lengthCheck = isStraightLengthValid(zone.straightLength);
       const pipeData = getPipeData(zone.material, zone.size);
 
-      if (!pipeData || !flowCheck.valid) {
+      if (!pipeData || !flowCheck.valid || !lengthCheck.valid) {
         return {
           zone,
           valid: false,
           flowError: flowCheck.error,
+          straightLengthError: lengthCheck.error,
           straightLength: 0,
           fittingEquivalentLength: 0,
           fittingBreakdown: [],
@@ -228,6 +251,7 @@ export default function PumpSizingPage() {
       }
 
       const flowGPM = flowCheck.flow;
+      const straightLength = lengthCheck.length;
 
       // Calculate fitting equivalent length and breakdown
       let fittingEquivalentLength = 0;
@@ -270,6 +294,7 @@ export default function PumpSizingPage() {
         zone,
         valid: true,
         flowError: undefined,
+        straightLengthError: undefined,
         straightLength,
         fittingEquivalentLength,
         fittingBreakdown,
@@ -495,8 +520,18 @@ export default function PumpSizingPage() {
                         onChange={(e) => updateZone(zone.id, { straightLength: e.target.value })}
                         inputMode="decimal"
                         placeholder="0.0"
-                        className="mt-1 w-full rounded-xl bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className={[
+                          "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
+                          result.straightLengthError
+                            ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
+                            : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
+                        ].join(" ")}
                       />
+                      {result.straightLengthError && (
+                        <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
+                          {result.straightLengthError}
+                        </p>
+                      )}
                     </div>
 
                     {/* Fittings */}
@@ -630,7 +665,7 @@ export default function PumpSizingPage() {
                       </div>
                     ) : (
                       <div className="text-sm text-slate-500 dark:text-slate-400">
-                        {result.flowError || "Enter flow rate to see results"}
+                        {result.flowError || result.straightLengthError || "Enter flow rate and pipe length to see results"}
                       </div>
                     )}
                   </div>
