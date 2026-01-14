@@ -343,12 +343,12 @@ export default function PumpSizingPage() {
     setExpandedZoneId(newId);
     
     // Scroll to the new zone after it's rendered
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const element = document.getElementById(`zone-${newId}`);
       if (element) {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-    }, 100);
+    });
   }
 
   function deleteZone(id: string) {
@@ -379,15 +379,15 @@ export default function PumpSizingPage() {
   }
 
   function toggleZoneExpanded(id: string) {
-    setExpandedZoneId(expandedZoneId === id ? id : id);
+    setExpandedZoneId(id);
     
     // Scroll to the zone when expanded
-    setTimeout(() => {
+    requestAnimationFrame(() => {
       const element = document.getElementById(`zone-${id}`);
       if (element) {
         element.scrollIntoView({ behavior: "smooth", block: "center" });
       }
-    }, 100);
+    });
   }
 
   return (
