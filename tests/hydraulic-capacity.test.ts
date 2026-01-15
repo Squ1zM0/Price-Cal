@@ -216,12 +216,14 @@ test("Low velocity warning triggers at or below 1.0 ft/s", () => {
   const lowFlowGPM = lowBTU / (500 * deltaT); // 0.5 GPM
   const pipeData = PIPE_DATA.Copper['1"']; // Large pipe for small flow
   const lowVelocity = calculateVelocity(lowFlowGPM, pipeData.internalDiameter);
+  // Expected: ~0.19 ft/s for 0.5 GPM in 1" pipe (ID 1.025")
   
   const checkLow = checkHydraulicCapacity(lowBTU, lowFlowGPM, deltaT, pipeData, "Water", lowVelocity);
   
   assert.ok(checkLow.hasLowVelocity, "Should flag low velocity for 0.5 GPM in 1\" pipe");
   assert.ok(checkLow.velocity <= VELOCITY_LIMITS.LOW_VELOCITY_THRESHOLD, "Velocity should be at or below 1.0 ft/s");
   assert.ok(checkLow.velocity > 0, "Velocity should be positive");
+  within(lowVelocity, 0.19, 0.02, "Velocity for 0.5 GPM in 1\" pipe");
   
   // Test case 2: Exactly at threshold (edge case)
   // Calculate BTU that gives exactly 1.0 ft/s in 3/4" pipe
