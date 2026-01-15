@@ -12,8 +12,8 @@ export type CalculationMethod = "Darcy-Weisbach" | "Hazen-Williams";
  * Fluid properties at different temperatures
  */
 export interface FluidProperties {
-  density: number; // lb/ft³
-  dynamicViscosity: number; // lb/(ft·s)
+  density: number; // lbm/ft³
+  dynamicViscosity: number; // lbm/(ft·s)
   kinematicViscosity: number; // ft²/s
 }
 

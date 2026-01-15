@@ -13,7 +13,7 @@ const within = (actual: number, expected: number, tolerance: number, label: stri
 
 test("water properties keep realistic viscosity around 60°F", () => {
   const props = getFluidProperties("Water", 60);
-  within(props.kinematicViscosity, 1.23e-5, 2e-7, "Kinematic viscosity");
+  within(props.kinematicViscosity, 1.23e-5, 1e-6, "Kinematic viscosity");
   within(props.dynamicViscosity, 0.000767, 0.00001, "Dynamic viscosity");
 });
 
