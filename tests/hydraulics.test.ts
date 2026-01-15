@@ -44,3 +44,35 @@ test('Reference vectors for copper and black iron runs (10 & 20 GPM)', () => {
   within(ironResult.headLoss, 4.795, 0.25, "1-1/4\" black iron at 20 GPM head loss (HW)");
   within(ironResult.velocity, 4.29, 0.05, "1-1/4\" black iron velocity");
 });
+
+test('Copper pipe data uses ASTM B88 Type L dimensions and ASHRAE C-values', () => {
+  // Validate 1/2" copper uses corrected ASTM B88 Type L internal diameter
+  const halfInchCopper = PIPE_DATA.Copper['1/2"'];
+  assert.strictEqual(halfInchCopper.internalDiameter, 0.545, "1/2\" copper should use Type L ID of 0.545\"");
+  
+  // Validate C-value is 140 for new copper per ASHRAE
+  assert.strictEqual(halfInchCopper.hazenWilliamsC, 140, "Copper C-value should be 140 (new copper per ASHRAE)");
+  
+  // Validate other common sizes maintain ASTM B88 Type L standards
+  assert.strictEqual(PIPE_DATA.Copper['3/4"'].internalDiameter, 0.785, "3/4\" copper Type L ID");
+  assert.strictEqual(PIPE_DATA.Copper['1"'].internalDiameter, 1.025, "1\" copper Type L ID");
+});
+
+test('Hazen-Williams produces conservative head loss for copper with updated C-value', () => {
+  const water140 = getFluidProperties("Water", 140);
+  const copper = PIPE_DATA.Copper['1/2"'];
+  
+  // Test case: 5 GPM through 1/2" copper, 50 ft total length
+  const result = calculateZoneHead(5, 50, 0, copper, water140, "Hazen-Williams");
+  
+  // With C=140 (new copper per ASHRAE), head loss aligns with published references
+  // Note: Higher C-value = smoother pipe = lower friction loss
+  // Expected head loss with C=140 should be in a realistic range
+  assert.ok(result.headLoss > 5, "Head loss should be meaningful for 5 GPM in 1/2\" pipe");
+  assert.ok(result.headLoss < 30, "Head loss should not be excessive for this scenario");
+  
+  // Velocity calculated with corrected ID of 0.545" (was 0.527")
+  // V = Q/A, with larger ID (0.545 vs 0.527), velocity should be ~6.88 ft/s
+  within(result.velocity, 6.88, 0.2, "Velocity for 5 GPM in 1/2\" copper");
+});
+

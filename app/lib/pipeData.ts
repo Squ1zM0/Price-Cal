@@ -19,18 +19,30 @@ export interface FittingData {
 
 /**
  * Pipe internal diameter and properties by material and nominal size
- * Sources: ASHRAE, manufacturer data
+ * 
+ * Internal diameters based on ASTM B88 Type L for copper, Schedule 40 for black iron, 
+ * and SDR-9 for PEX.
+ * 
+ * Hazen-Williams C-values:
+ * - Copper: C=140 (new copper per ASHRAE)
+ * - Black Iron: C=100 (typical for steel pipe)
+ * - PEX: C=150 (smooth plastic pipe)
+ * 
+ * Darcy-Weisbach roughness values (absolute roughness in feet):
+ * - Copper: 0.000005 ft (smooth, drawn tubing)
+ * - Black Iron: 0.00015 ft (commercial steel)
+ * - PEX: 0.000003 ft (very smooth plastic)
  */
 export const PIPE_DATA: Record<PipeMaterial, Record<string, PipeData>> = {
   Copper: {
-    "1/2\"": { nominalSize: "1/2\"", internalDiameter: 0.527, roughness: 0.000005, hazenWilliamsC: 130 },
-    "3/4\"": { nominalSize: "3/4\"", internalDiameter: 0.785, roughness: 0.000005, hazenWilliamsC: 130 },
-    "1\"": { nominalSize: "1\"", internalDiameter: 1.025, roughness: 0.000005, hazenWilliamsC: 130 },
-    "1-1/4\"": { nominalSize: "1-1/4\"", internalDiameter: 1.265, roughness: 0.000005, hazenWilliamsC: 130 },
-    "1-1/2\"": { nominalSize: "1-1/2\"", internalDiameter: 1.505, roughness: 0.000005, hazenWilliamsC: 130 },
-    "2\"": { nominalSize: "2\"", internalDiameter: 1.985, roughness: 0.000005, hazenWilliamsC: 130 },
-    "2-1/2\"": { nominalSize: "2-1/2\"", internalDiameter: 2.465, roughness: 0.000005, hazenWilliamsC: 130 },
-    "3\"": { nominalSize: "3\"", internalDiameter: 2.945, roughness: 0.000005, hazenWilliamsC: 130 },
+    "1/2\"": { nominalSize: "1/2\"", internalDiameter: 0.545, roughness: 0.000005, hazenWilliamsC: 140 },
+    "3/4\"": { nominalSize: "3/4\"", internalDiameter: 0.785, roughness: 0.000005, hazenWilliamsC: 140 },
+    "1\"": { nominalSize: "1\"", internalDiameter: 1.025, roughness: 0.000005, hazenWilliamsC: 140 },
+    "1-1/4\"": { nominalSize: "1-1/4\"", internalDiameter: 1.265, roughness: 0.000005, hazenWilliamsC: 140 },
+    "1-1/2\"": { nominalSize: "1-1/2\"", internalDiameter: 1.505, roughness: 0.000005, hazenWilliamsC: 140 },
+    "2\"": { nominalSize: "2\"", internalDiameter: 1.985, roughness: 0.000005, hazenWilliamsC: 140 },
+    "2-1/2\"": { nominalSize: "2-1/2\"", internalDiameter: 2.465, roughness: 0.000005, hazenWilliamsC: 140 },
+    "3\"": { nominalSize: "3\"", internalDiameter: 2.945, roughness: 0.000005, hazenWilliamsC: 140 },
   },
   "Black Iron": {
     "1/2\"": { nominalSize: "1/2\"", internalDiameter: 0.622, roughness: 0.00015, hazenWilliamsC: 100 },

@@ -964,7 +964,7 @@ export default function PumpSizingPage() {
                       })
                     }
                   >
-                    Darcy-Weisbach
+                    Darcy-Weisbach ⭐
                   </PillButton>
                   <PillButton
                     active={advancedSettings.calculationMethod === "Hazen-Williams"}
@@ -978,6 +978,10 @@ export default function PumpSizingPage() {
                     Hazen-Williams
                   </PillButton>
                 </div>
+                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                  <strong>Darcy-Weisbach (recommended)</strong> is more accurate for all fluids and temperatures. 
+                  Hazen-Williams is only valid for water at typical temperatures.
+                </p>
               </div>
 
               {/* Hazen-Williams warning for non-water fluids */}
