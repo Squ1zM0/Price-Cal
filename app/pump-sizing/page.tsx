@@ -15,6 +15,8 @@ import {
   type CalculationMethod,
   getFluidProperties,
   calculateZoneHead,
+  checkHydraulicCapacity,
+  type HydraulicCapacityCheck,
 } from "../lib/hydraulics";
 
 // Types
@@ -27,6 +29,7 @@ interface Fittings {
 interface Zone {
   id: string;
   name: string;
+  assignedBTU: string; // Manual override, empty means use auto-distribution
   deltaT: string;
   material: PipeMaterial;
   size: string;
@@ -143,6 +146,7 @@ export default function PumpSizingPage() {
     {
       id: "zone-1",
       name: "Zone 1",
+      assignedBTU: "",
       deltaT: "20",
       material: "Copper",
       size: "3/4\"",
@@ -258,24 +262,36 @@ export default function PumpSizingPage() {
 
     // Get system-level heat load
     const systemHeatLoadCheck = isHeatLoadValid(advancedSettings.systemHeatLoadBTU);
+    
+    // Auto-distribute system BTU across zones if no manual assignments
+    const autoDistributedBTU = systemHeatLoadCheck.valid && zones.length > 0
+      ? systemHeatLoadCheck.heatLoad / zones.length
+      : 0;
 
     return zones.map((zone) => {
       const deltaTCheck = isDeltaTValid(zone.deltaT);
       const lengthCheck = isStraightLengthValid(zone.straightLength);
       const pipeData = getPipeData(zone.material, zone.size);
 
-      // Calculate GPM from system heat load and zone deltaT
-      const flowGPM = systemHeatLoadCheck.valid && deltaTCheck.valid 
-        ? calculateGPM(systemHeatLoadCheck.heatLoad, deltaTCheck.deltaT)
+      // Determine zone BTU: use manual assignment if provided, otherwise auto-distribute
+      const manualBTUCheck = isHeatLoadValid(zone.assignedBTU);
+      const zoneBTU = manualBTUCheck.valid ? manualBTUCheck.heatLoad : autoDistributedBTU;
+      const isAutoAssigned = !manualBTUCheck.valid;
+
+      // Calculate GPM from zone BTU (not system BTU!)
+      const flowGPM = zoneBTU > 0 && deltaTCheck.valid 
+        ? calculateGPM(zoneBTU, deltaTCheck.deltaT)
         : 0;
 
-      if (!pipeData || !systemHeatLoadCheck.valid || !deltaTCheck.valid || !lengthCheck.valid) {
+      if (!pipeData || zoneBTU === 0 || !deltaTCheck.valid || !lengthCheck.valid) {
         return {
           zone,
           valid: false,
-          systemHeatLoadError: systemHeatLoadCheck.error,
+          systemHeatLoadError: !systemHeatLoadCheck.valid && !manualBTUCheck.valid ? systemHeatLoadCheck.error : undefined,
           deltaTError: deltaTCheck.error,
           straightLengthError: lengthCheck.error,
+          zoneBTU: 0,
+          isAutoAssigned: true,
           flowGPM: 0,
           straightLength: 0,
           fittingEquivalentLength: 0,
@@ -284,6 +300,7 @@ export default function PumpSizingPage() {
           headLoss: 0,
           velocity: 0,
           reynolds: 0,
+          capacityCheck: undefined,
         };
       }
 
@@ -326,12 +343,24 @@ export default function PumpSizingPage() {
         customCValue
       );
 
+      // Phase 3: Hydraulic Reality Check
+      const capacityCheck = checkHydraulicCapacity(
+        zoneBTU,
+        flowGPM,
+        deltaTCheck.deltaT,
+        pipeData,
+        advancedSettings.fluidType,
+        calc.velocity
+      );
+
       return {
         zone,
         valid: true,
         systemHeatLoadError: undefined,
         deltaTError: undefined,
         straightLengthError: undefined,
+        zoneBTU,
+        isAutoAssigned,
         flowGPM,
         straightLength,
         fittingEquivalentLength,
@@ -340,6 +369,7 @@ export default function PumpSizingPage() {
         headLoss: calc.headLoss,
         velocity: calc.velocity,
         reynolds: calc.reynolds,
+        capacityCheck,
       };
     });
   }, [zones, advancedSettings]);
@@ -370,6 +400,7 @@ export default function PumpSizingPage() {
     const newZone: Zone = {
       id: newId,
       name: `Zone ${zones.length + 1}`,
+      assignedBTU: "",
       deltaT: "20",
       material: "Copper",
       size: "3/4\"",
@@ -437,7 +468,7 @@ export default function PumpSizingPage() {
           <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">System Configuration</h2>
           <div className="max-w-md">
             <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-              Boiler / System Heat Load (BTU/hr)
+              Total System Heat Load (BTU/hr)
             </label>
             <input
               type="text"
@@ -450,7 +481,7 @@ export default function PumpSizingPage() {
               className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Total boiler or system capacity used to calculate flow for all zones.
+              Total system capacity from boiler or heat source. This will be automatically distributed across zones ({zones.length} {zones.length === 1 ? 'zone' : 'zones'}).
             </p>
           </div>
         </section>
@@ -541,6 +572,12 @@ export default function PumpSizingPage() {
                     {!isExpanded && (
                       <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
                         <div>
+                          <span className="text-slate-500 dark:text-slate-400">Zone BTU: </span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {result.valid ? `${result.zoneBTU.toLocaleString()} ${result.isAutoAssigned ? '(auto)' : ''}` : "—"}
+                          </span>
+                        </div>
+                        <div>
                           <span className="text-slate-500 dark:text-slate-400">Flow: </span>
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {result.valid ? `${result.flowGPM.toFixed(1)} GPM` : "—"}
@@ -550,12 +587,6 @@ export default function PumpSizingPage() {
                           <span className="text-slate-500 dark:text-slate-400">Pipe: </span>
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {zone.material} {zone.size}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 dark:text-slate-400">Length: </span>
-                          <span className="font-semibold text-slate-900 dark:text-white">
-                            {result.valid ? `${result.totalEffectiveLength.toFixed(1)} ft` : "—"}
                           </span>
                         </div>
                         <div>
@@ -601,6 +632,36 @@ export default function PumpSizingPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Inputs */}
                       <div className="space-y-4">
+                        {/* Zone BTU Assignment */}
+                        <div>
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                            Zone Heat Load (BTU/hr)
+                            {result.valid && result.isAutoAssigned && (
+                              <span className="ml-1 text-blue-600 dark:text-blue-400 font-normal">
+                                (auto-distributed)
+                              </span>
+                            )}
+                          </label>
+                          <input
+                            type="text"
+                            value={zone.assignedBTU}
+                            onChange={(e) => updateZone(zone.id, { assignedBTU: e.target.value })}
+                            inputMode="decimal"
+                            placeholder={result.valid ? result.zoneBTU.toFixed(0) : "Auto"}
+                            className={[
+                              "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
+                              result.valid && result.isAutoAssigned
+                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-200 ring-blue-200 dark:ring-blue-700 focus:ring-blue-500"
+                                : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
+                            ].join(" ")}
+                          />
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            {result.valid && result.isAutoAssigned
+                              ? `System BTU (${parseNum(advancedSettings.systemHeatLoadBTU).toLocaleString()}) ÷ ${zones.length} zones = ${result.zoneBTU.toFixed(0)} BTU/hr per zone`
+                              : "Leave empty to auto-distribute system BTU, or enter a specific value"}
+                          </p>
+                        </div>
+
                         {/* ΔT Slider */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
@@ -638,7 +699,7 @@ export default function PumpSizingPage() {
                             {result.valid ? `${result.flowGPM.toFixed(1)} GPM` : "—"}
                           </div>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            GPM = System BTU/hr ÷ (500 × Zone ΔT)
+                            GPM = Zone BTU/hr ÷ (500 × Zone ΔT)
                           </p>
                         </div>
 
@@ -771,6 +832,26 @@ export default function PumpSizingPage() {
                         {result.valid ? (
                           <div className="space-y-2 text-sm">
                             <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">
+                                Zone BTU:
+                                {result.isAutoAssigned && (
+                                  <span className="text-xs ml-1 text-blue-600 dark:text-blue-400">
+                                    (auto)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                {result.zoneBTU.toLocaleString()} BTU/hr
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">Zone flow:</span>
+                              <span className="font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
+                                {result.flowGPM.toFixed(2)} GPM
+                              </span>
+                            </div>
+                            <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
+                            <div className="flex justify-between">
                               <span className="text-slate-600 dark:text-slate-400">Straight pipe:</span>
                               <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
                                 {result.straightLength.toFixed(1)} ft
@@ -842,6 +923,140 @@ export default function PumpSizingPage() {
                                 {result.headLoss.toFixed(2)} ft
                               </span>
                             </div>
+                            
+                            {/* Phase 3: Hydraulic Capacity Check */}
+                            {result.capacityCheck && (
+                              <>
+                                <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600 dark:text-slate-400">Max recommended flow:</span>
+                                    <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                      {result.capacityCheck.maxRecommendedGPM.toFixed(2)} GPM
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600 dark:text-slate-400">Hydraulic capacity:</span>
+                                    <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                      {result.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600 dark:text-slate-400">Capacity utilization:</span>
+                                    <span className={[
+                                      "font-semibold tabular-nums",
+                                      result.capacityCheck.exceedsRecommended
+                                        ? "text-red-600 dark:text-red-400"
+                                        : result.capacityCheck.utilizationPercent > 85
+                                        ? "text-yellow-600 dark:text-yellow-400"
+                                        : "text-green-600 dark:text-green-400"
+                                    ].join(" ")}>
+                                      {result.capacityCheck.utilizationPercent.toFixed(0)}%
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Warning for exceeding capacity */}
+                                  {result.capacityCheck.exceedsAbsolute && (
+                                    <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-red-900 dark:text-red-200">
+                                            <span className="sr-only">Warning: </span>Pipe Undersized - Critical Issue
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-1">
+                                            Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds absolute pipe capacity 
+                                            ({result.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr at {result.capacityCheck.maxAbsoluteGPM.toFixed(1)} GPM).
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-2 font-semibold">
+                                            Required actions:
+                                          </p>
+                                          <ul className="text-xs text-red-800 dark:text-red-300 mt-1 space-y-1 list-disc list-inside">
+                                            <li>Increase pipe size to {zone.size === '1/2"' ? '3/4"' : zone.size === '3/4"' ? '1"' : zone.size === '1"' ? '1-1/4"' : 'larger diameter'}</li>
+                                            <li>Increase ΔT from {zone.deltaT}°F to {Math.ceil(parseNum(zone.deltaT) * 1.5)}°F or higher</li>
+                                            <li>Split this zone into multiple zones</li>
+                                            <li>Reduce assigned BTU load for this zone</li>
+                                          </ul>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Warning for exceeding recommended but not absolute */}
+                                  {result.capacityCheck.exceedsRecommended && !result.capacityCheck.exceedsAbsolute && (
+                                    <div className="mt-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
+                                            <span className="sr-only">Warning: </span>Flow Velocity Exceeds Recommended Limit
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-1">
+                                            Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds recommended pipe capacity 
+                                            ({result.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr at {result.capacityCheck.maxRecommendedGPM.toFixed(1)} GPM).
+                                            Current velocity: {result.velocity.toFixed(2)} ft/s.
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2">
+                                            <strong>Potential issues:</strong> Increased noise, higher head loss, accelerated erosion over time.
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2 font-semibold">
+                                            Recommended actions:
+                                          </p>
+                                          <ul className="text-xs text-yellow-800 dark:text-yellow-300 mt-1 space-y-1 list-disc list-inside">
+                                            <li>Consider increasing pipe size for quieter, more efficient operation</li>
+                                            <li>Increase ΔT to reduce required flow</li>
+                                            <li>Accept higher velocity if noise and erosion are acceptable</li>
+                                          </ul>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Good status when within recommended limits */}
+                                  {!result.capacityCheck.exceedsRecommended && result.capacityCheck.utilizationPercent > 0 && (
+                                    <div className="mt-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
+                                      <div className="flex gap-2 items-center">
+                                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <p className="text-xs text-green-800 dark:text-green-300">
+                                          <span className="sr-only">Success: </span>Pipe size adequate for assigned load. Velocity within recommended limits.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Low velocity informational warning */}
+                                  {result.capacityCheck.hasLowVelocity && result.capacityCheck.velocity > 0 && (
+                                    <div className="mt-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-blue-900 dark:text-blue-200">
+                                            <span className="sr-only">Information: </span>Low Flow Velocity
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">
+                                            Current velocity ({result.capacityCheck.velocity.toFixed(2)} ft/s) is at or below 1.0 ft/s.
+                                            Air separation probability increases gradually at low velocities, particularly below ~0.6 ft/s.
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
+                                            <strong>Considerations:</strong> This is informational guidance, not an error. 
+                                            Low velocities may lead to air accumulation in high points or inadequate air scavenging to separators.
+                                            Consider air elimination devices if this is a concern for your system.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </>
+                            )}
                           </div>
                         ) : (
                           <div className="text-sm text-slate-500 dark:text-slate-400">
