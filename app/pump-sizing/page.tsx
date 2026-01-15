@@ -283,16 +283,16 @@ export default function PumpSizingPage() {
         ? calculateGPM(zoneBTU, deltaTCheck.deltaT)
         : 0;
 
-      if (!pipeData || zoneBTU === 0 || !deltaTCheck.valid || !lengthCheck.valid) {
+      if (!pipeData || !deltaTCheck.valid || !lengthCheck.valid) {
         return {
           zone,
           valid: false,
           systemHeatLoadError: !systemHeatLoadCheck.valid && !manualBTUCheck.valid ? systemHeatLoadCheck.error : undefined,
           deltaTError: deltaTCheck.error,
           straightLengthError: lengthCheck.error,
-          zoneBTU: 0,
-          isAutoAssigned: true,
-          flowGPM: 0,
+          zoneBTU,
+          isAutoAssigned,
+          flowGPM,
           straightLength: 0,
           fittingEquivalentLength: 0,
           fittingBreakdown: [],
