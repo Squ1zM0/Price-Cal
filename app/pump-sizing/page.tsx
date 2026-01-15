@@ -27,6 +27,7 @@ interface Fittings {
 interface Zone {
   id: string;
   name: string;
+  assignedBTU: string; // Manual override, empty means use auto-distribution
   deltaT: string;
   material: PipeMaterial;
   size: string;
@@ -143,6 +144,7 @@ export default function PumpSizingPage() {
     {
       id: "zone-1",
       name: "Zone 1",
+      assignedBTU: "",
       deltaT: "20",
       material: "Copper",
       size: "3/4\"",
@@ -258,24 +260,36 @@ export default function PumpSizingPage() {
 
     // Get system-level heat load
     const systemHeatLoadCheck = isHeatLoadValid(advancedSettings.systemHeatLoadBTU);
+    
+    // Auto-distribute system BTU across zones if no manual assignments
+    const autoDistributedBTU = systemHeatLoadCheck.valid && zones.length > 0
+      ? systemHeatLoadCheck.heatLoad / zones.length
+      : 0;
 
     return zones.map((zone) => {
       const deltaTCheck = isDeltaTValid(zone.deltaT);
       const lengthCheck = isStraightLengthValid(zone.straightLength);
       const pipeData = getPipeData(zone.material, zone.size);
 
-      // Calculate GPM from system heat load and zone deltaT
-      const flowGPM = systemHeatLoadCheck.valid && deltaTCheck.valid 
-        ? calculateGPM(systemHeatLoadCheck.heatLoad, deltaTCheck.deltaT)
+      // Determine zone BTU: use manual assignment if provided, otherwise auto-distribute
+      const manualBTUCheck = isHeatLoadValid(zone.assignedBTU);
+      const zoneBTU = manualBTUCheck.valid ? manualBTUCheck.heatLoad : autoDistributedBTU;
+      const isAutoAssigned = !manualBTUCheck.valid;
+
+      // Calculate GPM from zone BTU (not system BTU!)
+      const flowGPM = zoneBTU > 0 && deltaTCheck.valid 
+        ? calculateGPM(zoneBTU, deltaTCheck.deltaT)
         : 0;
 
-      if (!pipeData || !systemHeatLoadCheck.valid || !deltaTCheck.valid || !lengthCheck.valid) {
+      if (!pipeData || zoneBTU === 0 || !deltaTCheck.valid || !lengthCheck.valid) {
         return {
           zone,
           valid: false,
-          systemHeatLoadError: systemHeatLoadCheck.error,
+          systemHeatLoadError: !systemHeatLoadCheck.valid && !manualBTUCheck.valid ? systemHeatLoadCheck.error : undefined,
           deltaTError: deltaTCheck.error,
           straightLengthError: lengthCheck.error,
+          zoneBTU: 0,
+          isAutoAssigned: true,
           flowGPM: 0,
           straightLength: 0,
           fittingEquivalentLength: 0,
@@ -332,6 +346,8 @@ export default function PumpSizingPage() {
         systemHeatLoadError: undefined,
         deltaTError: undefined,
         straightLengthError: undefined,
+        zoneBTU,
+        isAutoAssigned,
         flowGPM,
         straightLength,
         fittingEquivalentLength,
@@ -370,6 +386,7 @@ export default function PumpSizingPage() {
     const newZone: Zone = {
       id: newId,
       name: `Zone ${zones.length + 1}`,
+      assignedBTU: "",
       deltaT: "20",
       material: "Copper",
       size: "3/4\"",
@@ -437,7 +454,7 @@ export default function PumpSizingPage() {
           <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">System Configuration</h2>
           <div className="max-w-md">
             <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-              Boiler / System Heat Load (BTU/hr)
+              Total System Heat Load (BTU/hr)
             </label>
             <input
               type="text"
@@ -450,7 +467,7 @@ export default function PumpSizingPage() {
               className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Total boiler or system capacity used to calculate flow for all zones.
+              Total system capacity from boiler or heat source. This will be automatically distributed across zones ({zones.length} {zones.length === 1 ? 'zone' : 'zones'}).
             </p>
           </div>
         </section>
@@ -541,6 +558,12 @@ export default function PumpSizingPage() {
                     {!isExpanded && (
                       <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-sm">
                         <div>
+                          <span className="text-slate-500 dark:text-slate-400">Zone BTU: </span>
+                          <span className="font-semibold text-slate-900 dark:text-white">
+                            {result.valid ? `${result.zoneBTU.toLocaleString()} ${result.isAutoAssigned ? '(auto)' : ''}` : "—"}
+                          </span>
+                        </div>
+                        <div>
                           <span className="text-slate-500 dark:text-slate-400">Flow: </span>
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {result.valid ? `${result.flowGPM.toFixed(1)} GPM` : "—"}
@@ -550,12 +573,6 @@ export default function PumpSizingPage() {
                           <span className="text-slate-500 dark:text-slate-400">Pipe: </span>
                           <span className="font-semibold text-slate-900 dark:text-white">
                             {zone.material} {zone.size}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-slate-500 dark:text-slate-400">Length: </span>
-                          <span className="font-semibold text-slate-900 dark:text-white">
-                            {result.valid ? `${result.totalEffectiveLength.toFixed(1)} ft` : "—"}
                           </span>
                         </div>
                         <div>
@@ -601,6 +618,36 @@ export default function PumpSizingPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Inputs */}
                       <div className="space-y-4">
+                        {/* Zone BTU Assignment */}
+                        <div>
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                            Zone Heat Load (BTU/hr)
+                            {result.valid && result.isAutoAssigned && (
+                              <span className="ml-1 text-blue-600 dark:text-blue-400 font-normal">
+                                (auto-distributed)
+                              </span>
+                            )}
+                          </label>
+                          <input
+                            type="text"
+                            value={zone.assignedBTU}
+                            onChange={(e) => updateZone(zone.id, { assignedBTU: e.target.value })}
+                            inputMode="decimal"
+                            placeholder={result.valid ? result.zoneBTU.toFixed(0) : "Auto"}
+                            className={[
+                              "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
+                              result.valid && result.isAutoAssigned
+                                ? "bg-blue-50 dark:bg-blue-900/20 text-blue-900 dark:text-blue-200 ring-blue-200 dark:ring-blue-700 focus:ring-blue-500"
+                                : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
+                            ].join(" ")}
+                          />
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            {result.valid && result.isAutoAssigned
+                              ? `System BTU (${parseNum(advancedSettings.systemHeatLoadBTU).toLocaleString()}) ÷ ${zones.length} zones = ${result.zoneBTU.toFixed(0)} BTU/hr per zone`
+                              : "Leave empty to auto-distribute system BTU, or enter a specific value"}
+                          </p>
+                        </div>
+
                         {/* ΔT Slider */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
@@ -638,7 +685,7 @@ export default function PumpSizingPage() {
                             {result.valid ? `${result.flowGPM.toFixed(1)} GPM` : "—"}
                           </div>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            GPM = System BTU/hr ÷ (500 × Zone ΔT)
+                            GPM = Zone BTU/hr ÷ (500 × Zone ΔT)
                           </p>
                         </div>
 
@@ -770,6 +817,26 @@ export default function PumpSizingPage() {
                         </h3>
                         {result.valid ? (
                           <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">
+                                Zone BTU:
+                                {result.isAutoAssigned && (
+                                  <span className="text-xs ml-1 text-blue-600 dark:text-blue-400">
+                                    (auto)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                {result.zoneBTU.toLocaleString()} BTU/hr
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">Zone flow:</span>
+                              <span className="font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
+                                {result.flowGPM.toFixed(2)} GPM
+                              </span>
+                            </div>
+                            <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
                             <div className="flex justify-between">
                               <span className="text-slate-600 dark:text-slate-400">Straight pipe:</span>
                               <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
