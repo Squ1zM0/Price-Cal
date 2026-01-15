@@ -555,30 +555,44 @@ The following tests verify zone independence:
 
 ### Current Assumptions
 
+**Note:** These assumptions are documented as of the version specified in the "Version History" section below. Any changes to these assumptions should be tracked in that section.
+
 1. **Pipe Condition:** New, clean pipe
    - Roughness values are for new pipe
    - May increase with age/corrosion (not modeled)
+   - **Impact:** Head loss calculations may underestimate for aged systems
+   - **Recommendation:** Apply safety factor for existing systems
 
 2. **Fluid:** Pure water or ethylene/propylene glycol solutions
    - Glycol properties are approximations
    - For critical applications, use exact manufacturer data
+   - **Impact:** Glycol calculations may vary ±10% from actual
+   - **Recommendation:** Validate with manufacturer data for final designs
 
 3. **Temperature:** User-specified constant temperature
    - Default: 60°F
    - Range: 40-180°F
    - No heat loss along pipe considered
+   - **Impact:** Actual viscosity may vary if temperature varies
+   - **Recommendation:** Use average system temperature
 
 4. **Flow Regime:** Primarily turbulent (Re > 4,000)
    - Most HVAC systems operate in turbulent regime
    - Laminar flow (Re < 2,300) uses f = 64/Re
+   - **Impact:** Low-flow systems may be less accurate
+   - **Recommendation:** Check Reynolds number in results
 
 5. **Fittings:** Standard fittings (not long-radius or reducing)
    - Values are for typical HVAC fittings
    - Special fittings may have different losses
+   - **Impact:** Unusual fittings may have ±20% variation
+   - **Recommendation:** Consult Crane TP-410 for special fittings
 
 6. **Elevation:** Not considered in current implementation
    - Static head would need to be added separately
    - Applicable to horizontal or level systems
+   - **Impact:** Vertical systems require manual static head addition
+   - **Recommendation:** Add static head (0.433 psi/ft of elevation) separately
 
 ### Accuracy Expectations
 
@@ -593,12 +607,34 @@ The following tests verify zone independence:
 ## Version History
 
 - **Version 1.0** (January 2026)
-  - Initial documentation
+  - Initial comprehensive documentation
   - Darcy-Weisbach and Hazen-Williams methods
   - ASTM B88 Type L, Schedule 40, CTS SDR-9 dimensions
   - Swamee-Jain friction factor
   - Crane TP-410 equivalent lengths
   - NIST/ASHRAE fluid properties
+  - Documented assumptions: new pipe, constant temperature, no elevation
+  - Default temperature: 60°F
+  - Supported range: 40-180°F
+
+### Tracking Changes
+
+**Future updates to assumptions or formulas should be documented here with:**
+- Version number
+- Date of change
+- Description of what changed
+- Reason for change
+- Impact on calculations
+- Migration notes (if applicable)
+
+**Example format:**
+```
+- **Version 1.1** (Date)
+  - Changed: [what was modified]
+  - Reason: [why it was changed]
+  - Impact: [how it affects calculations]
+  - Migration: [what users need to do]
+```
 
 ---
 
