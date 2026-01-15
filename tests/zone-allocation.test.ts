@@ -5,10 +5,10 @@ import { test } from "node:test";
  * Tests for zone-based heat allocation model
  * 
  * These tests verify that:
- * 1. System BTU is NOT applied directly to each zone
- * 2. Zone flow derives from zone BTU, not system BTU
- * 3. Adding zones does not explode total flow
- * 4. Pump sizing reflects correct total flow and critical zone head
+ * 1. System BTU is NOT applied directly to each zone.
+ * 2. Zone flow derives from zone BTU, not system BTU.
+ * 3. Adding zones does not explode total flow.
+ * 4. Pump sizing reflects correct total flow and critical zone head.
  */
 
 const within = (actual: number, expected: number, tolerance: number, label: string) => {
@@ -161,7 +161,7 @@ test("Realistic scenario: 200k BTU system with 4 zones", () => {
   const directSystemGPM = systemBTU / (500 * deltaT);
   assert.strictEqual(totalGPM, directSystemGPM, "Total equals system flow");
   
-  // OLD INCORRECT behavior would have been:
+  // Old incorrect behavior would have been:
   const oldIncorrectZoneGPM = systemBTU / (500 * deltaT); // 20 GPM per zone
   const oldIncorrectTotal = oldIncorrectZoneGPM * numZones; // 80 GPM total!
   
