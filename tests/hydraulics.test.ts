@@ -65,7 +65,8 @@ test('Hazen-Williams produces conservative head loss for copper with updated C-v
   // Test case: 5 GPM through 1/2" copper, 50 ft total length
   const result = calculateZoneHead(5, 50, 0, copper, water140, "Hazen-Williams");
   
-  // With C=140 (vs old C=130), head loss should be higher (more conservative)
+  // With C=140 (new copper per ASHRAE), head loss aligns with published references
+  // Note: Higher C-value = smoother pipe = lower friction loss
   // Expected head loss with C=140 should be in a realistic range
   assert.ok(result.headLoss > 5, "Head loss should be meaningful for 5 GPM in 1/2\" pipe");
   assert.ok(result.headLoss < 30, "Head loss should not be excessive for this scenario");
