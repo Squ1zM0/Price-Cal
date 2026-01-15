@@ -27,7 +27,7 @@ interface Fittings {
 interface Zone {
   id: string;
   name: string;
-  flowGPM: string;
+  deltaT: string;
   material: PipeMaterial;
   size: string;
   straightLength: string;
@@ -44,6 +44,7 @@ interface AdvancedSettings {
   customCValue: string;
   headSafetyFactor: string;
   flowSafetyFactor: string;
+  systemHeatLoadBTU: string;
 }
 
 // Utility functions
@@ -142,7 +143,7 @@ export default function PumpSizingPage() {
     {
       id: "zone-1",
       name: "Zone 1",
-      flowGPM: "",
+      deltaT: "20",
       material: "Copper",
       size: "3/4\"",
       straightLength: "",
@@ -165,29 +166,54 @@ export default function PumpSizingPage() {
       customCValue: "",
       headSafetyFactor: "10",
       flowSafetyFactor: "0",
+      systemHeatLoadBTU: "",
     }
   );
 
-  // Helper to check if flow is valid
-  function isFlowValid(flowStr: string): { valid: boolean; flow: number; error?: string } {
-    const trimmed = flowStr.trim();
+  // Helper to check if heat load is valid
+  function isHeatLoadValid(heatLoadStr: string): { valid: boolean; heatLoad: number; error?: string } {
+    const trimmed = heatLoadStr.trim();
     
     if (trimmed === "") {
-      return { valid: false, flow: 0 };
+      return { valid: false, heatLoad: 0 };
     }
     
     // Check for explicit negative sign at the start (excluding scientific notation)
     if (trimmed.startsWith("-") && !trimmed.includes("e")) {
-      return { valid: false, flow: 0, error: "Flow rate must be positive" };
+      return { valid: false, heatLoad: 0, error: "Heat load must be positive" };
     }
     
-    const flow = parseNum(flowStr);
+    const heatLoad = parseNum(heatLoadStr);
     
-    if (flow === 0) {
-      return { valid: false, flow: 0, error: "Enter a positive flow rate" };
+    if (heatLoad === 0) {
+      return { valid: false, heatLoad: 0, error: "Enter a positive heat load" };
     }
     
-    return { valid: true, flow };
+    return { valid: true, heatLoad };
+  }
+
+  // Helper to check if deltaT is valid
+  function isDeltaTValid(deltaTStr: string): { valid: boolean; deltaT: number; error?: string } {
+    const trimmed = deltaTStr.trim();
+    
+    if (trimmed === "") {
+      return { valid: false, deltaT: 0 };
+    }
+    
+    const deltaT = parseNum(deltaTStr);
+    
+    if (deltaT === 0) {
+      return { valid: false, deltaT: 0, error: "ΔT must be greater than 0" };
+    }
+    
+    return { valid: true, deltaT };
+  }
+
+  // Calculate GPM from heat load and deltaT
+  function calculateGPM(heatLoadBTU: number, deltaT: number): number {
+    // GPM = BTU/hr ÷ (500 × ΔT)
+    if (deltaT === 0) return 0;
+    return heatLoadBTU / (500 * deltaT);
   }
 
   // Helper to check if straight pipe length is valid
@@ -230,17 +256,27 @@ export default function PumpSizingPage() {
       parseNum(advancedSettings.customViscosity)
     );
 
+    // Get system-level heat load
+    const systemHeatLoadCheck = isHeatLoadValid(advancedSettings.systemHeatLoadBTU);
+
     return zones.map((zone) => {
-      const flowCheck = isFlowValid(zone.flowGPM);
+      const deltaTCheck = isDeltaTValid(zone.deltaT);
       const lengthCheck = isStraightLengthValid(zone.straightLength);
       const pipeData = getPipeData(zone.material, zone.size);
 
-      if (!pipeData || !flowCheck.valid || !lengthCheck.valid) {
+      // Calculate GPM from system heat load and zone deltaT
+      const flowGPM = systemHeatLoadCheck.valid && deltaTCheck.valid 
+        ? calculateGPM(systemHeatLoadCheck.heatLoad, deltaTCheck.deltaT)
+        : 0;
+
+      if (!pipeData || !systemHeatLoadCheck.valid || !deltaTCheck.valid || !lengthCheck.valid) {
         return {
           zone,
           valid: false,
-          flowError: flowCheck.error,
+          systemHeatLoadError: systemHeatLoadCheck.error,
+          deltaTError: deltaTCheck.error,
           straightLengthError: lengthCheck.error,
+          flowGPM: 0,
           straightLength: 0,
           fittingEquivalentLength: 0,
           fittingBreakdown: [],
@@ -251,7 +287,6 @@ export default function PumpSizingPage() {
         };
       }
 
-      const flowGPM = flowCheck.flow;
       const straightLength = lengthCheck.length;
 
       // Calculate fitting equivalent length and breakdown
@@ -294,8 +329,10 @@ export default function PumpSizingPage() {
       return {
         zone,
         valid: true,
-        flowError: undefined,
+        systemHeatLoadError: undefined,
+        deltaTError: undefined,
         straightLengthError: undefined,
+        flowGPM,
         straightLength,
         fittingEquivalentLength,
         fittingBreakdown,
@@ -313,7 +350,7 @@ export default function PumpSizingPage() {
       return { totalFlowGPM: 0, requiredHeadFt: 0, criticalZone: null };
     }
 
-    const totalFlowGPM = validResults.reduce((sum, r) => sum + parseNum(r.zone.flowGPM), 0);
+    const totalFlowGPM = validResults.reduce((sum, r) => sum + r.flowGPM, 0);
     const maxHeadLoss = Math.max(...validResults.map((r) => r.headLoss));
     const criticalZone = validResults.find((r) => r.headLoss === maxHeadLoss);
 
@@ -333,7 +370,7 @@ export default function PumpSizingPage() {
     const newZone: Zone = {
       id: newId,
       name: `Zone ${zones.length + 1}`,
-      flowGPM: "",
+      deltaT: "20",
       material: "Copper",
       size: "3/4\"",
       straightLength: "",
@@ -394,6 +431,29 @@ export default function PumpSizingPage() {
     <div className="min-h-[100dvh] bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 px-3 py-3 sm:px-6 sm:py-6 transition-colors duration-300">
       <div className="mx-auto w-full max-w-7xl flex flex-col gap-3">
         <AppHeader title="Pump Sizing Calculator" subtitle="Hydronic system pump selection" />
+
+        {/* System-Level Inputs */}
+        <section className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg ring-1 ring-slate-200 dark:ring-slate-700 p-5">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">System Configuration</h2>
+          <div className="max-w-md">
+            <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+              Boiler / System Heat Load (BTU/hr)
+            </label>
+            <input
+              type="text"
+              value={advancedSettings.systemHeatLoadBTU}
+              onChange={(e) =>
+                setAdvancedSettings({ ...advancedSettings, systemHeatLoadBTU: e.target.value })
+              }
+              inputMode="decimal"
+              placeholder="150000"
+              className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Total boiler or system capacity used to calculate flow for all zones.
+            </p>
+          </div>
+        </section>
 
         {/* System Results */}
         <section className="rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 shadow-xl p-5 text-white">
@@ -483,7 +543,7 @@ export default function PumpSizingPage() {
                         <div>
                           <span className="text-slate-500 dark:text-slate-400">Flow: </span>
                           <span className="font-semibold text-slate-900 dark:text-white">
-                            {zone.flowGPM ? `${parseNum(zone.flowGPM).toFixed(1)} GPM` : "—"}
+                            {result.valid ? `${result.flowGPM.toFixed(1)} GPM` : "—"}
                           </span>
                         </div>
                         <div>
@@ -541,29 +601,45 @@ export default function PumpSizingPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Inputs */}
                       <div className="space-y-4">
-                        {/* Flow */}
+                        {/* ΔT Slider */}
+                        <div>
+                          <div className="flex items-center justify-between mb-1">
+                            <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                              Temperature Difference (ΔT)
+                            </label>
+                            <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
+                              {parseNum(zone.deltaT).toFixed(0)}°F
+                            </span>
+                          </div>
+                          <input
+                            type="range"
+                            min="10"
+                            max="80"
+                            step="1"
+                            value={parseNum(zone.deltaT)}
+                            onChange={(e) => updateZone(zone.id, { deltaT: e.target.value })}
+                            className="mt-1 w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-blue-500"
+                          />
+                          <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
+                            <span>10°F</span>
+                            <span>80°F</span>
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            Design temperature drop for this zone (varies by emitter type).
+                          </p>
+                        </div>
+
+                        {/* Calculated Flow (Read-only) */}
                         <div>
                           <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                            Design Flow (GPM)
+                            Calculated Flow
                           </label>
-                          <input
-                            type="text"
-                            value={zone.flowGPM}
-                            onChange={(e) => updateZone(zone.id, { flowGPM: e.target.value })}
-                            inputMode="decimal"
-                            placeholder="0.0"
-                            className={[
-                              "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
-                              result.flowError
-                                ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
-                                : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
-                            ].join(" ")}
-                          />
-                          {result.flowError && (
-                            <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
-                              {result.flowError}
-                            </p>
-                          )}
+                          <div className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 text-blue-900 dark:text-blue-200 ring-1 ring-inset ring-blue-200 dark:ring-blue-700">
+                            {result.valid ? `${result.flowGPM.toFixed(1)} GPM` : "—"}
+                          </div>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            GPM = System BTU/hr ÷ (500 × Zone ΔT)
+                          </p>
                         </div>
 
                         {/* Material */}
@@ -769,7 +845,7 @@ export default function PumpSizingPage() {
                           </div>
                         ) : (
                           <div className="text-sm text-slate-500 dark:text-slate-400">
-                            {result.flowError || result.straightLengthError || "Enter flow rate and pipe length to see results"}
+                            {result.systemHeatLoadError || result.deltaTError || result.straightLengthError || "Enter system heat load and pipe length to see results"}
                           </div>
                         )}
                       </div>
@@ -825,6 +901,7 @@ export default function PumpSizingPage() {
                     customCValue: "",
                     headSafetyFactor: "10",
                     flowSafetyFactor: "0",
+                    systemHeatLoadBTU: "",
                   })
                 }
                 className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
