@@ -349,7 +349,8 @@ export default function PumpSizingPage() {
         flowGPM,
         deltaTCheck.deltaT,
         pipeData,
-        advancedSettings.fluidType
+        advancedSettings.fluidType,
+        calc.velocity
       );
 
       return {
@@ -1025,6 +1026,31 @@ export default function PumpSizingPage() {
                                         <p className="text-xs text-green-800 dark:text-green-300">
                                           <span className="sr-only">Success: </span>Pipe size adequate for assigned load. Velocity within recommended limits.
                                         </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Low velocity informational warning */}
+                                  {result.capacityCheck.hasLowVelocity && result.capacityCheck.velocity > 0 && (
+                                    <div className="mt-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-blue-900 dark:text-blue-200">
+                                            <span className="sr-only">Information: </span>Low Flow Velocity
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">
+                                            Current velocity ({result.capacityCheck.velocity.toFixed(2)} ft/s) is at or below 1.0 ft/s.
+                                            Air separation probability increases gradually at low velocities, particularly below ~0.6 ft/s.
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
+                                            <strong>Considerations:</strong> This is informational guidance, not an error. 
+                                            Low velocities may lead to air accumulation in high points or inadequate air scavenging to separators.
+                                            Consider air elimination devices if this is a concern for your system.
+                                          </p>
+                                        </div>
                                       </div>
                                     </div>
                                   )}

@@ -270,6 +270,8 @@ export const VELOCITY_LIMITS = {
   WATER_ABSOLUTE_MAX: 8.0,     // ft/s maximum before erosion concerns
   GLYCOL_RECOMMENDED_MAX: 3.5, // ft/s for glycol solutions (higher viscosity)
   GLYCOL_ABSOLUTE_MAX: 6.0,    // ft/s maximum for glycol
+  // Minimum velocity threshold for air separation concerns
+  LOW_VELOCITY_THRESHOLD: 1.0, // ft/s - below this, air separation may occur
 };
 
 /**
@@ -328,6 +330,8 @@ export interface HydraulicCapacityCheck {
   exceedsRecommended: boolean;    // True if assigned BTU exceeds recommended capacity
   exceedsAbsolute: boolean;       // True if assigned BTU exceeds absolute capacity
   utilizationPercent: number;     // Percentage of recommended capacity being used
+  hasLowVelocity: boolean;        // True if velocity is at or below low velocity threshold
+  velocity: number;               // Current velocity in ft/s
 }
 
 /**
@@ -337,6 +341,7 @@ export interface HydraulicCapacityCheck {
  * @param deltaT - Temperature difference in °F
  * @param pipeData - Pipe specifications
  * @param fluidType - Type of fluid
+ * @param velocity - Current velocity in ft/s
  * @returns Hydraulic capacity check result
  */
 export function checkHydraulicCapacity(
@@ -344,7 +349,8 @@ export function checkHydraulicCapacity(
   flowGPM: number,
   deltaT: number,
   pipeData: PipeData,
-  fluidType: FluidType
+  fluidType: FluidType,
+  velocity: number
 ): HydraulicCapacityCheck {
   const maxRecommendedGPM = calculateMaxGPMFromVelocity(
     pipeData.internalDiameter,
@@ -366,6 +372,9 @@ export function checkHydraulicCapacity(
   
   const utilizationPercent = (assignedBTU / capacityBTURecommended) * 100;
   
+  // Check if velocity is at or below low velocity threshold (air separation concerns)
+  const hasLowVelocity = velocity <= VELOCITY_LIMITS.LOW_VELOCITY_THRESHOLD;
+  
   return {
     maxRecommendedGPM,
     maxAbsoluteGPM,
@@ -374,5 +383,7 @@ export function checkHydraulicCapacity(
     exceedsRecommended,
     exceedsAbsolute,
     utilizationPercent,
+    hasLowVelocity,
+    velocity,
   };
 }
