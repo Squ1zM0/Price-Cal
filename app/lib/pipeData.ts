@@ -45,11 +45,11 @@ export const PIPE_DATA: Record<PipeMaterial, Record<string, PipeData>> = {
   },
   PEX: {
     "1/2\"": { nominalSize: "1/2\"", internalDiameter: 0.475, roughness: 0.000003, hazenWilliamsC: 150 },
-    "3/4\"": { nominalSize: "3/4\"", internalDiameter: 0.671, roughness: 0.000003, hazenWilliamsC: 150 },
+    "3/4\"": { nominalSize: "3/4\"", internalDiameter: 0.681, roughness: 0.000003, hazenWilliamsC: 150 },
     "1\"": { nominalSize: "1\"", internalDiameter: 0.875, roughness: 0.000003, hazenWilliamsC: 150 },
-    "1-1/4\"": { nominalSize: "1-1/4\"", internalDiameter: 1.063, roughness: 0.000003, hazenWilliamsC: 150 },
-    "1-1/2\"": { nominalSize: "1-1/2\"", internalDiameter: 1.275, roughness: 0.000003, hazenWilliamsC: 150 },
-    "2\"": { nominalSize: "2\"", internalDiameter: 1.680, roughness: 0.000003, hazenWilliamsC: 150 },
+    "1-1/4\"": { nominalSize: "1-1/4\"", internalDiameter: 1.054, roughness: 0.000003, hazenWilliamsC: 150 },
+    "1-1/2\"": { nominalSize: "1-1/2\"", internalDiameter: 1.311, roughness: 0.000003, hazenWilliamsC: 150 },
+    "2\"": { nominalSize: "2\"", internalDiameter: 1.709, roughness: 0.000003, hazenWilliamsC: 150 },
   },
 };
 

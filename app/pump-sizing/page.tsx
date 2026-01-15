@@ -160,7 +160,7 @@ export default function PumpSizingPage() {
       fluidType: "Water",
       temperature: "140",
       customDensity: "62.4",
-      customViscosity: "0.000008",
+      customViscosity: "0.00067",
       calculationMethod: "Darcy-Weisbach",
       customRoughness: "",
       customCValue: "",

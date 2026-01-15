@@ -20,20 +20,44 @@ export interface FluidProperties {
 /**
  * Get fluid properties for water at a given temperature
  * Temperature in °F
+ *
+ * Dynamic viscosity values here are derived from standard water tables.
+ * Viscosity is represented in lbm/(ft·s) to keep Reynolds numbers realistic.
  */
 export function getWaterProperties(tempF: number): FluidProperties {
-  // Simplified water properties (linear interpolation between key points)
-  // For production, use more accurate tables
-  const density = 62.4; // lb/ft³ (approximately constant for HVAC range)
-  
-  // Viscosity decreases with temperature
-  // At 40°F: ~1.67e-5 lb/(ft·s), at 180°F: ~0.47e-5 lb/(ft·s)
-  const dynamicViscosity = 1.67e-5 - ((tempF - 40) * (1.2e-5)) / 140;
-  
+  const density = 62.4; // lbm/ft³ (approximately constant for HVAC range)
+
+  // Kinematic viscosity reference points (ft²/s) converted from cSt water tables
+  const viscosityTable = [
+    { tempF: 40, nu: 1.64e-5 },
+    { tempF: 60, nu: 1.23e-5 },
+    { tempF: 80, nu: 1.02e-5 },
+    { tempF: 100, nu: 7.96e-6 },
+    { tempF: 120, nu: 6.46e-6 },
+    { tempF: 140, nu: 5.06e-6 },
+    { tempF: 160, nu: 4.20e-6 },
+    { tempF: 180, nu: 3.66e-6 },
+  ];
+
+  const clampedTemp = Math.max(viscosityTable[0].tempF, Math.min(tempF, viscosityTable[viscosityTable.length - 1].tempF));
+
+  let kinematicViscosity = viscosityTable[viscosityTable.length - 1].nu;
+  for (let i = 0; i < viscosityTable.length - 1; i++) {
+    const lower = viscosityTable[i];
+    const upper = viscosityTable[i + 1];
+    if (clampedTemp >= lower.tempF && clampedTemp <= upper.tempF) {
+      const ratio = (clampedTemp - lower.tempF) / (upper.tempF - lower.tempF);
+      kinematicViscosity = lower.nu + (upper.nu - lower.nu) * ratio;
+      break;
+    }
+  }
+
+  const dynamicViscosity = kinematicViscosity * density;
+
   return {
     density,
     dynamicViscosity,
-    kinematicViscosity: dynamicViscosity / density,
+    kinematicViscosity,
   };
 }
 
@@ -46,12 +70,15 @@ export function getGlycolProperties(
 ): FluidProperties {
   // Glycol increases density and viscosity
   const waterProps = getWaterProperties(tempF);
-  const glycolFactor = 1 + percentage / 200; // Simplified
+  const glycolViscosityFactor = 1 + percentage / 20; // Approximate: 30% ≈ 2.5×, 50% ≈ 3.5× water viscosity
+  const glycolDensityFactor = 1 + percentage / 500;
   
   return {
-    density: waterProps.density * (1 + percentage / 500),
-    dynamicViscosity: waterProps.dynamicViscosity * glycolFactor,
-    kinematicViscosity: waterProps.dynamicViscosity * glycolFactor / (waterProps.density * (1 + percentage / 500)),
+    density: waterProps.density * glycolDensityFactor,
+    dynamicViscosity: waterProps.dynamicViscosity * glycolViscosityFactor,
+    kinematicViscosity:
+      (waterProps.dynamicViscosity * glycolViscosityFactor) /
+      (waterProps.density * glycolDensityFactor),
   };
 }
 
