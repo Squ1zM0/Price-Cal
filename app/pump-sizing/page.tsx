@@ -450,7 +450,7 @@ export default function PumpSizingPage() {
               className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Total boiler or system capacity used to calculate flow for all zones
+              Total boiler or system capacity used to calculate flow for all zones.
             </p>
           </div>
         </section>
@@ -625,7 +625,7 @@ export default function PumpSizingPage() {
                             <span>80°F</span>
                           </div>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            Design temperature drop for this zone (varies by emitter type)
+                            Design temperature drop for this zone (varies by emitter type).
                           </p>
                         </div>
 
