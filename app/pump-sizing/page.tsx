@@ -27,7 +27,6 @@ interface Fittings {
 interface Zone {
   id: string;
   name: string;
-  heatLoadBTU: string;
   deltaT: string;
   material: PipeMaterial;
   size: string;
@@ -45,6 +44,7 @@ interface AdvancedSettings {
   customCValue: string;
   headSafetyFactor: string;
   flowSafetyFactor: string;
+  systemHeatLoadBTU: string;
 }
 
 // Utility functions
@@ -143,7 +143,6 @@ export default function PumpSizingPage() {
     {
       id: "zone-1",
       name: "Zone 1",
-      heatLoadBTU: "",
       deltaT: "20",
       material: "Copper",
       size: "3/4\"",
@@ -167,6 +166,7 @@ export default function PumpSizingPage() {
       customCValue: "",
       headSafetyFactor: "10",
       flowSafetyFactor: "0",
+      systemHeatLoadBTU: "",
     }
   );
 
@@ -256,22 +256,24 @@ export default function PumpSizingPage() {
       parseNum(advancedSettings.customViscosity)
     );
 
+    // Get system-level heat load
+    const systemHeatLoadCheck = isHeatLoadValid(advancedSettings.systemHeatLoadBTU);
+
     return zones.map((zone) => {
-      const heatLoadCheck = isHeatLoadValid(zone.heatLoadBTU);
       const deltaTCheck = isDeltaTValid(zone.deltaT);
       const lengthCheck = isStraightLengthValid(zone.straightLength);
       const pipeData = getPipeData(zone.material, zone.size);
 
-      // Calculate GPM from heat load and deltaT
-      const flowGPM = heatLoadCheck.valid && deltaTCheck.valid 
-        ? calculateGPM(heatLoadCheck.heatLoad, deltaTCheck.deltaT)
+      // Calculate GPM from system heat load and zone deltaT
+      const flowGPM = systemHeatLoadCheck.valid && deltaTCheck.valid 
+        ? calculateGPM(systemHeatLoadCheck.heatLoad, deltaTCheck.deltaT)
         : 0;
 
-      if (!pipeData || !heatLoadCheck.valid || !deltaTCheck.valid || !lengthCheck.valid) {
+      if (!pipeData || !systemHeatLoadCheck.valid || !deltaTCheck.valid || !lengthCheck.valid) {
         return {
           zone,
           valid: false,
-          heatLoadError: heatLoadCheck.error,
+          systemHeatLoadError: systemHeatLoadCheck.error,
           deltaTError: deltaTCheck.error,
           straightLengthError: lengthCheck.error,
           flowGPM: 0,
@@ -327,7 +329,7 @@ export default function PumpSizingPage() {
       return {
         zone,
         valid: true,
-        heatLoadError: undefined,
+        systemHeatLoadError: undefined,
         deltaTError: undefined,
         straightLengthError: undefined,
         flowGPM,
@@ -368,7 +370,6 @@ export default function PumpSizingPage() {
     const newZone: Zone = {
       id: newId,
       name: `Zone ${zones.length + 1}`,
-      heatLoadBTU: "",
       deltaT: "20",
       material: "Copper",
       size: "3/4\"",
@@ -430,6 +431,29 @@ export default function PumpSizingPage() {
     <div className="min-h-[100dvh] bg-gradient-to-br from-slate-50 via-slate-100 to-slate-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 px-3 py-3 sm:px-6 sm:py-6 transition-colors duration-300">
       <div className="mx-auto w-full max-w-7xl flex flex-col gap-3">
         <AppHeader title="Pump Sizing Calculator" subtitle="Hydronic system pump selection" />
+
+        {/* System-Level Inputs */}
+        <section className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg ring-1 ring-slate-200 dark:ring-slate-700 p-5">
+          <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">System Configuration</h2>
+          <div className="max-w-md">
+            <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+              Boiler / System Heat Load (BTU/hr)
+            </label>
+            <input
+              type="text"
+              value={advancedSettings.systemHeatLoadBTU}
+              onChange={(e) =>
+                setAdvancedSettings({ ...advancedSettings, systemHeatLoadBTU: e.target.value })
+              }
+              inputMode="decimal"
+              placeholder="150000"
+              className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Total boiler or system capacity used to calculate flow for all zones
+            </p>
+          </div>
+        </section>
 
         {/* System Results */}
         <section className="rounded-3xl bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 shadow-xl p-5 text-white">
@@ -577,31 +601,6 @@ export default function PumpSizingPage() {
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                       {/* Inputs */}
                       <div className="space-y-4">
-                        {/* Heat Load */}
-                        <div>
-                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                            Heat Load (BTU/hr)
-                          </label>
-                          <input
-                            type="text"
-                            value={zone.heatLoadBTU}
-                            onChange={(e) => updateZone(zone.id, { heatLoadBTU: e.target.value })}
-                            inputMode="decimal"
-                            placeholder="150000"
-                            className={[
-                              "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
-                              result.heatLoadError
-                                ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
-                                : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
-                            ].join(" ")}
-                          />
-                          {result.heatLoadError && (
-                            <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
-                              {result.heatLoadError}
-                            </p>
-                          )}
-                        </div>
-
                         {/* ΔT Slider */}
                         <div>
                           <div className="flex items-center justify-between mb-1">
@@ -626,7 +625,7 @@ export default function PumpSizingPage() {
                             <span>80°F</span>
                           </div>
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            Flow is calculated using GPM = BTU/hr ÷ (500 × ΔT)
+                            Design temperature drop for this zone (varies by emitter type)
                           </p>
                         </div>
 
@@ -638,6 +637,9 @@ export default function PumpSizingPage() {
                           <div className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 text-blue-900 dark:text-blue-200 ring-1 ring-inset ring-blue-200 dark:ring-blue-700">
                             {result.valid ? `${result.flowGPM.toFixed(1)} GPM` : "—"}
                           </div>
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            GPM = System BTU/hr ÷ (500 × Zone ΔT)
+                          </p>
                         </div>
 
                         {/* Material */}
@@ -843,7 +845,7 @@ export default function PumpSizingPage() {
                           </div>
                         ) : (
                           <div className="text-sm text-slate-500 dark:text-slate-400">
-                            {result.heatLoadError || result.deltaTError || result.straightLengthError || "Enter heat load and pipe length to see results"}
+                            {result.systemHeatLoadError || result.deltaTError || result.straightLengthError || "Enter system heat load and pipe length to see results"}
                           </div>
                         )}
                       </div>
@@ -899,6 +901,7 @@ export default function PumpSizingPage() {
                     customCValue: "",
                     headSafetyFactor: "10",
                     flowSafetyFactor: "0",
+                    systemHeatLoadBTU: "",
                   })
                 }
                 className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
