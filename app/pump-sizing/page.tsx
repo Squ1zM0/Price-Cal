@@ -263,19 +263,51 @@ export default function PumpSizingPage() {
     // Get system-level heat load
     const systemHeatLoadCheck = isHeatLoadValid(advancedSettings.systemHeatLoadBTU);
     
-    // Auto-distribute system BTU across zones if no manual assignments
-    const autoDistributedBTU = systemHeatLoadCheck.valid && zones.length > 0
-      ? systemHeatLoadCheck.heatLoad / zones.length
-      : 0;
+    // Calculate zone weights for proportional BTU distribution
+    // Weight is based on effective pipe length (straight + fittings equivalent)
+    const zoneWeights = zones.map((zone) => {
+      const lengthCheck = isStraightLengthValid(zone.straightLength);
+      if (!lengthCheck.valid) return 0;
+      
+      const straightLength = lengthCheck.length;
+      let fittingEquivalentLength = 0;
+      
+      (Object.keys(zone.fittings) as FittingType[]).forEach((fittingType) => {
+        const count = zone.fittings[fittingType];
+        if (count > 0) {
+          const eqLength = getFittingEquivalentLength(fittingType, zone.material, zone.size);
+          fittingEquivalentLength += count * eqLength;
+        }
+      });
+      
+      return straightLength + fittingEquivalentLength;
+    });
+    
+    const totalWeight = zoneWeights.reduce((sum, w) => sum + w, 0);
+    
+    // Auto-distribute system BTU across zones proportionally if no manual assignments
+    // If no weights (no zones have valid lengths), distribute evenly
+    const autoDistributeBTU = (zoneIndex: number): number => {
+      if (!systemHeatLoadCheck.valid || zones.length === 0) return 0;
+      
+      if (totalWeight === 0) {
+        // No zone has valid piping data, distribute evenly
+        return systemHeatLoadCheck.heatLoad / zones.length;
+      }
+      
+      // Distribute proportionally based on effective pipe length
+      const zoneWeight = zoneWeights[zoneIndex];
+      return (zoneWeight / totalWeight) * systemHeatLoadCheck.heatLoad;
+    };
 
-    return zones.map((zone) => {
+    return zones.map((zone, zoneIndex) => {
       const deltaTCheck = isDeltaTValid(zone.deltaT);
       const lengthCheck = isStraightLengthValid(zone.straightLength);
       const pipeData = getPipeData(zone.material, zone.size);
 
       // Determine zone BTU: use manual assignment if provided, otherwise auto-distribute
       const manualBTUCheck = isHeatLoadValid(zone.assignedBTU);
-      const zoneBTU = manualBTUCheck.valid ? manualBTUCheck.heatLoad : autoDistributedBTU;
+      const zoneBTU = manualBTUCheck.valid ? manualBTUCheck.heatLoad : autoDistributeBTU(zoneIndex);
       const isAutoAssigned = !manualBTUCheck.valid;
 
       // Calculate GPM from zone BTU (not system BTU!)
@@ -283,16 +315,16 @@ export default function PumpSizingPage() {
         ? calculateGPM(zoneBTU, deltaTCheck.deltaT)
         : 0;
 
-      if (!pipeData || zoneBTU === 0 || !deltaTCheck.valid || !lengthCheck.valid) {
+      if (!pipeData || !deltaTCheck.valid || !lengthCheck.valid) {
         return {
           zone,
           valid: false,
           systemHeatLoadError: !systemHeatLoadCheck.valid && !manualBTUCheck.valid ? systemHeatLoadCheck.error : undefined,
           deltaTError: deltaTCheck.error,
           straightLengthError: lengthCheck.error,
-          zoneBTU: 0,
-          isAutoAssigned: true,
-          flowGPM: 0,
+          zoneBTU,
+          isAutoAssigned,
+          flowGPM,
           straightLength: 0,
           fittingEquivalentLength: 0,
           fittingBreakdown: [],
@@ -481,7 +513,7 @@ export default function PumpSizingPage() {
               className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Total system capacity from boiler or heat source. This will be automatically distributed across zones ({zones.length} {zones.length === 1 ? 'zone' : 'zones'}).
+              Total system capacity from boiler or heat source. This will be automatically distributed proportionally across zones ({zones.length} {zones.length === 1 ? 'zone' : 'zones'}) based on their effective pipe length.
             </p>
           </div>
         </section>
@@ -657,8 +689,10 @@ export default function PumpSizingPage() {
                           />
                           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
                             {result.valid && result.isAutoAssigned
-                              ? `System BTU (${parseNum(advancedSettings.systemHeatLoadBTU).toLocaleString()}) ÷ ${zones.length} zones = ${result.zoneBTU.toFixed(0)} BTU/hr per zone`
-                              : "Leave empty to auto-distribute system BTU, or enter a specific value"}
+                              ? `Auto-distributed proportionally based on effective pipe length (${result.totalEffectiveLength.toFixed(0)} ft)`
+                              : !result.valid && result.isAutoAssigned && result.zoneBTU > 0
+                              ? `Evenly distributed: ${result.zoneBTU.toFixed(0)} BTU/hr (enter pipe length for proportional distribution)`
+                              : "Leave empty to auto-distribute system BTU proportionally based on zone piping, or enter a specific value"}
                           </p>
                         </div>
 
