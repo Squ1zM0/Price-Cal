@@ -1,10 +1,28 @@
 /**
  * Pump Sizing Calculator - Pipe and Fitting Data Tables
- * All dimensions in inches unless otherwise specified
- * Equivalent lengths in feet
+ * 
+ * This file aggregates pipe dimension, roughness, and fitting data from
+ * authoritative source files into a unified interface for backward compatibility.
+ * 
+ * For detailed source documentation, see:
+ * - ./data/pipeDimensions.ts - ASTM B88, ASME B36.10M, ASTM F876
+ * - ./data/roughness.ts - Moody diagram, ASHRAE, Crane TP-410
+ * - ./data/fittings.ts - Crane TP-410 K-factors and equivalent lengths
  */
 
-export type PipeMaterial = "Copper" | "Black Iron" | "PEX";
+import {
+  type PipeMaterial,
+  getPipeDimensions,
+  getAvailableSizesForMaterial,
+} from "./data/pipeDimensions";
+import { getRoughness } from "./data/roughness";
+import {
+  type FittingType,
+  getFittingEquivalentLength as getOriginalFittingEquivalentLength,
+} from "./data/fittings";
+
+// Re-export types for backward compatibility
+export type { PipeMaterial, FittingType };
 
 export interface PipeData {
   nominalSize: string;
@@ -18,166 +36,109 @@ export interface FittingData {
 }
 
 /**
- * Pipe internal diameter and properties by material and nominal size
+ * Hazen-Williams C-values by material
+ * Source: ASHRAE Fundamentals 2021, Chapter 23
  * 
- * Internal diameters based on ASTM B88 Type L for copper, Schedule 40 for black iron, 
- * and SDR-9 for PEX.
- * 
- * Hazen-Williams C-values:
  * - Copper: C=140 (new copper per ASHRAE)
  * - Black Iron: C=100 (typical for steel pipe)
  * - PEX: C=150 (smooth plastic pipe)
- * 
- * Darcy-Weisbach roughness values (absolute roughness in feet):
- * - Copper: 0.000005 ft (smooth, drawn tubing)
- * - Black Iron: 0.00015 ft (commercial steel)
- * - PEX: 0.000003 ft (very smooth plastic)
  */
-export const PIPE_DATA: Record<PipeMaterial, Record<string, PipeData>> = {
-  Copper: {
-    "1/2\"": { nominalSize: "1/2\"", internalDiameter: 0.545, roughness: 0.000005, hazenWilliamsC: 140 },
-    "3/4\"": { nominalSize: "3/4\"", internalDiameter: 0.785, roughness: 0.000005, hazenWilliamsC: 140 },
-    "1\"": { nominalSize: "1\"", internalDiameter: 1.025, roughness: 0.000005, hazenWilliamsC: 140 },
-    "1-1/4\"": { nominalSize: "1-1/4\"", internalDiameter: 1.265, roughness: 0.000005, hazenWilliamsC: 140 },
-    "1-1/2\"": { nominalSize: "1-1/2\"", internalDiameter: 1.505, roughness: 0.000005, hazenWilliamsC: 140 },
-    "2\"": { nominalSize: "2\"", internalDiameter: 1.985, roughness: 0.000005, hazenWilliamsC: 140 },
-    "2-1/2\"": { nominalSize: "2-1/2\"", internalDiameter: 2.465, roughness: 0.000005, hazenWilliamsC: 140 },
-    "3\"": { nominalSize: "3\"", internalDiameter: 2.945, roughness: 0.000005, hazenWilliamsC: 140 },
-  },
-  "Black Iron": {
-    "1/2\"": { nominalSize: "1/2\"", internalDiameter: 0.622, roughness: 0.00015, hazenWilliamsC: 100 },
-    "3/4\"": { nominalSize: "3/4\"", internalDiameter: 0.824, roughness: 0.00015, hazenWilliamsC: 100 },
-    "1\"": { nominalSize: "1\"", internalDiameter: 1.049, roughness: 0.00015, hazenWilliamsC: 100 },
-    "1-1/4\"": { nominalSize: "1-1/4\"", internalDiameter: 1.380, roughness: 0.00015, hazenWilliamsC: 100 },
-    "1-1/2\"": { nominalSize: "1-1/2\"", internalDiameter: 1.610, roughness: 0.00015, hazenWilliamsC: 100 },
-    "2\"": { nominalSize: "2\"", internalDiameter: 2.067, roughness: 0.00015, hazenWilliamsC: 100 },
-    "2-1/2\"": { nominalSize: "2-1/2\"", internalDiameter: 2.469, roughness: 0.00015, hazenWilliamsC: 100 },
-    "3\"": { nominalSize: "3\"", internalDiameter: 3.068, roughness: 0.00015, hazenWilliamsC: 100 },
-    "4\"": { nominalSize: "4\"", internalDiameter: 4.026, roughness: 0.00015, hazenWilliamsC: 100 },
-  },
-  PEX: {
-    "1/2\"": { nominalSize: "1/2\"", internalDiameter: 0.475, roughness: 0.000003, hazenWilliamsC: 150 },
-    "3/4\"": { nominalSize: "3/4\"", internalDiameter: 0.681, roughness: 0.000003, hazenWilliamsC: 150 },
-    "1\"": { nominalSize: "1\"", internalDiameter: 0.875, roughness: 0.000003, hazenWilliamsC: 150 },
-    "1-1/4\"": { nominalSize: "1-1/4\"", internalDiameter: 1.054, roughness: 0.000003, hazenWilliamsC: 150 },
-    "1-1/2\"": { nominalSize: "1-1/2\"", internalDiameter: 1.311, roughness: 0.000003, hazenWilliamsC: 150 },
-    "2\"": { nominalSize: "2\"", internalDiameter: 1.709, roughness: 0.000003, hazenWilliamsC: 150 },
-  },
+const HAZEN_WILLIAMS_C_VALUES: Record<PipeMaterial, number> = {
+  "Copper": 140,
+  "Black Iron": 100,
+  "PEX": 150,
 };
 
 /**
- * Fitting equivalent lengths (in feet) by fitting type, material, and size
- * Based on ASHRAE and typical equivalent length tables
- * 
- * Methodology: Equivalent length = K-factor × (diameter in feet) × conversion
- * Simplified here as direct lookup values for common sizes
+ * Build pipe data combining dimensions and roughness from authoritative sources
  */
-export type FittingType = "90° Elbow" | "45° Elbow" | "Tee (through)";
+function buildPipeData(): Record<PipeMaterial, Record<string, PipeData>> {
+  const materials: PipeMaterial[] = ["Copper", "Black Iron", "PEX"];
+  const result: Record<PipeMaterial, Record<string, PipeData>> = {
+    "Copper": {},
+    "Black Iron": {},
+    "PEX": {},
+  };
 
+  for (const material of materials) {
+    const sizes = getAvailableSizesForMaterial(material);
+    const roughness = getRoughness(material);
+    const cValue = HAZEN_WILLIAMS_C_VALUES[material];
+
+    for (const size of sizes) {
+      const dimension = getPipeDimensions(material, size);
+      if (dimension) {
+        result[material][size] = {
+          nominalSize: size,
+          internalDiameter: dimension.internalDiameter,
+          roughness: roughness,
+          hazenWilliamsC: cValue,
+        };
+      }
+    }
+  }
+
+  return result;
+}
+
+/**
+ * Pipe internal diameter and properties by material and nominal size
+ * 
+ * Data sourced from:
+ * - ASTM B88 Type L for copper
+ * - ASME B36.10M Schedule 40 for black iron
+ * - ASTM F876 CTS SDR-9 for PEX
+ * 
+ * See ./data/pipeDimensions.ts for detailed source citations
+ */
+export const PIPE_DATA: Record<PipeMaterial, Record<string, PipeData>> = buildPipeData();
+/**
+ * Fitting equivalent lengths (in feet) by fitting type, material, and size
+ * 
+ * Data sourced from Crane TP-410 K-factors
+ * See ./data/fittings.ts for detailed source citations and methodology
+ */
 export const FITTING_DATA: Record<
   FittingType,
   Record<PipeMaterial, Record<string, FittingData>>
-> = {
-  "90° Elbow": {
-    Copper: {
-      "1/2\"": { equivalentLength: 1.5 },
-      "3/4\"": { equivalentLength: 2.0 },
-      "1\"": { equivalentLength: 2.5 },
-      "1-1/4\"": { equivalentLength: 3.0 },
-      "1-1/2\"": { equivalentLength: 3.5 },
-      "2\"": { equivalentLength: 5.0 },
-      "2-1/2\"": { equivalentLength: 6.0 },
-      "3\"": { equivalentLength: 7.0 },
-    },
-    "Black Iron": {
-      "1/2\"": { equivalentLength: 1.5 },
-      "3/4\"": { equivalentLength: 2.0 },
-      "1\"": { equivalentLength: 2.5 },
-      "1-1/4\"": { equivalentLength: 3.5 },
-      "1-1/2\"": { equivalentLength: 4.0 },
-      "2\"": { equivalentLength: 5.5 },
-      "2-1/2\"": { equivalentLength: 6.5 },
-      "3\"": { equivalentLength: 8.0 },
-      "4\"": { equivalentLength: 10.0 },
-    },
-    PEX: {
-      "1/2\"": { equivalentLength: 1.5 },
-      "3/4\"": { equivalentLength: 2.0 },
-      "1\"": { equivalentLength: 2.5 },
-      "1-1/4\"": { equivalentLength: 3.0 },
-      "1-1/2\"": { equivalentLength: 3.5 },
-      "2\"": { equivalentLength: 5.0 },
-    },
-  },
-  "45° Elbow": {
-    Copper: {
-      "1/2\"": { equivalentLength: 0.8 },
-      "3/4\"": { equivalentLength: 1.0 },
-      "1\"": { equivalentLength: 1.3 },
-      "1-1/4\"": { equivalentLength: 1.5 },
-      "1-1/2\"": { equivalentLength: 1.8 },
-      "2\"": { equivalentLength: 2.5 },
-      "2-1/2\"": { equivalentLength: 3.0 },
-      "3\"": { equivalentLength: 3.5 },
-    },
-    "Black Iron": {
-      "1/2\"": { equivalentLength: 0.8 },
-      "3/4\"": { equivalentLength: 1.0 },
-      "1\"": { equivalentLength: 1.3 },
-      "1-1/4\"": { equivalentLength: 1.8 },
-      "1-1/2\"": { equivalentLength: 2.0 },
-      "2\"": { equivalentLength: 2.8 },
-      "2-1/2\"": { equivalentLength: 3.3 },
-      "3\"": { equivalentLength: 4.0 },
-      "4\"": { equivalentLength: 5.0 },
-    },
-    PEX: {
-      "1/2\"": { equivalentLength: 0.8 },
-      "3/4\"": { equivalentLength: 1.0 },
-      "1\"": { equivalentLength: 1.3 },
-      "1-1/4\"": { equivalentLength: 1.5 },
-      "1-1/2\"": { equivalentLength: 1.8 },
-      "2\"": { equivalentLength: 2.5 },
-    },
-  },
-  "Tee (through)": {
-    Copper: {
-      "1/2\"": { equivalentLength: 1.0 },
-      "3/4\"": { equivalentLength: 1.5 },
-      "1\"": { equivalentLength: 2.0 },
-      "1-1/4\"": { equivalentLength: 2.5 },
-      "1-1/2\"": { equivalentLength: 3.0 },
-      "2\"": { equivalentLength: 4.0 },
-      "2-1/2\"": { equivalentLength: 5.0 },
-      "3\"": { equivalentLength: 6.0 },
-    },
-    "Black Iron": {
-      "1/2\"": { equivalentLength: 1.0 },
-      "3/4\"": { equivalentLength: 1.5 },
-      "1\"": { equivalentLength: 2.0 },
-      "1-1/4\"": { equivalentLength: 3.0 },
-      "1-1/2\"": { equivalentLength: 3.5 },
-      "2\"": { equivalentLength: 4.5 },
-      "2-1/2\"": { equivalentLength: 5.5 },
-      "3\"": { equivalentLength: 6.5 },
-      "4\"": { equivalentLength: 8.0 },
-    },
-    PEX: {
-      "1/2\"": { equivalentLength: 1.0 },
-      "3/4\"": { equivalentLength: 1.5 },
-      "1\"": { equivalentLength: 2.0 },
-      "1-1/4\"": { equivalentLength: 2.5 },
-      "1-1/2\"": { equivalentLength: 3.0 },
-      "2\"": { equivalentLength: 4.0 },
-    },
-  },
-};
+> = buildFittingData();
+
+/**
+ * Build fitting data from authoritative source
+ */
+function buildFittingData(): Record<
+  FittingType,
+  Record<PipeMaterial, Record<string, FittingData>>
+> {
+  const fittingTypes: FittingType[] = ["90° Elbow", "45° Elbow", "Tee (through)"];
+  const materials: PipeMaterial[] = ["Copper", "Black Iron", "PEX"];
+  
+  const result: Record<FittingType, Record<PipeMaterial, Record<string, FittingData>>> = {
+    "90° Elbow": { "Copper": {}, "Black Iron": {}, "PEX": {} },
+    "45° Elbow": { "Copper": {}, "Black Iron": {}, "PEX": {} },
+    "Tee (through)": { "Copper": {}, "Black Iron": {}, "PEX": {} },
+  };
+
+  for (const fittingType of fittingTypes) {
+    for (const material of materials) {
+      const sizes = getAvailableSizesForMaterial(material);
+      for (const size of sizes) {
+        const eqLength = getOriginalFittingEquivalentLength(fittingType, material, size);
+        if (eqLength > 0) {
+          result[fittingType][material][size] = { equivalentLength: eqLength };
+        }
+      }
+    }
+  }
+
+  return result;
+}
 
 /**
  * Get available pipe sizes for a given material
  */
 export function getAvailableSizes(material: PipeMaterial): string[] {
-  return Object.keys(PIPE_DATA[material]);
+  return getAvailableSizesForMaterial(material);
 }
 
 /**

@@ -1,121 +1,26 @@
 /**
  * Pump Sizing Calculator - Hydraulic Calculations
  * Implements Darcy-Weisbach and Hazen-Williams methods
+ * 
+ * For detailed documentation on formulas, sources, and methodology, see:
+ * /docs/pump-sizing-math.md
  */
 
 import type { PipeData } from "./pipeData";
+import type { FluidType, FluidProperties } from "./data/fluidProps";
+export { getFluidProperties } from "./data/fluidProps";
+export type { FluidType, FluidProperties };
 
-export type FluidType = "Water" | "Glycol 30%" | "Glycol 50%" | "Custom";
 export type CalculationMethod = "Darcy-Weisbach" | "Hazen-Williams";
 
 /**
- * Fluid properties at different temperatures
- */
-export interface FluidProperties {
-  density: number; // lbm/ft³
-  dynamicViscosity: number; // lbm/(ft·s)
-  kinematicViscosity: number; // ft²/s
-}
-
-/**
- * Get fluid properties for water at a given temperature
- * Temperature in °F
- *
- * Dynamic viscosity values here are derived from standard water tables.
- * Viscosity is represented in lbm/(ft·s) to keep Reynolds numbers realistic.
- */
-export function getWaterProperties(tempF: number): FluidProperties {
-  const density = 62.4; // lbm/ft³ (approximately constant for HVAC range)
-
-  // Kinematic viscosity reference points (ft²/s) converted from cSt water tables
-  const viscosityTable = [
-    { tempF: 40, nu: 1.64e-5 },
-    { tempF: 60, nu: 1.23e-5 },
-    { tempF: 80, nu: 1.02e-5 },
-    { tempF: 100, nu: 7.96e-6 },
-    { tempF: 120, nu: 6.46e-6 },
-    { tempF: 140, nu: 5.06e-6 },
-    { tempF: 160, nu: 4.20e-6 },
-    { tempF: 180, nu: 3.66e-6 },
-  ];
-
-  const clampedTemp = Math.max(viscosityTable[0].tempF, Math.min(tempF, viscosityTable[viscosityTable.length - 1].tempF));
-
-  let kinematicViscosity = viscosityTable[viscosityTable.length - 1].nu;
-  for (let i = 0; i < viscosityTable.length - 1; i++) {
-    const lower = viscosityTable[i];
-    const upper = viscosityTable[i + 1];
-    if (clampedTemp >= lower.tempF && clampedTemp <= upper.tempF) {
-      const ratio = (clampedTemp - lower.tempF) / (upper.tempF - lower.tempF);
-      kinematicViscosity = lower.nu + (upper.nu - lower.nu) * ratio;
-      break;
-    }
-  }
-
-  const dynamicViscosity = kinematicViscosity * density;
-
-  return {
-    density,
-    dynamicViscosity,
-    kinematicViscosity,
-  };
-}
-
-/**
- * Get fluid properties for glycol solutions at a given temperature
- */
-export function getGlycolProperties(
-  percentage: number,
-  tempF: number
-): FluidProperties {
-  // Glycol increases density and viscosity
-  const waterProps = getWaterProperties(tempF);
-  const glycolViscosityFactor = 1 + percentage / 20; // Approximate: 30% ≈ 2.5×, 50% ≈ 3.5× water viscosity
-  const glycolDensityFactor = 1 + percentage / 500;
-  
-  return {
-    density: waterProps.density * glycolDensityFactor,
-    dynamicViscosity: waterProps.dynamicViscosity * glycolViscosityFactor,
-    kinematicViscosity:
-      (waterProps.dynamicViscosity * glycolViscosityFactor) /
-      (waterProps.density * glycolDensityFactor),
-  };
-}
-
-/**
- * Get fluid properties based on fluid type and temperature
- */
-export function getFluidProperties(
-  fluidType: FluidType,
-  tempF: number,
-  customDensity?: number,
-  customViscosity?: number
-): FluidProperties {
-  switch (fluidType) {
-    case "Water":
-      return getWaterProperties(tempF);
-    case "Glycol 30%":
-      return getGlycolProperties(30, tempF);
-    case "Glycol 50%":
-      return getGlycolProperties(50, tempF);
-    case "Custom":
-      if (customDensity && customViscosity) {
-        return {
-          density: customDensity,
-          dynamicViscosity: customViscosity,
-          kinematicViscosity: customViscosity / customDensity,
-        };
-      }
-      return getWaterProperties(tempF);
-    default:
-      return getWaterProperties(tempF);
-  }
-}
-
-/**
  * Calculate velocity in pipe (ft/s)
+ * Formula: V = Q / A
+ * where Q = flow rate (ft³/s), A = cross-sectional area (ft²)
+ * 
  * @param flowGPM - Flow rate in GPM
  * @param diameterInches - Internal diameter in inches
+ * @returns Velocity in ft/s
  */
 export function calculateVelocity(flowGPM: number, diameterInches: number): number {
   // Q (ft³/s) = GPM / 448.83
