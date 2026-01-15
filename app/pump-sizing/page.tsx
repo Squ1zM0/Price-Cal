@@ -479,15 +479,20 @@ export default function PumpSizingPage() {
   }
 
   function toggleZoneExpanded(id: string) {
-    setExpandedZoneId(id);
-    
-    // Scroll to the zone when expanded
-    requestAnimationFrame(() => {
-      const element = document.getElementById(`zone-${id}`);
-      if (element) {
-        element.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    });
+    // If clicking the currently expanded zone, collapse it
+    if (expandedZoneId === id) {
+      setExpandedZoneId("");
+    } else {
+      setExpandedZoneId(id);
+      
+      // Scroll to the zone when expanded
+      requestAnimationFrame(() => {
+        const element = document.getElementById(`zone-${id}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      });
+    }
   }
 
   return (
