@@ -15,6 +15,8 @@ import {
   type CalculationMethod,
   getFluidProperties,
   calculateZoneHead,
+  checkHydraulicCapacity,
+  type HydraulicCapacityCheck,
 } from "../lib/hydraulics";
 
 // Types
@@ -298,6 +300,7 @@ export default function PumpSizingPage() {
           headLoss: 0,
           velocity: 0,
           reynolds: 0,
+          capacityCheck: undefined,
         };
       }
 
@@ -340,6 +343,15 @@ export default function PumpSizingPage() {
         customCValue
       );
 
+      // Phase 3: Hydraulic Reality Check
+      const capacityCheck = checkHydraulicCapacity(
+        zoneBTU,
+        flowGPM,
+        deltaTCheck.deltaT,
+        pipeData,
+        advancedSettings.fluidType
+      );
+
       return {
         zone,
         valid: true,
@@ -356,6 +368,7 @@ export default function PumpSizingPage() {
         headLoss: calc.headLoss,
         velocity: calc.velocity,
         reynolds: calc.reynolds,
+        capacityCheck,
       };
     });
   }, [zones, advancedSettings]);
@@ -909,6 +922,115 @@ export default function PumpSizingPage() {
                                 {result.headLoss.toFixed(2)} ft
                               </span>
                             </div>
+                            
+                            {/* Phase 3: Hydraulic Capacity Check */}
+                            {result.capacityCheck && (
+                              <>
+                                <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600 dark:text-slate-400">Max recommended flow:</span>
+                                    <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                      {result.capacityCheck.maxRecommendedGPM.toFixed(2)} GPM
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600 dark:text-slate-400">Hydraulic capacity:</span>
+                                    <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                      {result.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr
+                                    </span>
+                                  </div>
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600 dark:text-slate-400">Capacity utilization:</span>
+                                    <span className={[
+                                      "font-semibold tabular-nums",
+                                      result.capacityCheck.exceedsRecommended
+                                        ? "text-red-600 dark:text-red-400"
+                                        : result.capacityCheck.utilizationPercent > 85
+                                        ? "text-yellow-600 dark:text-yellow-400"
+                                        : "text-green-600 dark:text-green-400"
+                                    ].join(" ")}>
+                                      {result.capacityCheck.utilizationPercent.toFixed(0)}%
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Warning for exceeding capacity */}
+                                  {result.capacityCheck.exceedsAbsolute && (
+                                    <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-red-900 dark:text-red-200">
+                                            ⚠️ Pipe Undersized - Critical Issue
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-1">
+                                            Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds absolute pipe capacity 
+                                            ({result.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr at {result.capacityCheck.maxAbsoluteGPM.toFixed(1)} GPM).
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-2 font-semibold">
+                                            Required actions:
+                                          </p>
+                                          <ul className="text-xs text-red-800 dark:text-red-300 mt-1 space-y-1 list-disc list-inside">
+                                            <li>Increase pipe size to {zone.size === '1/2"' ? '3/4"' : zone.size === '3/4"' ? '1"' : zone.size === '1"' ? '1-1/4"' : 'larger diameter'}</li>
+                                            <li>Increase ΔT from {zone.deltaT}°F to {Math.ceil(parseNum(zone.deltaT) * 1.5)}°F or higher</li>
+                                            <li>Split this zone into multiple zones</li>
+                                            <li>Reduce assigned BTU load for this zone</li>
+                                          </ul>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Warning for exceeding recommended but not absolute */}
+                                  {result.capacityCheck.exceedsRecommended && !result.capacityCheck.exceedsAbsolute && (
+                                    <div className="mt-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
+                                            ⚠️ Flow Velocity Exceeds Recommended Limit
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-1">
+                                            Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds recommended pipe capacity 
+                                            ({result.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr at {result.capacityCheck.maxRecommendedGPM.toFixed(1)} GPM).
+                                            Current velocity: {result.velocity.toFixed(2)} ft/s.
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2">
+                                            <strong>Potential issues:</strong> Increased noise, higher head loss, accelerated erosion over time.
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2 font-semibold">
+                                            Recommended actions:
+                                          </p>
+                                          <ul className="text-xs text-yellow-800 dark:text-yellow-300 mt-1 space-y-1 list-disc list-inside">
+                                            <li>Consider increasing pipe size for quieter, more efficient operation</li>
+                                            <li>Increase ΔT to reduce required flow</li>
+                                            <li>Accept higher velocity if noise and erosion are acceptable</li>
+                                          </ul>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Good status when within recommended limits */}
+                                  {!result.capacityCheck.exceedsRecommended && result.capacityCheck.utilizationPercent > 0 && (
+                                    <div className="mt-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
+                                      <div className="flex gap-2 items-center">
+                                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <p className="text-xs text-green-800 dark:text-green-300">
+                                          ✓ Pipe size adequate for assigned load. Velocity within recommended limits.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </>
+                            )}
                           </div>
                         ) : (
                           <div className="text-sm text-slate-500 dark:text-slate-400">

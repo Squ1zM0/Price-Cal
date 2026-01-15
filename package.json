@@ -7,9 +7,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "npm run test:hydraulics && npm run test:zone-allocation",
+    "test": "npm run test:hydraulics && npm run test:zone-allocation && npm run test:hydraulic-capacity",
     "test:hydraulics": "tsx tests/hydraulics.test.ts",
     "test:zone-allocation": "tsx tests/zone-allocation.test.ts",
+    "test:hydraulic-capacity": "tsx tests/hydraulic-capacity.test.ts",
     "prebuild": "node scripts/sync-techdirect.cjs",
     "predev": "node scripts/sync-techdirect.cjs"
   },

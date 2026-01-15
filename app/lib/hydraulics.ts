@@ -259,3 +259,120 @@ export function calculateZoneHead(
     totalEffectiveLength,
   };
 }
+
+/**
+ * Velocity limits for hydronic systems (ft/s)
+ * Based on ASHRAE and industry best practices
+ */
+export const VELOCITY_LIMITS = {
+  // Recommended maximum velocities to prevent noise and erosion
+  WATER_RECOMMENDED_MAX: 4.0,  // ft/s for general hydronic (quiet operation)
+  WATER_ABSOLUTE_MAX: 8.0,     // ft/s maximum before erosion concerns
+  GLYCOL_RECOMMENDED_MAX: 3.5, // ft/s for glycol solutions (higher viscosity)
+  GLYCOL_ABSOLUTE_MAX: 6.0,    // ft/s maximum for glycol
+};
+
+/**
+ * Calculate maximum practical GPM based on velocity limits
+ * @param diameterInches - Internal pipe diameter in inches
+ * @param fluidType - Type of fluid (affects velocity limit)
+ * @param useAbsoluteMax - If true, use absolute max velocity; if false, use recommended max
+ * @returns Maximum sustainable flow rate in GPM
+ */
+export function calculateMaxGPMFromVelocity(
+  diameterInches: number,
+  fluidType: FluidType = "Water",
+  useAbsoluteMax: boolean = false
+): number {
+  // Determine velocity limit based on fluid type
+  const isGlycol = fluidType.includes("Glycol");
+  const maxVelocity = useAbsoluteMax
+    ? (isGlycol ? VELOCITY_LIMITS.GLYCOL_ABSOLUTE_MAX : VELOCITY_LIMITS.WATER_ABSOLUTE_MAX)
+    : (isGlycol ? VELOCITY_LIMITS.GLYCOL_RECOMMENDED_MAX : VELOCITY_LIMITS.WATER_RECOMMENDED_MAX);
+  
+  // V = Q / A
+  // Q = V × A
+  // where Q is in ft³/s, V is in ft/s, A is in ft²
+  const diameterFt = diameterInches / 12;
+  const area = Math.PI * Math.pow(diameterFt / 2, 2);
+  const flowCFS = maxVelocity * area;
+  
+  // Convert ft³/s to GPM
+  const flowGPM = flowCFS * 448.83;
+  
+  return flowGPM;
+}
+
+/**
+ * Calculate hydraulic capacity in BTU/hr based on maximum sustainable flow
+ * @param maxGPM - Maximum sustainable flow rate in GPM
+ * @param deltaT - Temperature difference in °F
+ * @returns Maximum heat capacity in BTU/hr
+ */
+export function calculateHydraulicCapacityBTU(
+  maxGPM: number,
+  deltaT: number
+): number {
+  // BTU/hr = GPM × 500 × ΔT
+  return maxGPM * 500 * deltaT;
+}
+
+/**
+ * Result of hydraulic capacity check
+ */
+export interface HydraulicCapacityCheck {
+  maxRecommendedGPM: number;     // Based on recommended velocity limit
+  maxAbsoluteGPM: number;        // Based on absolute velocity limit
+  capacityBTURecommended: number; // BTU capacity at recommended limit
+  capacityBTUAbsolute: number;    // BTU capacity at absolute limit
+  exceedsRecommended: boolean;    // True if assigned BTU exceeds recommended capacity
+  exceedsAbsolute: boolean;       // True if assigned BTU exceeds absolute capacity
+  utilizationPercent: number;     // Percentage of recommended capacity being used
+}
+
+/**
+ * Check if assigned BTU exceeds hydraulic capacity of the pipe
+ * @param assignedBTU - Zone's assigned heat load in BTU/hr
+ * @param flowGPM - Calculated flow rate in GPM
+ * @param deltaT - Temperature difference in °F
+ * @param pipeData - Pipe specifications
+ * @param fluidType - Type of fluid
+ * @returns Hydraulic capacity check result
+ */
+export function checkHydraulicCapacity(
+  assignedBTU: number,
+  flowGPM: number,
+  deltaT: number,
+  pipeData: PipeData,
+  fluidType: FluidType
+): HydraulicCapacityCheck {
+  const maxRecommendedGPM = calculateMaxGPMFromVelocity(
+    pipeData.internalDiameter,
+    fluidType,
+    false
+  );
+  
+  const maxAbsoluteGPM = calculateMaxGPMFromVelocity(
+    pipeData.internalDiameter,
+    fluidType,
+    true
+  );
+  
+  const capacityBTURecommended = calculateHydraulicCapacityBTU(maxRecommendedGPM, deltaT);
+  const capacityBTUAbsolute = calculateHydraulicCapacityBTU(maxAbsoluteGPM, deltaT);
+  
+  const exceedsRecommended = assignedBTU > capacityBTURecommended;
+  const exceedsAbsolute = assignedBTU > capacityBTUAbsolute;
+  
+  const utilizationPercent = (assignedBTU / capacityBTURecommended) * 100;
+  
+  return {
+    maxRecommendedGPM,
+    maxAbsoluteGPM,
+    capacityBTURecommended,
+    capacityBTUAbsolute,
+    exceedsRecommended,
+    exceedsAbsolute,
+    utilizationPercent,
+  };
+}
