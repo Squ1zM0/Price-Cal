@@ -958,12 +958,12 @@ export default function PumpSizingPage() {
                                   {result.capacityCheck.exceedsAbsolute && (
                                     <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600">
                                       <div className="flex gap-2">
-                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                         </svg>
                                         <div className="flex-1">
                                           <p className="text-sm font-bold text-red-900 dark:text-red-200">
-                                            ⚠️ Pipe Undersized - Critical Issue
+                                            <span className="sr-only">Warning: </span>Pipe Undersized - Critical Issue
                                           </p>
                                           <p className="text-xs text-red-800 dark:text-red-300 mt-1">
                                             Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds absolute pipe capacity 
@@ -987,12 +987,12 @@ export default function PumpSizingPage() {
                                   {result.capacityCheck.exceedsRecommended && !result.capacityCheck.exceedsAbsolute && (
                                     <div className="mt-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600">
                                       <div className="flex gap-2">
-                                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                                         </svg>
                                         <div className="flex-1">
                                           <p className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
-                                            ⚠️ Flow Velocity Exceeds Recommended Limit
+                                            <span className="sr-only">Warning: </span>Flow Velocity Exceeds Recommended Limit
                                           </p>
                                           <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-1">
                                             Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds recommended pipe capacity 
@@ -1019,11 +1019,11 @@ export default function PumpSizingPage() {
                                   {!result.capacityCheck.exceedsRecommended && result.capacityCheck.utilizationPercent > 0 && (
                                     <div className="mt-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
                                       <div className="flex gap-2 items-center">
-                                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                         <p className="text-xs text-green-800 dark:text-green-300">
-                                          ✓ Pipe size adequate for assigned load. Velocity within recommended limits.
+                                          <span className="sr-only">Success: </span>Pipe size adequate for assigned load. Velocity within recommended limits.
                                         </p>
                                       </div>
                                     </div>
