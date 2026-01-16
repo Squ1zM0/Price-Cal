@@ -201,6 +201,13 @@ export const PEX_CTS_SDR9_DIMENSIONS: Record<string, PipeDimension> = {
     wallThickness: 0.070,
     standard: "CTS SDR-9 (ASTM F876)",
   },
+  "5/8\"": {
+    nominalSize: "5/8\"",
+    internalDiameter: 0.475,
+    outerDiameter: 0.625,
+    wallThickness: 0.070,
+    standard: "CTS SDR-9 (ASTM F876)",
+  },
   "3/4\"": {
     nominalSize: "3/4\"",
     internalDiameter: 0.681,

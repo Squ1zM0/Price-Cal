@@ -177,6 +177,7 @@ export const FITTING_EQUIVALENT_LENGTHS: Record<
     },
     PEX: {
       "1/2\"": { equivalentLength: 1.5, kFactor: 30, source: "Crane TP-410" },
+      "5/8\"": { equivalentLength: 1.5, kFactor: 30, source: "Crane TP-410" },
       "3/4\"": { equivalentLength: 2.0, kFactor: 30, source: "Crane TP-410" },
       "1\"": { equivalentLength: 2.5, kFactor: 30, source: "Crane TP-410" },
       "1-1/4\"": { equivalentLength: 3.0, kFactor: 30, source: "Crane TP-410" },
@@ -208,6 +209,7 @@ export const FITTING_EQUIVALENT_LENGTHS: Record<
     },
     PEX: {
       "1/2\"": { equivalentLength: 0.8, kFactor: 16, source: "Crane TP-410" },
+      "5/8\"": { equivalentLength: 0.8, kFactor: 16, source: "Crane TP-410" },
       "3/4\"": { equivalentLength: 1.0, kFactor: 16, source: "Crane TP-410" },
       "1\"": { equivalentLength: 1.3, kFactor: 16, source: "Crane TP-410" },
       "1-1/4\"": { equivalentLength: 1.5, kFactor: 16, source: "Crane TP-410" },
@@ -239,6 +241,7 @@ export const FITTING_EQUIVALENT_LENGTHS: Record<
     },
     PEX: {
       "1/2\"": { equivalentLength: 1.0, kFactor: 20, source: "Crane TP-410" },
+      "5/8\"": { equivalentLength: 1.0, kFactor: 20, source: "Crane TP-410" },
       "3/4\"": { equivalentLength: 1.5, kFactor: 20, source: "Crane TP-410" },
       "1\"": { equivalentLength: 2.0, kFactor: 20, source: "Crane TP-410" },
       "1-1/4\"": { equivalentLength: 2.5, kFactor: 20, source: "Crane TP-410" },
