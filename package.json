@@ -7,11 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "npm run test:hydraulics && npm run test:zone-allocation && npm run test:hydraulic-capacity && npm run test:pump-math",
+    "test": "npm run test:hydraulics && npm run test:zone-allocation && npm run test:hydraulic-capacity && npm run test:pump-math && npm run test:auto-distribution-ui",
     "test:hydraulics": "tsx tests/hydraulics.test.ts",
     "test:zone-allocation": "tsx tests/zone-allocation.test.ts",
     "test:hydraulic-capacity": "tsx tests/hydraulic-capacity.test.ts",
     "test:pump-math": "tsx tests/pumpMath.test.ts",
+    "test:auto-distribution-ui": "tsx tests/auto-distribution-ui.test.ts",
     "prebuild": "node scripts/sync-techdirect.cjs",
     "predev": "node scripts/sync-techdirect.cjs"
   },

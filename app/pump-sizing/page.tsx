@@ -681,10 +681,10 @@ export default function PumpSizingPage() {
                           </label>
                           <input
                             type="text"
-                            value={zone.assignedBTU}
+                            value={zone.assignedBTU || (result.valid && result.isAutoAssigned ? result.zoneBTU.toFixed(0) : "")}
                             onChange={(e) => updateZone(zone.id, { assignedBTU: e.target.value })}
                             inputMode="decimal"
-                            placeholder={result.valid ? result.zoneBTU.toFixed(0) : "Auto"}
+                            placeholder="Auto"
                             className={[
                               "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
                               result.valid && result.isAutoAssigned
