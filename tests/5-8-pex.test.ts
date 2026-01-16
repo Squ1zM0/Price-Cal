@@ -3,10 +3,14 @@
  * 
  * Validates that 5/8″ PEX pipe size:
  * - Is available as a selectable option
- * - Has correct hydraulic properties (ID = 0.475 inches)
+ * - Has correct hydraulic properties (ID = 0.584 inches, OD = 0.75 inches)
  * - Produces accurate flow, velocity, and head loss calculations
  * - Works correctly with fitting equivalent lengths
  * - Integrates with the auto-distribution logic
+ * 
+ * IMPORTANT: 5/8" PEX is NOT the same as 1/2" PEX.
+ * - 1/2" PEX: ID = 0.475", OD = 0.625"
+ * - 5/8" PEX: ID = 0.584", OD = 0.75" (distinct, larger size)
  * 
  * Reference: Issue "Add 5/8″ PEX Pipe Size With Accurate Hydraulic Properties"
  */
