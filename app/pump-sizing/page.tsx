@@ -1631,7 +1631,7 @@ export default function PumpSizingPage() {
               "ring-1 ring-inset shadow-md",
               zoneResults.filter(r => r.valid).length === 0
                 ? "opacity-50 cursor-not-allowed bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 ring-slate-300 dark:ring-slate-600"
-                : "bg-gradient-to-br from-green-600 to-green-700 dark:from-green-700 dark:to-green-800 text-white ring-green-600 dark:ring-green-700 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
+                : "bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 text-white ring-blue-600 dark:ring-blue-700 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
             ].join(" ")}
           >
             <div className="flex items-center justify-center gap-3">
