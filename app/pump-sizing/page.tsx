@@ -18,6 +18,12 @@ import {
   checkHydraulicCapacity,
   type HydraulicCapacityCheck,
 } from "../lib/hydraulics";
+import {
+  type EmitterType,
+  getEmitterTypes,
+  getEmitterDescription,
+  calculateRecommendedDeltaT,
+} from "../lib/data/emitterTypes";
 
 // Types
 interface Fittings {
@@ -31,6 +37,9 @@ interface Zone {
   name: string;
   assignedBTU: string; // Manual override, empty means use auto-distribution
   deltaT: string;
+  deltaTMode: "auto" | "manual"; // Whether ΔT is auto-calculated or manually set
+  emitterType: string; // Type of emitter (Baseboard, Radiant Floor, etc.)
+  emitterLength: string; // Emitter equivalent length in feet
   material: PipeMaterial;
   size: string;
   straightLength: string;
@@ -148,6 +157,9 @@ export default function PumpSizingPage() {
       name: "Zone 1",
       assignedBTU: "",
       deltaT: "20",
+      deltaTMode: "auto",
+      emitterType: "Baseboard",
+      emitterLength: "",
       material: "Copper",
       size: "3/4\"",
       straightLength: "",
@@ -242,6 +254,26 @@ export default function PumpSizingPage() {
     return { valid: true, length };
   }
 
+  // Helper to check if emitter length is valid (allows 0)
+  function isEmitterLengthValid(lengthStr: string): { valid: boolean; length: number; error?: string } {
+    const trimmed = lengthStr.trim();
+    
+    // Empty is valid (means no emitter length specified)
+    if (trimmed === "") {
+      return { valid: true, length: 0 };
+    }
+    
+    // Check for explicit negative sign at the start (excluding scientific notation)
+    if (trimmed.startsWith("-") && !trimmed.includes("e")) {
+      return { valid: false, length: 0, error: "Emitter length must be positive" };
+    }
+    
+    const length = parseNum(lengthStr);
+    
+    // 0 is valid for emitter length
+    return { valid: true, length };
+  }
+
   // Check for invalid Hazen-Williams usage with non-water fluids
   const hasInvalidHazenWilliams = useMemo(() => {
     return (
@@ -301,16 +333,39 @@ export default function PumpSizingPage() {
     };
 
     return zones.map((zone, zoneIndex) => {
-      const deltaTCheck = isDeltaTValid(zone.deltaT);
-      const lengthCheck = isStraightLengthValid(zone.straightLength);
-      const pipeData = getPipeData(zone.material, zone.size);
-
+      // Validate emitter length
+      const emitterLengthCheck = isEmitterLengthValid(zone.emitterLength);
+      const emitterLengthFt = emitterLengthCheck.valid ? emitterLengthCheck.length : 0;
+      
       // Determine zone BTU: use manual assignment if provided, otherwise auto-distribute
       const manualBTUCheck = isHeatLoadValid(zone.assignedBTU);
       const zoneBTU = manualBTUCheck.valid ? manualBTUCheck.heatLoad : autoDistributeBTU(zoneIndex);
       const isAutoAssigned = !manualBTUCheck.valid;
 
-      // Calculate GPM from zone BTU (not system BTU!)
+      // Calculate auto ΔT if in auto mode
+      let effectiveDeltaT: number;
+      let isAutoDeltaT: boolean;
+      
+      if (zone.deltaTMode === "auto") {
+        // Auto-calculate ΔT based on emitter type, length, and heat load
+        effectiveDeltaT = calculateRecommendedDeltaT(
+          zone.emitterType as EmitterType,
+          emitterLengthFt,
+          zoneBTU
+        );
+        isAutoDeltaT = true;
+      } else {
+        // Use manual ΔT
+        const deltaTCheck = isDeltaTValid(zone.deltaT);
+        effectiveDeltaT = deltaTCheck.valid ? deltaTCheck.deltaT : 20; // Default to 20 if invalid
+        isAutoDeltaT = false;
+      }
+
+      const deltaTCheck = isDeltaTValid(effectiveDeltaT.toString());
+      const lengthCheck = isStraightLengthValid(zone.straightLength);
+      const pipeData = getPipeData(zone.material, zone.size);
+
+      // Calculate GPM from zone BTU using effective ΔT
       const flowGPM = zoneBTU > 0 && deltaTCheck.valid 
         ? calculateGPM(zoneBTU, deltaTCheck.deltaT)
         : 0;
@@ -322,11 +377,15 @@ export default function PumpSizingPage() {
           systemHeatLoadError: !systemHeatLoadCheck.valid && !manualBTUCheck.valid ? systemHeatLoadCheck.error : undefined,
           deltaTError: deltaTCheck.error,
           straightLengthError: lengthCheck.error,
+          emitterLengthError: emitterLengthCheck.error,
           zoneBTU,
           isAutoAssigned,
+          effectiveDeltaT,
+          isAutoDeltaT,
           flowGPM,
           straightLength: 0,
           fittingEquivalentLength: 0,
+          emitterEquivalentLength: 0,
           fittingBreakdown: [],
           totalEffectiveLength: 0,
           headLoss: 0,
@@ -364,10 +423,11 @@ export default function PumpSizingPage() {
         ? parseNum(advancedSettings.customCValue)
         : undefined;
 
+      // Include emitter length in total equivalent length for head loss calculation
       const calc = calculateZoneHead(
         flowGPM,
         straightLength,
-        fittingEquivalentLength,
+        fittingEquivalentLength + emitterLengthFt,
         pipeData,
         fluidProps,
         advancedSettings.calculationMethod,
@@ -391,11 +451,15 @@ export default function PumpSizingPage() {
         systemHeatLoadError: undefined,
         deltaTError: undefined,
         straightLengthError: undefined,
+        emitterLengthError: undefined,
         zoneBTU,
         isAutoAssigned,
+        effectiveDeltaT,
+        isAutoDeltaT,
         flowGPM,
         straightLength,
         fittingEquivalentLength,
+        emitterEquivalentLength: emitterLengthFt,
         fittingBreakdown,
         totalEffectiveLength: calc.totalEffectiveLength,
         headLoss: calc.headLoss,
@@ -434,6 +498,9 @@ export default function PumpSizingPage() {
       name: `Zone ${zones.length + 1}`,
       assignedBTU: "",
       deltaT: "20",
+      deltaTMode: "auto",
+      emitterType: "Baseboard",
+      emitterLength: "",
       material: "Copper",
       size: "3/4\"",
       straightLength: "",
@@ -701,32 +768,118 @@ export default function PumpSizingPage() {
                           </p>
                         </div>
 
-                        {/* ΔT Slider */}
+                        {/* Emitter Type Selector */}
                         <div>
-                          <div className="flex items-center justify-between mb-1">
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
+                            Emitter Type
+                          </label>
+                          <div className="grid grid-cols-2 gap-2">
+                            {getEmitterTypes().map((emitterType) => (
+                              <PillButton
+                                key={emitterType}
+                                active={zone.emitterType === emitterType}
+                                onClick={() => updateZone(zone.id, { emitterType })}
+                              >
+                                {emitterType}
+                              </PillButton>
+                            ))}
+                          </div>
+                          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                            {getEmitterDescription(zone.emitterType as EmitterType)}
+                          </p>
+                        </div>
+
+                        {/* Emitter Equivalent Length */}
+                        <div>
+                          <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                            Emitter Equivalent Length (ft)
+                          </label>
+                          <input
+                            type="text"
+                            value={zone.emitterLength}
+                            onChange={(e) => updateZone(zone.id, { emitterLength: e.target.value })}
+                            inputMode="decimal"
+                            placeholder="0.0"
+                            className={[
+                              "mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold ring-1 ring-inset focus:outline-none focus:ring-2",
+                              result.emitterLengthError
+                                ? "bg-red-50 dark:bg-red-900/20 text-red-900 dark:text-red-200 ring-red-300 dark:ring-red-700 focus:ring-red-500"
+                                : "bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-slate-200 dark:ring-slate-600 focus:ring-blue-500"
+                            ].join(" ")}
+                          />
+                          {result.emitterLengthError && (
+                            <p className="mt-1 text-xs font-semibold text-red-600 dark:text-red-400">
+                              {result.emitterLengthError}
+                            </p>
+                          )}
+                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            {zone.emitterType === "Baseboard" && "Linear feet of fin-tube baseboard"}
+                            {zone.emitterType === "Radiant Floor" && "Total radiant loop length"}
+                            {zone.emitterType === "Cast Iron Radiator" && "EDR-converted equivalent length"}
+                            {zone.emitterType === "Panel Radiator" && "Equivalent linear feet of radiator"}
+                            {zone.emitterType === "Fan Coil" && "Equivalent length for fan coil unit"}
+                            {zone.emitterType === "Custom" && "Custom emitter equivalent length"}
+                          </p>
+                        </div>
+
+                        {/* ΔT Mode Toggle and Display */}
+                        <div>
+                          <div className="flex items-center justify-between mb-2">
                             <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
                               Temperature Difference (ΔT)
                             </label>
-                            <span className="text-sm font-semibold text-blue-600 dark:text-blue-400">
-                              {parseNum(zone.deltaT).toFixed(0)}°F
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <button
+                                type="button"
+                                onClick={() => updateZone(zone.id, { deltaTMode: zone.deltaTMode === "auto" ? "manual" : "auto" })}
+                                className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors"
+                              >
+                                {zone.deltaTMode === "auto" ? "Switch to Manual" : "Switch to Auto"}
+                              </button>
+                              <span className={[
+                                "text-sm font-semibold",
+                                result.valid && result.isAutoDeltaT
+                                  ? "text-green-600 dark:text-green-400"
+                                  : "text-blue-600 dark:text-blue-400"
+                              ].join(" ")}>
+                                {result.valid ? `${result.effectiveDeltaT.toFixed(1)}°F` : `${parseNum(zone.deltaT).toFixed(0)}°F`}
+                                {result.valid && result.isAutoDeltaT && (
+                                  <span className="ml-1 text-xs">(auto)</span>
+                                )}
+                              </span>
+                            </div>
                           </div>
-                          <input
-                            type="range"
-                            min="10"
-                            max="80"
-                            step="1"
-                            value={parseNum(zone.deltaT)}
-                            onChange={(e) => updateZone(zone.id, { deltaT: e.target.value })}
-                            className="mt-1 w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-blue-500"
-                          />
-                          <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
-                            <span>10°F</span>
-                            <span>80°F</span>
-                          </div>
-                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                            Design temperature drop for this zone (varies by emitter type).
-                          </p>
+                          
+                          {zone.deltaTMode === "manual" ? (
+                            <>
+                              <input
+                                type="range"
+                                min="10"
+                                max="80"
+                                step="1"
+                                value={parseNum(zone.deltaT)}
+                                onChange={(e) => updateZone(zone.id, { deltaT: e.target.value })}
+                                className="mt-1 w-full h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-600 dark:accent-blue-500"
+                              />
+                              <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-1">
+                                <span>10°F</span>
+                                <span>80°F</span>
+                              </div>
+                              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                Manual override: Design temperature drop for this zone.
+                              </p>
+                            </>
+                          ) : (
+                            <div className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 text-green-900 dark:text-green-200 ring-1 ring-inset ring-green-200 dark:ring-green-700">
+                              {result.valid ? `${result.effectiveDeltaT.toFixed(1)}°F (Auto-calculated)` : "—"}
+                            </div>
+                          )}
+                          
+                          {zone.deltaTMode === "auto" && (
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                              ΔT automatically adjusted based on {zone.emitterType} emitter type, emitter length, and zone heat load.
+                            </p>
+                          )}
                         </div>
 
                         {/* Calculated Flow (Read-only) */}
@@ -884,6 +1037,19 @@ export default function PumpSizingPage() {
                               </span>
                             </div>
                             <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">
+                                Effective ΔT:
+                                {result.isAutoDeltaT && (
+                                  <span className="text-xs ml-1 text-green-600 dark:text-green-400">
+                                    (auto)
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                {result.effectiveDeltaT.toFixed(1)}°F
+                              </span>
+                            </div>
+                            <div className="flex justify-between">
                               <span className="text-slate-600 dark:text-slate-400">Zone flow:</span>
                               <span className="font-semibold text-blue-600 dark:text-blue-400 tabular-nums">
                                 {result.flowGPM.toFixed(2)} GPM
@@ -934,6 +1100,14 @@ export default function PumpSizingPage() {
                                   )}
                                 </div>
                               )}
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-slate-600 dark:text-slate-400">
+                                Emitter equivalent:
+                              </span>
+                              <span className="font-semibold text-slate-900 dark:text-white tabular-nums">
+                                {result.emitterEquivalentLength.toFixed(1)} ft
+                              </span>
                             </div>
                             <div className="flex justify-between pt-2 border-t border-slate-300 dark:border-slate-600">
                               <span className="font-bold text-slate-900 dark:text-white">
