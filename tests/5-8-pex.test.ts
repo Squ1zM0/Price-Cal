@@ -233,5 +233,3 @@ test("5/8\" PEX comparison with 1/2\" and 3/4\" PEX", () => {
   assert.ok(calc34.velocity < calc58.velocity, 
     "3/4\" should have lower velocity than 5/8\" at same flow");
 });
-
-console.log("✅ All 5/8\" PEX tests passed!");

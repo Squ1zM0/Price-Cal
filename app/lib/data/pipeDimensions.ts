@@ -192,6 +192,13 @@ export const BLACK_IRON_SCHEDULE_40_DIMENSIONS: Record<string, PipeDimension> = 
  * 
  * Note: PEX internal diameters can vary slightly by manufacturer.
  * These values represent typical CTS SDR-9 specifications.
+ * 
+ * IMPORTANT: 1/2" and 5/8" PEX have identical physical dimensions.
+ * - 1/2" refers to CTS (Copper Tube Size) nominal sizing
+ * - 5/8" refers to OD (Outer Diameter) nominal sizing
+ * Both are the same physical tubing (0.625" OD, 0.475" ID) but marketed
+ * under different naming conventions by manufacturers. We include both
+ * to accommodate user preferences and reduce confusion when selecting pipe sizes.
  */
 export const PEX_CTS_SDR9_DIMENSIONS: Record<string, PipeDimension> = {
   "1/2\"": {
