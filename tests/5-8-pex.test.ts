@@ -40,7 +40,7 @@ test("5/8\" PEX has correct hydraulic properties", () => {
   
   assert.ok(pipeData !== null, "5/8\" PEX pipe data should exist");
   assert.strictEqual(pipeData.nominalSize, "5/8\"", "Nominal size should be 5/8\"");
-  assert.strictEqual(pipeData.internalDiameter, 0.475, "Internal diameter should be 0.475 inches");
+  assert.strictEqual(pipeData.internalDiameter, 0.584, "Internal diameter should be 0.584 inches");
   assert.strictEqual(pipeData.hazenWilliamsC, 150, "Hazen-Williams C should be 150 for PEX");
   
   // Roughness should be very low for smooth PEX
@@ -88,16 +88,14 @@ test("Issue validation scenario: 25,000 BTU/hr, ΔT=20°F, 100ft, no fittings", 
   );
   
   // Validate velocity based on physics: V = Q/A
-  // For ID=0.475", area=0.177 in², flow=2.5 GPM
-  // V = (2.5 GPM / (7.48 gal/ft³ * 60 s/min)) / (0.177 in² / 144 in²/ft²)
-  // V ≈ 4.53 ft/s
-  assert.ok(calc.velocity >= 4.4 && calc.velocity <= 4.7, 
-    `Velocity should be approximately 4.5 ft/s for 2.5 GPM in 0.475" ID pipe, got ${calc.velocity.toFixed(2)} ft/s`);
+  // For ID=0.584", area=0.268 in², flow=2.5 GPM
+  // V ≈ 3.0 ft/s (closer to issue reference of 2.4 ft/s)
+  assert.ok(calc.velocity >= 2.8 && calc.velocity <= 3.2, 
+    `Velocity should be approximately 3.0 ft/s for 2.5 GPM in 0.584" ID pipe, got ${calc.velocity.toFixed(2)} ft/s`);
   
-  // Validate head loss is reasonable for 100 ft of small diameter pipe at moderate flow
-  // Note: The issue's reference table appears to have errors; actual head loss will be higher
-  // due to the small diameter (0.475")
-  assert.ok(calc.headLoss > 0 && calc.headLoss < 30, 
+  // Validate head loss is reasonable for 100 ft of 5/8" PEX at 2.5 GPM
+  // Should be in the range of 3-10 ft per 100 ft
+  assert.ok(calc.headLoss > 0 && calc.headLoss < 15, 
     `Head loss should be reasonable for 100 ft run, got ${calc.headLoss.toFixed(2)} ft`);
   
   // Validate Reynolds number (should be turbulent)
@@ -105,10 +103,8 @@ test("Issue validation scenario: 25,000 BTU/hr, ΔT=20°F, 100ft, no fittings", 
 });
 
 test("5/8\" PEX hydraulic capacity check for moderate load", () => {
-  // Test with a more conservative load that won't exceed recommended velocity
-  // For 0.475" ID pipe, recommended max velocity is ~4 ft/s
-  // At 4 ft/s, max flow ≈ 2.2 GPM
-  // At 2.2 GPM with ΔT=20°F, max BTU ≈ 22,000 BTU/hr
+  // Test with a conservative load
+  // For 0.584" ID pipe, at 2.0 GPM, velocity should be around 2.4 ft/s
   const zoneBTU = 20000; // Conservative load
   const deltaT = 20;
   const flowGPM = zoneBTU / (500 * deltaT); // 2.0 GPM
@@ -128,9 +124,9 @@ test("5/8\" PEX hydraulic capacity check for moderate load", () => {
     calc.velocity
   );
   
-  // At 2.0 GPM, velocity should be around 3.6 ft/s, which is within recommended range
-  assert.ok(calc.velocity >= 3.4 && calc.velocity <= 3.8, 
-    `Velocity should be approximately 3.6 ft/s for 2.0 GPM, got ${calc.velocity.toFixed(2)} ft/s`);
+  // At 2.0 GPM with ID=0.584", velocity should be around 2.4 ft/s
+  assert.ok(calc.velocity >= 2.2 && calc.velocity <= 2.6, 
+    `Velocity should be approximately 2.4 ft/s for 2.0 GPM, got ${calc.velocity.toFixed(2)} ft/s`);
   
   // Should not exceed recommended capacity at this moderate load
   assert.strictEqual(capacityCheck.exceedsRecommended, false, 
@@ -221,15 +217,21 @@ test("5/8\" PEX comparison with 1/2\" and 3/4\" PEX", () => {
   const calc12 = calculateZoneHead(flowGPM, length, 0, pipeData12, fluidProps, "Darcy-Weisbach");
   const calc34 = calculateZoneHead(flowGPM, length, 0, pipeData34, fluidProps, "Darcy-Weisbach");
   
-  // 5/8" and 1/2" should have same internal diameter, thus same results
-  assert.strictEqual(pipeData58.internalDiameter, pipeData12.internalDiameter, 
-    "5/8\" and 1/2\" should have same internal diameter");
+  // 5/8" should be between 1/2" and 3/4" in terms of diameter
+  assert.ok(pipeData58.internalDiameter > pipeData12.internalDiameter, 
+    "5/8\" should have larger internal diameter than 1/2\"");
+  assert.ok(pipeData58.internalDiameter < pipeData34.internalDiameter, 
+    "5/8\" should have smaller internal diameter than 3/4\"");
   
-  // 3/4" should have larger diameter and lower head loss
-  assert.ok(pipeData34.internalDiameter > pipeData58.internalDiameter, 
-    "3/4\" should have larger internal diameter than 5/8\"");
-  assert.ok(calc34.headLoss < calc58.headLoss, 
-    "3/4\" should have lower head loss than 5/8\" at same flow");
-  assert.ok(calc34.velocity < calc58.velocity, 
-    "3/4\" should have lower velocity than 5/8\" at same flow");
+  // 5/8" should have intermediate head loss (between 1/2" and 3/4")
+  assert.ok(calc58.headLoss < calc12.headLoss, 
+    "5/8\" should have lower head loss than 1/2\" at same flow");
+  assert.ok(calc58.headLoss > calc34.headLoss, 
+    "5/8\" should have higher head loss than 3/4\" at same flow");
+  
+  // 5/8" should have intermediate velocity (between 1/2" and 3/4")
+  assert.ok(calc58.velocity < calc12.velocity, 
+    "5/8\" should have lower velocity than 1/2\" at same flow");
+  assert.ok(calc58.velocity > calc34.velocity, 
+    "5/8\" should have higher velocity than 3/4\" at same flow");
 });
