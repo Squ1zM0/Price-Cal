@@ -24,6 +24,7 @@ import {
   getEmitterDescription,
   calculateRecommendedDeltaT,
 } from "../lib/data/emitterTypes";
+import { generatePumpSizingPDF, type PDFExportData } from "../lib/pdfExport";
 
 // Types
 interface Fittings {
@@ -560,6 +561,40 @@ export default function PumpSizingPage() {
         }
       });
     }
+  }
+
+  // PDF Export Handler
+  async function handleExportPDF() {
+    // Build pipe data map for all zones
+    const pipeDataMap = new Map<string, any>();
+    zones.forEach((zone) => {
+      const key = `${zone.material}-${zone.size}`;
+      if (!pipeDataMap.has(key)) {
+        const pipeData = getPipeData(zone.material, zone.size);
+        if (pipeData) {
+          pipeDataMap.set(key, pipeData);
+        }
+      }
+    });
+
+    // Get fluid properties
+    const temp = parseNum(advancedSettings.temperature);
+    const fluidProps = getFluidProperties(
+      advancedSettings.fluidType,
+      temp,
+      parseNum(advancedSettings.customDensity),
+      parseNum(advancedSettings.customViscosity)
+    );
+
+    const exportData: PDFExportData = {
+      zones: zoneResults,
+      systemResults,
+      advancedSettings,
+      pipeDataMap,
+      fluidProps,
+    };
+
+    await generatePumpSizingPDF(exportData);
   }
 
   return (
@@ -1583,6 +1618,44 @@ export default function PumpSizingPage() {
               )}
             </div>
           )}
+        </section>
+
+        {/* Export as PDF Button */}
+        <section className="rounded-3xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 shadow-lg ring-1 ring-slate-200 dark:ring-slate-700 p-5">
+          <button
+            type="button"
+            onClick={handleExportPDF}
+            disabled={zoneResults.filter(r => r.valid).length === 0}
+            className={[
+              "w-full rounded-xl px-6 py-4 text-lg font-bold transition-all duration-200",
+              "ring-1 ring-inset shadow-md",
+              zoneResults.filter(r => r.valid).length === 0
+                ? "opacity-50 cursor-not-allowed bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-400 ring-slate-300 dark:ring-slate-600"
+                : "bg-gradient-to-br from-blue-600 to-blue-700 dark:from-blue-700 dark:to-blue-800 text-white ring-blue-600 dark:ring-blue-700 hover:scale-[1.02] hover:shadow-lg active:scale-[0.98]"
+            ].join(" ")}
+          >
+            <div className="flex items-center justify-center gap-3">
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                fill="none" 
+                viewBox="0 0 24 24" 
+                strokeWidth={2.5} 
+                stroke="currentColor" 
+                className="w-6 h-6"
+              >
+                <path 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" 
+                />
+              </svg>
+              <span>Export as PDF</span>
+            </div>
+          </button>
+          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400 text-center">
+            Generate a comprehensive technical report with all inputs, results, and full mathematical proof. 
+            Suitable for engineering review, field verification, and documentation.
+          </p>
         </section>
 
         {/* Disclaimer */}
