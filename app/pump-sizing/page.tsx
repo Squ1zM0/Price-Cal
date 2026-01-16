@@ -38,7 +38,7 @@ interface Zone {
   assignedBTU: string; // Manual override, empty means use auto-distribution
   deltaT: string;
   deltaTMode: "auto" | "manual"; // Whether ΔT is auto-calculated or manually set
-  emitterType: string; // Type of emitter (Baseboard, Radiant Floor, etc.)
+  emitterType: EmitterType; // Type of emitter (Baseboard, Radiant Floor, etc.)
   emitterLength: string; // Emitter equivalent length in feet
   material: PipeMaterial;
   size: string;
@@ -263,12 +263,12 @@ export default function PumpSizingPage() {
       return { valid: true, length: 0 };
     }
     
-    // Check for explicit negative sign at the start (excluding scientific notation)
-    if (trimmed.startsWith("-") && !trimmed.includes("e")) {
+    const length = parseNum(lengthStr);
+    
+    // Check if the result is negative (parseNum removes negative signs but we need to detect them)
+    if (trimmed.startsWith("-")) {
       return { valid: false, length: 0, error: "Emitter length must be positive" };
     }
-    
-    const length = parseNum(lengthStr);
     
     // 0 is valid for emitter length
     return { valid: true, length };
