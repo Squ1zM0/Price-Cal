@@ -18,6 +18,7 @@ import {
   calculateZoneHead,
   checkHydraulicCapacity,
   type HydraulicCapacityCheck,
+  calculateZoneMaxCapacity,
 } from "../lib/hydraulics";
 import {
   type EmitterType,
@@ -26,7 +27,6 @@ import {
   calculateRecommendedDeltaT,
   checkEmitterSizing,
   type EmitterSizingCheck,
-  EMITTER_DEFAULT_DELTA_T,
 } from "../lib/data/emitterTypes";
 import { getManufacturerModelsForType } from "../lib/data/manufacturerEmitterData";
 import { generatePumpSizingPDF, type PDFExportData } from "../lib/pdfExport";
@@ -68,10 +68,6 @@ interface AdvancedSettings {
 
 // Constants
 const BTU_CONVERGENCE_THRESHOLD = 0.01; // BTU/hr - threshold for iterative distribution convergence
-const BTU_RECONCILIATION_TOLERANCE = 100; // BTU/hr - tolerance for comparing system vs delivered BTU
-const MIN_DELTA_T_RECOMMENDED = 10; // °F - Recommended minimum ΔT to prevent unrealistic high flow
-const MIN_DELTA_T_ABSOLUTE = 5; // °F - Absolute minimum ΔT (requires explicit user awareness)
-const DEFAULT_FALLBACK_DELTA_T = 20; // °F - Default ΔT when emitter type is not recognized
 
 // Utility functions
 function parseNum(s: string): number {
@@ -370,19 +366,13 @@ export default function PumpSizingPage() {
         );
       }
       
-      // REMOVED: Hydraulic capacity limits based on velocity
-      // Auto-distribution now uses only emitter capacity or unlimited if no emitter specified
-      // Velocity is a consequence of flow, not a constraint on it
-      const emitterLengthCheck = isEmitterLengthValid(zone.emitterLength);
-      const emitterLengthFt = emitterLengthCheck.valid ? emitterLengthCheck.length : 0;
-      
-      let maxCapacity = Infinity;
-      if (emitterLengthFt > 0) {
-        // If emitter is specified, use its capacity as the limit
-        // This will be calculated properly during zone calculations
-        // For now, use a generous default to allow distribution
-        maxCapacity = Infinity;
-      }
+      // Calculate max capacity based on recommended velocity limits
+      const maxCapacity = calculateZoneMaxCapacity(
+        pipeData,
+        zoneDeltaT,
+        advancedSettings.fluidType,
+        false // Use recommended limits, not absolute
+      );
       
       return { weight, maxCapacity, deltaT: zoneDeltaT, pipeData, hasValidData: true };
     });
@@ -493,122 +483,38 @@ export default function PumpSizingPage() {
       
       // Determine zone BTU: use manual assignment if provided, otherwise auto-distribute
       const manualBTUCheck = isHeatLoadValid(zone.assignedBTU);
-      const requestedBTU = manualBTUCheck.valid ? manualBTUCheck.heatLoad : autoDistribution.zoneBTU[zoneIndex];
+      const zoneBTU = manualBTUCheck.valid ? manualBTUCheck.heatLoad : autoDistribution.zoneBTU[zoneIndex];
       const isAutoAssigned = !manualBTUCheck.valid;
       const isCapacityLimited = isAutoAssigned && autoDistribution.cappedZones.has(zoneIndex);
       const maxZoneCapacity = zoneCapacityInfo[zoneIndex].maxCapacity;
 
-      const lengthCheck = isStraightLengthValid(zone.straightLength);
-      const pipeData = getPipeData(zone.material, zone.size);
-      
-      // CORRECT CAUSALITY CHAIN:
-      // 1. Start with baseline deltaT
-      // 2. Calculate hydraulic limits
-      // 3. Calculate emitter limits
-      // 4. Determine deliverable BTU = min(requested, hydraulic cap, emitter cap)
-      // 5. Calculate actual deltaT from deliverable BTU
-      
+      // Calculate auto ΔT if in auto mode
       let effectiveDeltaT: number;
       let isAutoDeltaT: boolean;
-      let flowGPM: number;
-      let zoneBTU: number;
-      let deliverableReason: string | undefined;
       
       if (zone.deltaTMode === "auto") {
+        // Auto-calculate ΔT based on emitter type, length, and heat load
+        effectiveDeltaT = calculateRecommendedDeltaT(
+          zone.emitterType as EmitterType,
+          emitterLengthFt,
+          zoneBTU
+        );
         isAutoDeltaT = true;
-        
-        // CORRECT PHYSICS (FIXED):
-        // ΔT is a DESIGN INPUT, not a collapsed output
-        // Flow is derived strictly from: GPM = BTU/hr ÷ (500 × ΔT)
-        
-        // Step 1: Get design deltaT for this emitter type
-        // Enforce minimum ΔT to prevent unrealistic high flow rates
-        const baseDeltaT = EMITTER_DEFAULT_DELTA_T[zone.emitterType as EmitterType] || DEFAULT_FALLBACK_DELTA_T;
-        const designDeltaT = Math.max(MIN_DELTA_T_RECOMMENDED, baseDeltaT);
-        
-        if (!pipeData) {
-          // Fallback if no pipe data
-          effectiveDeltaT = designDeltaT;
-          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, designDeltaT) : 0;
-          zoneBTU = requestedBTU;
-        } else {
-          // Step 2: Calculate flow from heat load and design ΔT
-          // Flow = BTU / (500 × ΔT)
-          // This is the physically required flow to transport the heat
-          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, designDeltaT) : 0;
-          
-          // Step 3: Determine deliverable BTU based on emitter capacity
-          let emitterCapacityBTU = Infinity;
-          if (emitterLengthFt > 0) {
-            const emitterCheck = checkEmitterSizing(
-              zone.emitterType as EmitterType,
-              emitterLengthFt,
-              requestedBTU,
-              parseNum(advancedSettings.temperature),
-              flowGPM,
-              zone.manufacturerModel
-            );
-            emitterCapacityBTU = emitterCheck.maxOutputBTU;
-          }
-          
-          // Step 4: Actual deliverable BTU (limited only by emitter)
-          zoneBTU = Math.min(requestedBTU, emitterCapacityBTU);
-          
-          // Track what limited delivery
-          if (zoneBTU < requestedBTU) {
-            deliverableReason = "emitter-limited";
-          }
-          
-          // Step 5: Effective ΔT is the design ΔT (fixed, not collapsed)
-          // If emitter limits delivery, user must increase emitter capacity or accept lower BTU
-          // ΔT does NOT collapse - that would violate thermodynamic design principles
-          effectiveDeltaT = designDeltaT;
-        }
       } else {
-        // Manual deltaT mode - use user's deltaT value with minimum constraint
+        // Use manual ΔT
         const deltaTCheck = isDeltaTValid(zone.deltaT);
-        const userDeltaT = deltaTCheck.valid ? deltaTCheck.deltaT : DEFAULT_FALLBACK_DELTA_T;
-        // Enforce minimum ΔT to prevent physically unrealistic scenarios
-        const manualDeltaT = Math.max(MIN_DELTA_T_RECOMMENDED, userDeltaT);
+        effectiveDeltaT = deltaTCheck.valid ? deltaTCheck.deltaT : 20; // Default to 20 if invalid
         isAutoDeltaT = false;
-        
-        // CORRECT PHYSICS: Flow is derived from heat load at user-specified ΔT
-        if (!pipeData) {
-          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, manualDeltaT) : 0;
-          zoneBTU = requestedBTU;
-          effectiveDeltaT = manualDeltaT;
-        } else {
-          // Calculate flow from heat load and user's ΔT
-          // Flow = BTU / (500 × ΔT)
-          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, manualDeltaT) : 0;
-          
-          // Determine deliverable BTU based on emitter capacity
-          let emitterCapacityBTU = Infinity;
-          if (emitterLengthFt > 0) {
-            const emitterCheck = checkEmitterSizing(
-              zone.emitterType as EmitterType,
-              emitterLengthFt,
-              requestedBTU,
-              parseNum(advancedSettings.temperature),
-              flowGPM,
-              zone.manufacturerModel
-            );
-            emitterCapacityBTU = emitterCheck.maxOutputBTU;
-          }
-          
-          // Actual deliverable BTU (limited only by emitter)
-          zoneBTU = Math.min(requestedBTU, emitterCapacityBTU);
-          
-          if (zoneBTU < requestedBTU) {
-            deliverableReason = "emitter-limited";
-          }
-          
-          // Effective ΔT is the user's design ΔT (enforced minimum)
-          effectiveDeltaT = manualDeltaT;
-        }
       }
 
       const deltaTCheck = isDeltaTValid(effectiveDeltaT.toString());
+      const lengthCheck = isStraightLengthValid(zone.straightLength);
+      const pipeData = getPipeData(zone.material, zone.size);
+
+      // Calculate GPM from zone BTU using effective ΔT
+      const flowGPM = zoneBTU > 0 && deltaTCheck.valid 
+        ? calculateGPM(zoneBTU, deltaTCheck.deltaT)
+        : 0;
 
       if (!pipeData || !deltaTCheck.valid || !lengthCheck.valid) {
         return {
@@ -619,8 +525,6 @@ export default function PumpSizingPage() {
           straightLengthError: lengthCheck.error,
           emitterLengthError: emitterLengthCheck.error,
           zoneBTU,
-          requestedBTU,
-          deliverableReason,
           isAutoAssigned,
           isCapacityLimited,
           maxZoneCapacity,
@@ -680,19 +584,11 @@ export default function PumpSizingPage() {
         customCValue
       );
 
-      // Get design ΔT for hydraulic capacity check (not effective ΔT)
-      // When emitter limits delivery, effective ΔT may collapse, but pipe capacity should be
-      // calculated using design ΔT to avoid false capacity failures
-      const deltaTValidation = isDeltaTValid(zone.deltaT);
-      const designDeltaTForCapacityCheck = zone.deltaTMode === "auto" 
-        ? (EMITTER_DEFAULT_DELTA_T[zone.emitterType as EmitterType] || 20)
-        : (deltaTValidation.valid ? deltaTValidation.deltaT : 20);
-
       // Phase 3: Hydraulic Reality Check
       const capacityCheck = checkHydraulicCapacity(
         zoneBTU,
         flowGPM,
-        designDeltaTForCapacityCheck,  // Use design ΔT, not collapsed effective ΔT
+        deltaTCheck.deltaT,
         pipeData,
         advancedSettings.fluidType,
         calc.velocity
@@ -718,8 +614,6 @@ export default function PumpSizingPage() {
         straightLengthError: undefined,
         emitterLengthError: undefined,
         zoneBTU,
-        requestedBTU, // Track requested vs delivered
-        deliverableReason, // Track why delivery was limited
         isAutoAssigned,
         isCapacityLimited,
         maxZoneCapacity,
@@ -753,33 +647,12 @@ export default function PumpSizingPage() {
         requiredHeadFt: 0, 
         criticalZone: null,
         undeliverableBTU: zoneResults.undeliverableBTU,
-        totalDeliveredBTU: 0,
-        systemBTU: 0,
-        reconciliationError: false,
-        reconciliationDelta: 0,
       };
     }
 
     const totalFlowGPM = validResults.reduce((sum, r) => sum + r.flowGPM, 0);
     const maxHeadLoss = Math.max(...validResults.map((r) => r.headLoss));
     const criticalZone = validResults.find((r) => r.headLoss === maxHeadLoss);
-    
-    // Calculate total delivered BTU (sum of all zone deliveries)
-    const totalDeliveredBTU = validResults.reduce((sum, r) => sum + r.zoneBTU, 0);
-    
-    // Get system BTU for reconciliation
-    const systemHeatLoadCheck = isHeatLoadValid(advancedSettings.systemHeatLoadBTU);
-    const systemBTU = systemHeatLoadCheck.valid ? systemHeatLoadCheck.heatLoad : 0;
-    
-    // MANDATORY VALIDATION: Zone loads must reconcile with system load
-    // Exception: Auto-distribution is allowed to have shortfall if zones are capacity-limited
-    // because zones cannot deliver more than their physical capacity. Manual assignments
-    // must reconcile because the user explicitly set the values.
-    const reconciliationDelta = systemBTU > 0 ? Math.abs(totalDeliveredBTU - systemBTU) : 0;
-    const hasManualZones = zones.some((z) => isHeatLoadValid(z.assignedBTU).valid);
-    const reconciliationError = systemBTU > 0 && 
-                                 reconciliationDelta > BTU_RECONCILIATION_TOLERANCE && 
-                                 hasManualZones;
 
     const headSafetyFactor = 1 + parseNum(advancedSettings.headSafetyFactor) / 100;
     const flowSafetyFactor = 1 + parseNum(advancedSettings.flowSafetyFactor) / 100;
@@ -789,12 +662,8 @@ export default function PumpSizingPage() {
       requiredHeadFt: maxHeadLoss * headSafetyFactor,
       criticalZone: criticalZone?.zone.name ?? null,
       undeliverableBTU: zoneResults.undeliverableBTU,
-      totalDeliveredBTU,
-      systemBTU,
-      reconciliationError,
-      reconciliationDelta,
     };
-  }, [zoneResults, advancedSettings, zones]);
+  }, [zoneResults, advancedSettings]);
 
   // Zone management
   function addZone() {
@@ -871,18 +740,6 @@ export default function PumpSizingPage() {
 
   // PDF Export Handler
   async function handleExportPDF() {
-    // CRITICAL VALIDATION: Check reconciliation before allowing PDF export
-    if (systemResults.reconciliationError) {
-      alert(
-        '⛔ PDF Export Blocked: Zone Load Reconciliation Error\n\n' +
-        `The sum of zone BTU values (${systemResults.totalDeliveredBTU.toLocaleString()} BTU/hr) ` +
-        `does not equal the system total (${systemResults.systemBTU.toLocaleString()} BTU/hr).\n\n` +
-        `Discrepancy: ${systemResults.reconciliationDelta.toLocaleString()} BTU/hr\n\n` +
-        'This violates conservation of energy. Please adjust zone assignments so they sum to the system total.'
-      );
-      return;
-    }
-    
     // Build pipe data map for all zones
     const pipeDataMap = new Map<string, any>();
     zones.forEach((zone) => {
@@ -983,72 +840,6 @@ export default function PumpSizingPage() {
               </div>
             </div>
           </div>
-          
-          {/* BTU Reconciliation Display */}
-          {systemResults.systemBTU > 0 && (
-            <div className="mt-4 pt-4 border-t border-white/20">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <div className="text-xs opacity-75">System Total (Input)</div>
-                  <div className="text-lg font-bold">{systemResults.systemBTU.toLocaleString()} BTU/hr</div>
-                </div>
-                <div>
-                  <div className="text-xs opacity-75">Delivered (Sum of Zones)</div>
-                  <div className="text-lg font-bold">{systemResults.totalDeliveredBTU.toLocaleString()} BTU/hr</div>
-                </div>
-              </div>
-              
-              {/* CRITICAL VALIDATION ERROR: Reconciliation Failure */}
-              {systemResults.reconciliationError && (
-                <div className="mt-3 p-3 rounded-xl bg-red-500/30 border border-red-400/50">
-                  <div className="flex gap-2 items-start">
-                    <svg className="w-5 h-5 text-red-200 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    <div className="text-xs text-red-100">
-                      <p className="font-bold">⛔ VALIDATION FAILURE: Zone loads do not reconcile with system load</p>
-                      <p className="mt-1">
-                        Discrepancy: {systemResults.reconciliationDelta.toLocaleString()} BTU/hr
-                      </p>
-                      <p className="mt-1">
-                        <strong>Conservation of energy violated.</strong> The sum of manually assigned zone BTU values 
-                        ({systemResults.totalDeliveredBTU.toLocaleString()} BTU/hr) does not equal the system total 
-                        ({systemResults.systemBTU.toLocaleString()} BTU/hr).
-                      </p>
-                      <p className="mt-1 font-semibold">
-                        ⚠️ PDF export and pump sizing results are invalid until this is resolved.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
-              {!systemResults.reconciliationError && Math.abs(systemResults.systemBTU - systemResults.totalDeliveredBTU) > BTU_RECONCILIATION_TOLERANCE && (
-                <div className="mt-2 text-xs opacity-90">
-                  {systemResults.totalDeliveredBTU < systemResults.systemBTU ? (
-                    <p>
-                      ⚠️ <strong>Shortfall: {(systemResults.systemBTU - systemResults.totalDeliveredBTU).toLocaleString()} BTU/hr</strong>
-                      {" "}- One or more zones are emitter-limited. Increase emitter length or capacity to deliver full load.
-                    </p>
-                  ) : (
-                    <p>
-                      ⚠️ <strong>Excess: {(systemResults.totalDeliveredBTU - systemResults.systemBTU).toLocaleString()} BTU/hr</strong>
-                      {" "}- Zones are configured to deliver more than system total (auto-distribution).
-                    </p>
-                  )}
-                </div>
-              )}
-              
-              {!systemResults.reconciliationError && Math.abs(systemResults.systemBTU - systemResults.totalDeliveredBTU) <= BTU_RECONCILIATION_TOLERANCE && (
-                <div className="mt-2 text-xs opacity-90">
-                  <p>
-                    ✓ <strong>Zones reconcile with system load</strong> (within {BTU_RECONCILIATION_TOLERANCE} BTU/hr tolerance)
-                  </p>
-                </div>
-              )}
-            </div>
-          )}
-          
           {systemResults.undeliverableBTU > 0 && (
             <div className="mt-4 p-3 rounded-xl bg-yellow-500/20 border border-yellow-400/30">
               <div className="flex gap-2 items-start">
@@ -1058,8 +849,9 @@ export default function PumpSizingPage() {
                 <div className="text-sm">
                   <p className="font-bold text-yellow-100">Undeliverable Load: {systemResults.undeliverableBTU.toLocaleString()} BTU/hr</p>
                   <p className="text-xs text-yellow-200 mt-1">
-                    One or more zones have reached their capacity limit during auto-distribution. 
-                    To deliver the full system load, increase pipe sizes, emitter capacity, or manually adjust zone assignments.
+                    One or more zones have reached their hydraulic capacity limit. 
+                    The displayed load represents what can actually be delivered with current piping. 
+                    To deliver the full system load, increase pipe sizes or reduce zone loads.
                   </p>
                 </div>
               </div>

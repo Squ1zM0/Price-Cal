@@ -70,28 +70,28 @@ test("calculateRecommendedDeltaT returns base ΔT when no heat load", () => {
 test("Baseboard ΔT auto-adjustment: typical load scenario", () => {
   // Scenario: 30,000 BTU/hr with 40 ft of baseboard
   // Typical capacity: 40 ft × 550 BTU/ft = 22,000 BTU/hr at base ΔT of 20°F
-  // Load ratio: 30,000 / 22,000 = 1.36 (moderately undersized)
-  // 
-  // CORRECTED behavior: ΔT should be constant for a given heat load.
-  // Flow = BTU / (500 × ΔT) must remain constant for fixed heat load.
-  // Emitter sizing (under/over) affects CAPACITY, not ΔT.
+  // Load ratio: 30,000 / 22,000 = 1.36
+  // NEW behavior: Moderately undersized (loadRatio 1.36), ΔT increases slightly
+  // adjustedDeltaT = 20 × (1.0 + 0.2 × (1.36 - 1.0)) ≈ 21.4°F
   const deltaT = calculateRecommendedDeltaT("Baseboard", 40, 30000);
+  within(deltaT, 21.4, 1.5, "Baseboard ΔT for 30k BTU / 40 ft");
   
-  // ΔT should be the base value for baseboard (20°F)
-  assert.strictEqual(deltaT, 20, "ΔT should be constant at base value for any emitter length");
+  // Should be slightly above base but not excessive
+  assert.ok(deltaT > 20, "ΔT should increase slightly when moderately undersized");
+  assert.ok(deltaT <= 25, "ΔT should not be excessive for moderate undersizing");
 });
 
 test("Baseboard ΔT auto-adjustment: light load scenario", () => {
   // Scenario: 15,000 BTU/hr with 40 ft of baseboard
   // Typical capacity: 40 ft × 550 BTU/ft = 22,000 BTU/hr at base ΔT of 20°F
-  // Load ratio: 15,000 / 22,000 = 0.68 (oversized emitter)
-  // 
-  // CORRECTED behavior: ΔT should be constant for a given heat load.
-  // The emitter being oversized doesn't change the ΔT needed for 15k BTU/hr.
+  // Load ratio: 15,000 / 22,000 = 0.68
+  // Adjusted ΔT: 20 × sqrt(0.68) ≈ 16.5°F
   const deltaT = calculateRecommendedDeltaT("Baseboard", 40, 15000);
+  within(deltaT, 16.5, 1.5, "Baseboard ΔT for 15k BTU / 40 ft");
   
-  // ΔT should be the base value for baseboard (20°F)
-  assert.strictEqual(deltaT, 20, "ΔT should be constant at base value regardless of load");
+  // Should be below base but above min
+  assert.ok(deltaT < 20, "ΔT should decrease when load is below typical capacity");
+  assert.ok(deltaT >= 15, "ΔT should stay within Baseboard min limit");
 });
 
 test("Radiant Floor ΔT stays within low bounds", () => {
