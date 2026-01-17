@@ -124,6 +124,37 @@ function checkPageBreak(pdf: jsPDF, currentY: number, requiredSpace: number): nu
 }
 
 /**
+ * Add text with automatic page break if needed
+ * Wraps text to fit within available width and checks for page breaks
+ * @param pdf - jsPDF instance
+ * @param text - Text to add (string or array of strings)
+ * @param x - X position
+ * @param y - Current Y position  
+ * @param maxWidth - Maximum width for text wrapping (optional, uses full content width if not provided)
+ * @returns New Y position after adding text
+ */
+function addTextWithPageBreak(
+  pdf: jsPDF,
+  text: string | string[],
+  x: number,
+  y: number,
+  maxWidth?: number
+): number {
+  const width = maxWidth || CONTENT_WIDTH;
+  const lines = Array.isArray(text) ? text : pdf.splitTextToSize(text, width);
+  const requiredHeight = LINE_HEIGHT * lines.length;
+  
+  // Check if we need a page break before adding text
+  let yPos = checkPageBreak(pdf, y, requiredHeight);
+  
+  // Add the text
+  pdf.text(lines, x, yPos);
+  
+  // Return new Y position
+  return yPos + requiredHeight;
+}
+
+/**
  * Generate PDF report for pump sizing calculator
  */
 export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> {
@@ -322,28 +353,21 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     // 1. Heat Transfer Calculation
     pdf.setFont('helvetica', 'bold');
     const heatTransferTitle = '1. Heat Transfer Calculation (GPM from BTU/hr and ΔT):';
-    const heatTransferLines = pdf.splitTextToSize(heatTransferTitle, CONTENT_WIDTH);
-    pdf.text(heatTransferLines, MARGIN_LEFT, yPos);
-    yPos += LINE_HEIGHT * heatTransferLines.length;
+    yPos = addTextWithPageBreak(pdf, heatTransferTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
     
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Formula: GPM = BTU/hr ÷ (500 × ΔT)', MARGIN_LEFT + INDENT_OFFSET, yPos);
-    yPos += LINE_HEIGHT;
+    yPos = addTextWithPageBreak(pdf, 'Formula: GPM = BTU/hr ÷ (500 × ΔT)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
     
     const substitutionText = `Substituting values: GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ (500 × ${zoneData.effectiveDeltaT.toFixed(1)})`;
-    const substitutionLines = pdf.splitTextToSize(substitutionText, CONTENT_WIDTH - INDENT_OFFSET);
-    pdf.text(substitutionLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-    yPos += LINE_HEIGHT * substitutionLines.length;
+    yPos = addTextWithPageBreak(pdf, substitutionText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
     
     const denominator = 500 * zoneData.effectiveDeltaT;
     const calcText = `GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ ${denominator.toFixed(1)}`;
-    const calcLines = pdf.splitTextToSize(calcText, CONTENT_WIDTH - INDENT_OFFSET);
-    pdf.text(calcLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-    yPos += LINE_HEIGHT * calcLines.length;
+    yPos = addTextWithPageBreak(pdf, calcText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
     
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`GPM = ${zoneData.flowGPM.toFixed(2)}`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-    yPos += LINE_HEIGHT * 1.5;
+    yPos = addTextWithPageBreak(pdf, `GPM = ${zoneData.flowGPM.toFixed(2)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+    yPos += LINE_HEIGHT * 0.5; // Extra spacing after result
     pdf.setFont('helvetica', 'normal');
 
     // Get pipe data for this zone
@@ -353,88 +377,60 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     if (pipeData) {
       // 2. Velocity Calculation
       pdf.setFont('helvetica', 'bold');
-      pdf.text('2. Velocity Calculation:', MARGIN_LEFT, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, '2. Velocity Calculation:', MARGIN_LEFT, yPos, CONTENT_WIDTH);
       
       pdf.setFont('helvetica', 'normal');
-      const velocityFormula = 'Formula: Velocity = Flow ÷ Pipe Cross-Sectional Area';
-      const velocityFormulaLines = pdf.splitTextToSize(velocityFormula, CONTENT_WIDTH - INDENT_OFFSET);
-      pdf.text(velocityFormulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * velocityFormulaLines.length;
+      yPos = addTextWithPageBreak(pdf, 'Formula: Velocity = Flow ÷ Pipe Cross-Sectional Area', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const diameterFt = pipeData.internalDiameter / 12;
       const area = Math.PI * Math.pow(diameterFt / 2, 2);
       const flowCFS = zoneData.flowGPM / 448.83;
       
       const diameterText = `Pipe Internal Diameter: ${pipeData.internalDiameter.toFixed(3)} inches = ${diameterFt.toFixed(4)} ft`;
-      const diameterLines = pdf.splitTextToSize(diameterText, CONTENT_WIDTH - INDENT_OFFSET);
-      pdf.text(diameterLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * diameterLines.length;
+      yPos = addTextWithPageBreak(pdf, diameterText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const areaText = `Cross-Sectional Area: π × (${diameterFt.toFixed(4)} / 2)² = ${area.toFixed(6)} ft²`;
-      const areaLines = pdf.splitTextToSize(areaText, CONTENT_WIDTH - INDENT_OFFSET);
-      pdf.text(areaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * areaLines.length;
+      yPos = addTextWithPageBreak(pdf, areaText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const flowText = `Flow: ${zoneData.flowGPM.toFixed(2)} GPM = ${flowCFS.toFixed(4)} ft³/s`;
-      const flowLines = pdf.splitTextToSize(flowText, CONTENT_WIDTH - INDENT_OFFSET);
-      pdf.text(flowLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * flowLines.length;
+      yPos = addTextWithPageBreak(pdf, flowText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const velocityCalcText = `Velocity: ${flowCFS.toFixed(4)} ÷ ${area.toFixed(6)} ft²`;
-      const velocityCalcLines = pdf.splitTextToSize(velocityCalcText, CONTENT_WIDTH - INDENT_OFFSET);
-      pdf.text(velocityCalcLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * velocityCalcLines.length;
+      yPos = addTextWithPageBreak(pdf, velocityCalcText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       pdf.setFont('helvetica', 'bold');
-      pdf.text(`Velocity = ${zoneData.velocity.toFixed(2)} ft/s`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * 1.5;
+      yPos = addTextWithPageBreak(pdf, `Velocity = ${zoneData.velocity.toFixed(2)} ft/s`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+      yPos += LINE_HEIGHT * 0.5; // Extra spacing after result
       pdf.setFont('helvetica', 'normal');
-
-      // Check if we need a new page
-      // Check if we need a new page before Reynolds calculation
-      yPos = checkPageBreak(pdf, yPos, 50);
 
       // 3. Reynolds Number
       pdf.setFont('helvetica', 'bold');
-      pdf.text('3. Reynolds Number Calculation:', MARGIN_LEFT, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, '3. Reynolds Number Calculation:', MARGIN_LEFT, yPos, CONTENT_WIDTH);
       
       pdf.setFont('helvetica', 'normal');
-      const reynoldsFormula = 'Formula: Re = (Velocity × Diameter) ÷ Kinematic Viscosity';
-      const reynoldsFormulaLines = pdf.splitTextToSize(reynoldsFormula, CONTENT_WIDTH - INDENT_OFFSET);
-      pdf.text(reynoldsFormulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * reynoldsFormulaLines.length;
+      yPos = addTextWithPageBreak(pdf, 'Formula: Re = (Velocity × Diameter) ÷ Kinematic Viscosity', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      pdf.text(`Assumed Water Temperature: ${data.advancedSettings.temperature}°F`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, `Assumed Water Temperature: ${data.advancedSettings.temperature}°F`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const viscosityText = `Kinematic Viscosity: ${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`;
-      const viscosityLines = pdf.splitTextToSize(viscosityText, CONTENT_WIDTH - INDENT_OFFSET);
-      pdf.text(viscosityLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * viscosityLines.length;
+      yPos = addTextWithPageBreak(pdf, viscosityText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const reynoldsCalcText = `Re = (${zoneData.velocity.toFixed(2)} × ${diameterFt.toFixed(4)}) ÷ ${data.fluidProps.kinematicViscosity.toExponential(3)}`;
-      const reynoldsCalcLines = pdf.splitTextToSize(reynoldsCalcText, CONTENT_WIDTH - INDENT_OFFSET);
-      pdf.text(reynoldsCalcLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * reynoldsCalcLines.length;
+      yPos = addTextWithPageBreak(pdf, reynoldsCalcText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       pdf.setFont('helvetica', 'bold');
-      pdf.text(`Reynolds Number = ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, `Reynolds Number = ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const flowRegime = zoneData.reynolds < 2300 ? 'Laminar' : zoneData.reynolds < 4000 ? 'Transitional' : 'Turbulent';
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Flow Regime: ${flowRegime}`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-      yPos += LINE_HEIGHT * 1.5;
+      yPos = addTextWithPageBreak(pdf, `Flow Regime: ${flowRegime}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+      yPos += LINE_HEIGHT * 0.5; // Extra spacing
 
       // 4. Friction Factor (if Darcy-Weisbach)
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
         pdf.setFont('helvetica', 'bold');
         const frictionTitle = '4. Friction Factor Calculation (Swamee-Jain Approximation):';
-        const frictionTitleLines = pdf.splitTextToSize(frictionTitle, CONTENT_WIDTH);
-        pdf.text(frictionTitleLines, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT * frictionTitleLines.length;
+        yPos = addTextWithPageBreak(pdf, frictionTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
         const roughness = parseFloat(data.advancedSettings.customRoughness) || pipeData.roughness;
