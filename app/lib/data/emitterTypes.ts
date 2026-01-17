@@ -49,6 +49,34 @@ export const EMITTER_BTU_PER_FOOT: Record<EmitterType, number> = {
 };
 
 /**
+ * Hydraulic Capacity Offset Factor (HCOF) for each emitter type
+ * 
+ * Purpose: Prevents ΔT collapse under high-flow conditions by normalizing
+ * effective hydraulic capacity when calculating thermal output.
+ * 
+ * This factor represents the typical flow fraction that an emitter can
+ * effectively utilize for heat transfer, based on emitter characteristics:
+ * - Smaller values: Emitter has limited heat transfer surface, cannot effectively
+ *   use high flow rates (e.g., fin-tube baseboard)
+ * - Larger values: Emitter has extensive surface area or forced convection,
+ *   can utilize higher flow rates (e.g., radiant floor)
+ * 
+ * Range: (0, 1] where 1.0 = no offset (full hydraulic capacity used)
+ * 
+ * Effect: effectiveGPM = actualGPM × HCOF
+ *         This prevents unrealistic ΔT values (<1°F) while maintaining
+ *         accurate pipe sizing based on actual flow.
+ */
+export const HYDRAULIC_CAPACITY_OFFSET: Record<EmitterType, number> = {
+  "Baseboard": 0.25,         // Fin-tube: limited surface area, typical 20-25% utilization
+  "Panel Radiator": 0.35,    // Panel: better surface area than baseboard
+  "Cast Iron Radiator": 0.40,// Cast iron: large thermal mass, good heat transfer
+  "Radiant Floor": 0.60,     // Radiant: extensive surface area, high utilization
+  "Fan Coil": 0.50,          // Fan coil: forced convection aids heat transfer
+  "Custom": 0.30,            // Conservative default
+};
+
+/**
  * Standard reference temperature for emitter output ratings (°F)
  * Most emitter output data is rated at this average water temperature
  */
@@ -450,4 +478,38 @@ export function checkEmitterSizing(
     usingManufacturerData,
     manufacturerModel: usingManufacturerData ? manufacturerModel : undefined,
   };
+}
+
+/**
+ * Get hydraulic capacity offset factor for an emitter type
+ * 
+ * This factor normalizes effective hydraulic capacity to prevent ΔT collapse
+ * under high-flow conditions while preserving accurate pipe sizing.
+ * 
+ * @param emitterType - Type of emitter
+ * @returns Offset factor in range (0, 1]
+ */
+export function getHydraulicCapacityOffset(emitterType: EmitterType): number {
+  return HYDRAULIC_CAPACITY_OFFSET[emitterType];
+}
+
+/**
+ * Calculate effective GPM for thermal calculations using hydraulic capacity offset
+ * 
+ * Purpose: Prevents unrealistic ΔT collapse (<1°F) when hydraulics allow very high
+ * flow but emitter cannot effectively utilize it for heat transfer.
+ * 
+ * The offset represents the fraction of hydraulic capacity that the emitter can
+ * effectively use for heat transfer, based on surface area and convection characteristics.
+ * 
+ * @param actualGPM - Actual flow rate determined by hydraulics (GPM)
+ * @param emitterType - Type of emitter
+ * @returns Effective GPM for thermal calculations
+ */
+export function calculateEffectiveGPM(
+  actualGPM: number,
+  emitterType: EmitterType
+): number {
+  const offset = getHydraulicCapacityOffset(emitterType);
+  return actualGPM * offset;
 }

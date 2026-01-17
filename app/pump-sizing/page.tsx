@@ -19,8 +19,10 @@ import {
   checkHydraulicCapacity,
   type HydraulicCapacityCheck,
   calculateZoneMaxCapacity,
+  calculateZoneMaxCapacityWithOffset,
   calculateMaxGPMFromVelocity,
   calculateHydraulicCapacityBTU,
+  calculateEffectiveBTU,
 } from "../lib/hydraulics";
 import {
   type EmitterType,
@@ -30,6 +32,7 @@ import {
   checkEmitterSizing,
   type EmitterSizingCheck,
   EMITTER_DEFAULT_DELTA_T,
+  getHydraulicCapacityOffset,
 } from "../lib/data/emitterTypes";
 import { getManufacturerModelsForType } from "../lib/data/manufacturerEmitterData";
 import { generatePumpSizingPDF, type PDFExportData } from "../lib/pdfExport";
@@ -370,10 +373,13 @@ export default function PumpSizingPage() {
       }
       
       // Calculate max capacity based on recommended velocity limits
-      const maxCapacity = calculateZoneMaxCapacity(
+      // Apply hydraulic capacity offset to prevent unrealistic ΔT values
+      const hydraulicOffset = getHydraulicCapacityOffset(zone.emitterType as EmitterType);
+      const maxCapacity = calculateZoneMaxCapacityWithOffset(
         pipeData,
         zoneDeltaT,
         advancedSettings.fluidType,
+        hydraulicOffset,
         false // Use recommended limits, not absolute
       );
       
@@ -525,7 +531,15 @@ export default function PumpSizingPage() {
             advancedSettings.fluidType,
             false // Use recommended limits
           );
-          const hydraulicCapacityBTU = calculateHydraulicCapacityBTU(maxGPM, baselineDeltaT);
+          
+          // Get hydraulic capacity offset for this emitter type
+          // This prevents ΔT collapse under high-flow conditions
+          const hydraulicOffset = getHydraulicCapacityOffset(zone.emitterType as EmitterType);
+          
+          // Calculate effective hydraulic capacity using offset
+          // effectiveGPM = maxGPM × offset
+          // This normalizes hydraulic capacity to realistic operating conditions
+          const hydraulicCapacityBTU = calculateEffectiveBTU(maxGPM, baselineDeltaT, hydraulicOffset);
           
           // Step 3: Calculate emitter limits (if emitter length is provided)
           let emitterCapacityBTU = Infinity;
@@ -576,7 +590,8 @@ export default function PumpSizingPage() {
             }
             
             // ΔT is determined by DELIVERABLE BTU and actual GPM
-            // With emitter limitation: low deliverable BTU → low ΔT (not low GPM!)
+            // With hydraulic capacity offset: prevents ΔT collapse to unrealistic values
+            // The offset ensures ΔT stays within realistic operating ranges (≥10°F typical)
             effectiveDeltaT = zoneBTU / (500 * flowGPM);
           }
         }
@@ -598,7 +613,12 @@ export default function PumpSizingPage() {
             advancedSettings.fluidType,
             false
           );
-          const hydraulicCapacityBTU = calculateHydraulicCapacityBTU(maxGPM, manualDeltaT);
+          
+          // Get hydraulic capacity offset for this emitter type
+          const hydraulicOffset = getHydraulicCapacityOffset(zone.emitterType as EmitterType);
+          
+          // Calculate effective hydraulic capacity using offset
+          const hydraulicCapacityBTU = calculateEffectiveBTU(maxGPM, manualDeltaT, hydraulicOffset);
           
           // Calculate requested GPM from requested BTU and manual ΔT
           const requestedGPM = requestedBTU / (500 * manualDeltaT);
