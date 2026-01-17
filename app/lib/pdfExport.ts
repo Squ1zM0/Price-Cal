@@ -20,10 +20,15 @@ import { calculateVelocity, calculateReynolds, calculateFrictionFactor } from '.
 const MARGIN_LEFT = 20;
 const MARGIN_RIGHT = 20;
 const MARGIN_TOP = 20;
+const MARGIN_BOTTOM = 20; // Bottom margin for page breaks
 const PAGE_WIDTH = 215.9; // 8.5" in mm
 const PAGE_HEIGHT = 279.4; // 11" in mm
 const LINE_HEIGHT = 6;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
+const INDENT_OFFSET = 5; // Offset for indented text
+const KEY_VALUE_OFFSET = 70; // Horizontal offset for key-value pairs
+const NESTED_INDENT_OFFSET = 10; // Offset for nested/double-indented text
+const PAGE_BREAK_THRESHOLD = PAGE_HEIGHT - MARGIN_BOTTOM; // When to break to new page
 
 // Zone data interface for PDF generation
 export interface ZoneDataForPDF {
@@ -104,6 +109,52 @@ export interface PDFExportData {
 }
 
 /**
+ * Check if we need a page break and add one if necessary
+ * @param pdf - jsPDF instance
+ * @param currentY - Current Y position
+ * @param requiredSpace - Space needed for the next content (in mm)
+ * @returns New Y position (either same or MARGIN_TOP if page was added)
+ */
+function checkPageBreak(pdf: jsPDF, currentY: number, requiredSpace: number): number {
+  if (currentY + requiredSpace > PAGE_BREAK_THRESHOLD) {
+    pdf.addPage();
+    return MARGIN_TOP;
+  }
+  return currentY;
+}
+
+/**
+ * Add text with automatic page break if needed
+ * Wraps text to fit within available width and checks for page breaks
+ * @param pdf - jsPDF instance
+ * @param text - Text to add (string or array of strings)
+ * @param x - X position
+ * @param y - Current Y position  
+ * @param maxWidth - Maximum width for text wrapping (optional, uses full content width if not provided)
+ * @returns New Y position after adding text
+ */
+function addTextWithPageBreak(
+  pdf: jsPDF,
+  text: string | string[],
+  x: number,
+  y: number,
+  maxWidth?: number
+): number {
+  const width = maxWidth || CONTENT_WIDTH;
+  const lines = Array.isArray(text) ? text : pdf.splitTextToSize(text, width);
+  const requiredHeight = LINE_HEIGHT * lines.length;
+  
+  // Check if we need a page break before adding text
+  let yPos = checkPageBreak(pdf, y, requiredHeight);
+  
+  // Add the text
+  pdf.text(lines, x, yPos);
+  
+  // Return new Y position
+  return yPos + requiredHeight;
+}
+
+/**
  * Generate PDF report for pump sizing calculator
  */
 export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> {
@@ -111,7 +162,12 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     orientation: 'portrait',
     unit: 'mm',
     format: 'letter',
+    compress: true,
   });
+
+  // Set default font settings for better rendering
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
 
   let yPos = MARGIN_TOP;
 
@@ -166,13 +222,13 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   
   yPos = addKeyValue(pdf, '  Heat Transfer Constant:', '500 BTU/(hr·GPM·°F)', yPos);
   pdf.setFontSize(9);
-  pdf.text('    (Specific heat of water × density × conversion factors)', MARGIN_LEFT + 5, yPos);
+  pdf.text('    (Specific heat of water × density × conversion factors)', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
   pdf.setFontSize(10);
   
-  yPos = addKeyValue(pdf, '  Gravity Constant:', '32.174 ft/s²', yPos);
-  yPos = addKeyValue(pdf, '  Fluid Density:', `${data.fluidProps.density.toFixed(3)} lb/ft³`, yPos);
-  yPos = addKeyValue(pdf, '  Kinematic Viscosity:', `${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`, yPos);
+  yPos = addKeyValue(pdf, '  Gravity Constant:', '32.174 ft/s^2', yPos);
+  yPos = addKeyValue(pdf, '  Fluid Density:', `${data.fluidProps.density.toFixed(3)} lb/ft^3`, yPos);
+  yPos = addKeyValue(pdf, '  Kinematic Viscosity:', `${data.fluidProps.kinematicViscosity.toExponential(3)} ft^2/s`, yPos);
   yPos += LINE_HEIGHT / 2;
   
   yPos = addKeyValue(pdf, 'Head Safety Factor:', `${data.advancedSettings.headSafetyFactor}%`, yPos);
@@ -190,11 +246,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       continue; // Skip invalid zones
     }
 
-    // Check if we need a new page
-    if (yPos > PAGE_HEIGHT - 40) {
-      pdf.addPage();
-      yPos = MARGIN_TOP;
-    }
+    // Check if we need a new page (reserve space for zone header + inputs section)
+    yPos = checkPageBreak(pdf, yPos, 60);
 
     // Zone header
     yPos = addSectionHeader(pdf, `Zone ${i + 1}: ${zoneData.zone.name}`, yPos);
@@ -211,7 +264,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     yPos = addKeyValue(pdf, '  Zone Heat Load:', `${zoneData.zoneBTU.toLocaleString()} BTU/hr ${zoneData.isAutoAssigned ? '(auto-distributed)' : '(manual)'}`, yPos);
     yPos = addKeyValue(pdf, '  Emitter Type:', zoneData.zone.emitterType, yPos);
     yPos = addKeyValue(pdf, '  Emitter Equivalent Length:', `${zoneData.emitterEquivalentLength.toFixed(1)} ft`, yPos);
-    yPos = addKeyValue(pdf, '  Temperature Difference (ΔT):', `${zoneData.effectiveDeltaT.toFixed(1)}°F ${zoneData.isAutoDeltaT ? '(auto)' : '(manual)'}`, yPos);
+    yPos = addKeyValue(pdf, '  Temperature Difference (Delta-T):', `${zoneData.effectiveDeltaT.toFixed(1)}°F ${zoneData.isAutoDeltaT ? '(auto)' : '(manual)'}`, yPos);
     yPos = addKeyValue(pdf, '  Straight Pipe Length:', `${zoneData.straightLength.toFixed(1)} ft`, yPos);
     yPos = addKeyValue(pdf, '  Pipe Material:', zoneData.zone.material, yPos);
     yPos = addKeyValue(pdf, '  Pipe Size:', zoneData.zone.size, yPos);
@@ -255,32 +308,31 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         yPos += LINE_HEIGHT / 2;
         pdf.setTextColor(200, 0, 0);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('  ⚠ WARNING: Pipe Undersized - Critical Issue', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const warningTitle = '  ⚠ WARNING: Pipe Undersized - Critical Issue';
+        yPos = addTextWithPageBreak(pdf, warningTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
+        
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`  Load exceeds absolute pipe capacity (${zoneData.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr)`, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const warningMsg = `  Load exceeds absolute pipe capacity (${zoneData.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr)`;
+        yPos = addTextWithPageBreak(pdf, warningMsg, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         pdf.setTextColor(0, 0, 0);
       } else if (zoneData.capacityCheck.exceedsRecommended) {
         yPos += LINE_HEIGHT / 2;
         pdf.setTextColor(180, 120, 0);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('  ⚠ WARNING: Flow Velocity Exceeds Recommended Limit', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const warningTitle = '  ⚠ WARNING: Flow Velocity Exceeds Recommended Limit';
+        yPos = addTextWithPageBreak(pdf, warningTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
+        
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`  Load exceeds recommended capacity (${zoneData.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr)`, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const warningMsg = `  Load exceeds recommended capacity (${zoneData.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr)`;
+        yPos = addTextWithPageBreak(pdf, warningMsg, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         pdf.setTextColor(0, 0, 0);
       }
     }
     
     yPos += LINE_HEIGHT;
 
-    // Check if we need a new page before proof of math
-    if (yPos > PAGE_HEIGHT - 80) {
-      pdf.addPage();
-      yPos = MARGIN_TOP;
-    }
+    // Check if we need a new page before proof of math (reserve space for section header + first calculation)
+    yPos = checkPageBreak(pdf, yPos, 80);
 
     // ==========================================
     // PROOF OF MATH SECTION (MANDATORY)
@@ -292,23 +344,22 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
 
     // 1. Heat Transfer Calculation
     pdf.setFont('helvetica', 'bold');
-    pdf.text('1. Heat Transfer Calculation (GPM from BTU/hr and ΔT):', MARGIN_LEFT, yPos);
-    yPos += LINE_HEIGHT;
+    const heatTransferTitle = '1. Heat Transfer Calculation (GPM from BTU/hr and Delta-T):';
+    yPos = addTextWithPageBreak(pdf, heatTransferTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
     
     pdf.setFont('helvetica', 'normal');
-    pdf.text('Formula: GPM = BTU/hr ÷ (500 × ΔT)', MARGIN_LEFT + 5, yPos);
-    yPos += LINE_HEIGHT;
+    yPos = addTextWithPageBreak(pdf, 'Formula: GPM = BTU/hr ÷ (500 × Delta-T)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
     
-    pdf.text(`Substituting values: GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ (500 × ${zoneData.effectiveDeltaT.toFixed(1)})`, MARGIN_LEFT + 5, yPos);
-    yPos += LINE_HEIGHT;
+    const substitutionText = `Substituting values: GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ (500 × ${zoneData.effectiveDeltaT.toFixed(1)})`;
+    yPos = addTextWithPageBreak(pdf, substitutionText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
     
     const denominator = 500 * zoneData.effectiveDeltaT;
-    pdf.text(`GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ ${denominator.toFixed(1)}`, MARGIN_LEFT + 5, yPos);
-    yPos += LINE_HEIGHT;
+    const calcText = `GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ ${denominator.toFixed(1)}`;
+    yPos = addTextWithPageBreak(pdf, calcText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
     
     pdf.setFont('helvetica', 'bold');
-    pdf.text(`GPM = ${zoneData.flowGPM.toFixed(2)}`, MARGIN_LEFT + 5, yPos);
-    yPos += LINE_HEIGHT * 1.5;
+    yPos = addTextWithPageBreak(pdf, `GPM = ${zoneData.flowGPM.toFixed(2)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+    yPos += LINE_HEIGHT * 0.5; // Extra spacing after result
     pdf.setFont('helvetica', 'normal');
 
     // Get pipe data for this zone
@@ -318,175 +369,153 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     if (pipeData) {
       // 2. Velocity Calculation
       pdf.setFont('helvetica', 'bold');
-      pdf.text('2. Velocity Calculation:', MARGIN_LEFT, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, '2. Velocity Calculation:', MARGIN_LEFT, yPos, CONTENT_WIDTH);
       
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Formula: Velocity = Flow ÷ Pipe Cross-Sectional Area', MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, 'Formula: Velocity = Flow ÷ Pipe Cross-Sectional Area', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const diameterFt = pipeData.internalDiameter / 12;
       const area = Math.PI * Math.pow(diameterFt / 2, 2);
       const flowCFS = zoneData.flowGPM / 448.83;
       
-      pdf.text(`Pipe Internal Diameter: ${pipeData.internalDiameter.toFixed(3)} inches = ${diameterFt.toFixed(4)} ft`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const diameterText = `Pipe Internal Diameter: ${pipeData.internalDiameter.toFixed(3)} inches = ${diameterFt.toFixed(4)} ft`;
+      yPos = addTextWithPageBreak(pdf, diameterText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      pdf.text(`Cross-Sectional Area: π × (${diameterFt.toFixed(4)} / 2)² = ${area.toFixed(6)} ft²`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const areaText = `Cross-Sectional Area: π × (${diameterFt.toFixed(4)} / 2)^2 = ${area.toFixed(6)} ft^2`;
+      yPos = addTextWithPageBreak(pdf, areaText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      pdf.text(`Flow: ${zoneData.flowGPM.toFixed(2)} GPM = ${flowCFS.toFixed(4)} ft³/s`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const flowText = `Flow: ${zoneData.flowGPM.toFixed(2)} GPM = ${flowCFS.toFixed(4)} ft^3/s`;
+      yPos = addTextWithPageBreak(pdf, flowText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      pdf.text(`Velocity: ${flowCFS.toFixed(4)} ÷ ${area.toFixed(6)} ft²`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const velocityCalcText = `Velocity: ${flowCFS.toFixed(4)} ÷ ${area.toFixed(6)} ft^2`;
+      yPos = addTextWithPageBreak(pdf, velocityCalcText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       pdf.setFont('helvetica', 'bold');
-      pdf.text(`Velocity = ${zoneData.velocity.toFixed(2)} ft/s`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT * 1.5;
+      yPos = addTextWithPageBreak(pdf, `Velocity = ${zoneData.velocity.toFixed(2)} ft/s`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+      yPos += LINE_HEIGHT * 0.5; // Extra spacing after result
       pdf.setFont('helvetica', 'normal');
-
-      // Check if we need a new page
-      if (yPos > PAGE_HEIGHT - 60) {
-        pdf.addPage();
-        yPos = MARGIN_TOP;
-      }
 
       // 3. Reynolds Number
       pdf.setFont('helvetica', 'bold');
-      pdf.text('3. Reynolds Number Calculation:', MARGIN_LEFT, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, '3. Reynolds Number Calculation:', MARGIN_LEFT, yPos, CONTENT_WIDTH);
       
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Formula: Re = (Velocity × Diameter) ÷ Kinematic Viscosity', MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, 'Formula: Re = (Velocity × Diameter) ÷ Kinematic Viscosity', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      pdf.text(`Assumed Water Temperature: ${data.advancedSettings.temperature}°F`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, `Assumed Water Temperature: ${data.advancedSettings.temperature}°F`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      pdf.text(`Kinematic Viscosity: ${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const viscosityText = `Kinematic Viscosity: ${data.fluidProps.kinematicViscosity.toExponential(3)} ft^2/s`;
+      yPos = addTextWithPageBreak(pdf, viscosityText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      pdf.text(`Re = (${zoneData.velocity.toFixed(2)} × ${diameterFt.toFixed(4)}) ÷ ${data.fluidProps.kinematicViscosity.toExponential(3)}`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const reynoldsCalcText = `Re = (${zoneData.velocity.toFixed(2)} × ${diameterFt.toFixed(4)}) ÷ ${data.fluidProps.kinematicViscosity.toExponential(3)}`;
+      yPos = addTextWithPageBreak(pdf, reynoldsCalcText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       pdf.setFont('helvetica', 'bold');
-      pdf.text(`Reynolds Number = ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      yPos = addTextWithPageBreak(pdf, `Reynolds Number = ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const flowRegime = zoneData.reynolds < 2300 ? 'Laminar' : zoneData.reynolds < 4000 ? 'Transitional' : 'Turbulent';
       pdf.setFont('helvetica', 'normal');
-      pdf.text(`Flow Regime: ${flowRegime}`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT * 1.5;
+      yPos = addTextWithPageBreak(pdf, `Flow Regime: ${flowRegime}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+      yPos += LINE_HEIGHT * 0.5; // Extra spacing
 
       // 4. Friction Factor (if Darcy-Weisbach)
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
         pdf.setFont('helvetica', 'bold');
-        pdf.text('4. Friction Factor Calculation (Swamee-Jain Approximation):', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const frictionTitle = '4. Friction Factor Calculation (Swamee-Jain Approximation):';
+        yPos = addTextWithPageBreak(pdf, frictionTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
         const roughness = parseFloat(data.advancedSettings.customRoughness) || pipeData.roughness;
         const relativeRoughness = roughness / diameterFt;
         
-        pdf.text(`Absolute Roughness: ${roughness.toExponential(3)} ft`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        const roughnessText = `Absolute Roughness: ${roughness.toExponential(3)} ft`;
+        yPos = addTextWithPageBreak(pdf, roughnessText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
-        pdf.text(`Relative Roughness: ${roughness.toExponential(3)} ÷ ${diameterFt.toFixed(4)} = ${relativeRoughness.toExponential(3)}`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        const relRoughnessText = `Relative Roughness: ${roughness.toExponential(3)} ÷ ${diameterFt.toFixed(4)} = ${relativeRoughness.toExponential(3)}`;
+        yPos = addTextWithPageBreak(pdf, relRoughnessText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const frictionFactor = calculateFrictionFactor(zoneData.reynolds, roughness, pipeData.internalDiameter);
         
         if (zoneData.reynolds < 2300) {
-          pdf.text('Laminar flow: f = 64 / Re', MARGIN_LEFT + 5, yPos);
-          yPos += LINE_HEIGHT;
-          pdf.text(`f = 64 / ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + 5, yPos);
-          yPos += LINE_HEIGHT;
+          yPos = addTextWithPageBreak(pdf, 'Laminar flow: f = 64 / Re', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+          yPos = addTextWithPageBreak(pdf, `f = 64 / ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         } else {
-          pdf.text('Turbulent flow - Swamee-Jain formula:', MARGIN_LEFT + 5, yPos);
-          yPos += LINE_HEIGHT;
-          pdf.text('f = 0.25 / [log₁₀(ε/3.7D + 5.74/Re⁰·⁹)]²', MARGIN_LEFT + 5, yPos);
-          yPos += LINE_HEIGHT;
+          yPos = addTextWithPageBreak(pdf, 'Turbulent flow - Swamee-Jain formula:', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+          yPos = addTextWithPageBreak(pdf, 'f = 0.25 / [log_10(ε/3.7D + 5.74/Re^0.9)]^2', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         }
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Friction Factor (f) = ${frictionFactor.toFixed(6)}`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT * 1.5;
+        yPos = addTextWithPageBreak(pdf, `Friction Factor (f) = ${frictionFactor.toFixed(6)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos += LINE_HEIGHT * 0.5; // Extra spacing
         pdf.setFont('helvetica', 'normal');
-      }
-
-      // Check if we need a new page
-      if (yPos > PAGE_HEIGHT - 50) {
-        pdf.addPage();
-        yPos = MARGIN_TOP;
       }
 
       // 5. Head Loss Calculation
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
         pdf.setFont('helvetica', 'bold');
-        pdf.text('5. Head Loss Calculation (Darcy-Weisbach Equation):', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const headLossTitle = '5. Head Loss Calculation (Darcy-Weisbach Equation):';
+        yPos = addTextWithPageBreak(pdf, headLossTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
-        pdf.text('Formula: h = f × (L/D) × (V²/2g)', MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        yPos = addTextWithPageBreak(pdf, 'Formula: h = f × (L/D) × (V^2/2g)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
-        pdf.text('Effective Length Breakdown:', MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`  Straight pipe: ${zoneData.straightLength.toFixed(1)} ft`, MARGIN_LEFT + 10, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`  Fitting equivalent: ${zoneData.fittingEquivalentLength.toFixed(1)} ft`, MARGIN_LEFT + 10, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`  Emitter equivalent: ${zoneData.emitterEquivalentLength.toFixed(1)} ft`, MARGIN_LEFT + 10, yPos);
-        yPos += LINE_HEIGHT;
+        yPos = addTextWithPageBreak(pdf, 'Effective Length Breakdown:', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        
+        const straightPipeText = `  Straight pipe: ${zoneData.straightLength.toFixed(1)} ft`;
+        yPos = addTextWithPageBreak(pdf, straightPipeText, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
+        
+        const fittingEquivText = `  Fitting equivalent: ${zoneData.fittingEquivalentLength.toFixed(1)} ft`;
+        yPos = addTextWithPageBreak(pdf, fittingEquivText, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
+        
+        const emitterEquivText = `  Emitter equivalent: ${zoneData.emitterEquivalentLength.toFixed(1)} ft`;
+        yPos = addTextWithPageBreak(pdf, emitterEquivText, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
+        
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`  Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`, MARGIN_LEFT + 10, yPos);
-        yPos += LINE_HEIGHT;
+        const totalLengthText = `  Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`;
+        yPos = addTextWithPageBreak(pdf, totalLengthText, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
         pdf.setFont('helvetica', 'normal');
         
         const g = 32.174;
         const frictionFactor = calculateFrictionFactor(zoneData.reynolds, parseFloat(data.advancedSettings.customRoughness) || pipeData.roughness, pipeData.internalDiameter);
         
-        pdf.text(`Gravity constant (g): ${g} ft/s²`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        yPos = addTextWithPageBreak(pdf, `Gravity constant (g): ${g} ft/s^2`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
-        pdf.text(`h = ${frictionFactor.toFixed(6)} × (${zoneData.totalEffectiveLength.toFixed(1)} / ${diameterFt.toFixed(4)}) × (${zoneData.velocity.toFixed(2)}² / (2 × ${g}))`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        const headLossFormulaText = `h = ${frictionFactor.toFixed(6)} × (${zoneData.totalEffectiveLength.toFixed(1)} / ${diameterFt.toFixed(4)}) × (${zoneData.velocity.toFixed(2)}^2 / (2 × ${g}))`;
+        yPos = addTextWithPageBreak(pdf, headLossFormulaText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const ldRatio = zoneData.totalEffectiveLength / diameterFt;
         const vSquaredOver2g = Math.pow(zoneData.velocity, 2) / (2 * g);
         
-        pdf.text(`h = ${frictionFactor.toFixed(6)} × ${ldRatio.toFixed(2)} × ${vSquaredOver2g.toFixed(4)}`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        const headLossSimplifiedText = `h = ${frictionFactor.toFixed(6)} × ${ldRatio.toFixed(2)} × ${vSquaredOver2g.toFixed(4)}`;
+        yPos = addTextWithPageBreak(pdf, headLossSimplifiedText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT * 1.5;
+        yPos = addTextWithPageBreak(pdf, `Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos += LINE_HEIGHT * 0.5; // Extra spacing
         pdf.setFont('helvetica', 'normal');
       } else {
         // Hazen-Williams
         pdf.setFont('helvetica', 'bold');
-        pdf.text('5. Head Loss Calculation (Hazen-Williams Equation):', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const hazenTitle = '5. Head Loss Calculation (Hazen-Williams Equation):';
+        yPos = addTextWithPageBreak(pdf, hazenTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
-        pdf.text('Formula: h = 4.52 × L × Q¹·⁸⁵ / (C¹·⁸⁵ × D⁴·⁸⁷)', MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        yPos = addTextWithPageBreak(pdf, 'Formula: h = 4.52 × L × Q^1.85 / (C^1.85 × D^4.87)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const cValue = parseFloat(data.advancedSettings.customCValue) || pipeData.hazenWilliamsC;
         
-        pdf.text(`C-value: ${cValue}`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`Flow (Q): ${zoneData.flowGPM.toFixed(2)} GPM`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`Diameter (D): ${pipeData.internalDiameter.toFixed(3)} inches`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        yPos = addTextWithPageBreak(pdf, `C-value: ${cValue}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        
+        const hazenLengthText = `Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`;
+        yPos = addTextWithPageBreak(pdf, hazenLengthText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        
+        yPos = addTextWithPageBreak(pdf, `Flow (Q): ${zoneData.flowGPM.toFixed(2)} GPM`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        
+        yPos = addTextWithPageBreak(pdf, `Diameter (D): ${pipeData.internalDiameter.toFixed(3)} inches`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT * 1.5;
+        yPos = addTextWithPageBreak(pdf, `Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos += LINE_HEIGHT * 0.5; // Extra spacing
         pdf.setFont('helvetica', 'normal');
       }
     }
@@ -504,10 +533,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   // ==========================================
   // SECTION 4: ASSUMPTIONS & CONSTRAINTS
   // ==========================================
-  if (yPos > PAGE_HEIGHT - 80) {
-    pdf.addPage();
-    yPos = MARGIN_TOP;
-  }
+  // Check if we need a new page for Assumptions section
+  yPos = checkPageBreak(pdf, yPos, 80);
 
   yPos = addSectionHeader(pdf, 'Assumptions & Constraints', yPos);
   
@@ -518,51 +545,51 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   yPos += LINE_HEIGHT;
   yPos = addKeyValue(pdf, '  Fluid:', data.advancedSettings.fluidType, yPos);
   yPos = addKeyValue(pdf, '  Temperature:', `${data.advancedSettings.temperature}°F`, yPos);
-  yPos = addKeyValue(pdf, '  Density:', `${data.fluidProps.density.toFixed(3)} lb/ft³`, yPos);
-  yPos = addKeyValue(pdf, '  Kinematic Viscosity:', `${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`, yPos);
+  yPos = addKeyValue(pdf, '  Density:', `${data.fluidProps.density.toFixed(3)} lb/ft^3`, yPos);
+  yPos = addKeyValue(pdf, '  Kinematic Viscosity:', `${data.fluidProps.kinematicViscosity.toExponential(3)} ft^2/s`, yPos);
   yPos += LINE_HEIGHT;
   
   pdf.text('Calculation Method:', MARGIN_LEFT, yPos);
   yPos += LINE_HEIGHT;
   yPos = addKeyValue(pdf, '  Method:', data.advancedSettings.calculationMethod, yPos);
   if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
-    pdf.text('  Friction factor via Swamee-Jain approximation', MARGIN_LEFT + 5, yPos);
+    pdf.text('  Friction factor via Swamee-Jain approximation', MARGIN_LEFT + INDENT_OFFSET, yPos);
     yPos += LINE_HEIGHT;
   }
   yPos += LINE_HEIGHT;
   
   pdf.text('Validity Domain:', MARGIN_LEFT, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Turbulent flow regime (Re > 4000 typical for hydronic systems)', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Turbulent flow regime (Re > 4000 typical for hydronic systems)', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Closed-loop hydronic heating systems', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Closed-loop hydronic heating systems', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Temperature range: 40°F to 180°F', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Temperature range: 40°F to 180°F', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
   if (data.advancedSettings.calculationMethod === 'Hazen-Williams') {
-    pdf.text('  • Hazen-Williams valid for water only (not glycol solutions)', MARGIN_LEFT + 5, yPos);
+    pdf.text('  • Hazen-Williams valid for water only (not glycol solutions)', MARGIN_LEFT + INDENT_OFFSET, yPos);
     yPos += LINE_HEIGHT;
   }
   yPos += LINE_HEIGHT;
   
   pdf.text('Velocity Target Ranges:', MARGIN_LEFT, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Recommended: 2-4 ft/s (quiet operation, minimal erosion)', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Recommended: 2-4 ft/s (quiet operation, minimal erosion)', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Absolute maximum: 8 ft/s for water, 6 ft/s for glycol', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Absolute maximum: 8 ft/s for water, 6 ft/s for glycol', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Minimum: ~1 ft/s (below this, air separation may occur)', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Minimum: ~1 ft/s (below this, air separation may occur)', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT * 2;
   
   pdf.text('Data Sources:', MARGIN_LEFT, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Pipe dimensions: ASTM standards', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Pipe dimensions: ASTM standards', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Fluid properties: NIST, ASHRAE Handbook - Fundamentals', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Fluid properties: NIST, ASHRAE Handbook - Fundamentals', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Roughness values: Engineering reference tables', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Roughness values: Engineering reference tables', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT;
-  pdf.text('  • Fitting equivalents: ASHRAE, crane technical papers', MARGIN_LEFT + 5, yPos);
+  pdf.text('  • Fitting equivalents: ASHRAE, crane technical papers', MARGIN_LEFT + INDENT_OFFSET, yPos);
   yPos += LINE_HEIGHT * 2;
   
   // Disclaimer
@@ -596,7 +623,7 @@ function addSectionHeader(pdf: jsPDF, title: string, yPos: number): number {
   pdf.setLineWidth(0.5);
   pdf.line(MARGIN_LEFT, yPos - 2, PAGE_WIDTH - MARGIN_RIGHT, yPos - 2);
   
-  yPos += LINE_HEIGHT / 2;
+  yPos += LINE_HEIGHT * 0.75; // Increased spacing after section header
   return yPos;
 }
 
@@ -609,18 +636,28 @@ function addSubsectionHeader(pdf: jsPDF, title: string, yPos: number): number {
   pdf.setTextColor(60, 60, 60);
   pdf.text(title, MARGIN_LEFT, yPos);
   pdf.setTextColor(0, 0, 0);
-  yPos += LINE_HEIGHT;
+  pdf.setFontSize(10); // Reset to default font size
+  yPos += LINE_HEIGHT * 1.25; // Increased spacing after subsection header
   return yPos;
 }
 
 /**
- * Add a key-value pair to the PDF
+ * Add a key-value pair to the PDF with proper text wrapping
  */
 function addKeyValue(pdf: jsPDF, key: string, value: string, yPos: number): number {
   pdf.setFont('helvetica', 'normal');
   pdf.text(key, MARGIN_LEFT, yPos);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(value, MARGIN_LEFT + 70, yPos);
+  
+  // Calculate available width for value (from key position + offset to right margin)
+  const valueStartX = MARGIN_LEFT + KEY_VALUE_OFFSET;
+  const maxValueWidth = PAGE_WIDTH - MARGIN_RIGHT - valueStartX;
+  
+  // Split value text if it's too long
+  const valueLines = pdf.splitTextToSize(value, maxValueWidth);
+  pdf.text(valueLines, valueStartX, yPos);
+  
   pdf.setFont('helvetica', 'normal');
-  return yPos + LINE_HEIGHT;
+  // Return position accounting for wrapped lines
+  return yPos + (LINE_HEIGHT * valueLines.length);
 }
