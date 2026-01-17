@@ -1669,7 +1669,7 @@ export default function PumpSizingPage() {
                                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                         </svg>
                                         <p className="text-xs text-green-800 dark:text-green-300">
-                                          <span className="sr-only">Success: </span>Emitter can release transferred heat. Maximum output {result.emitterSizingCheck.maxOutputBTU.toLocaleString()} BTU/hr.
+                                          <span className="sr-only">Success: </span>Emitter adequately sized for heat release. Can deliver {result.emitterSizingCheck.maxOutputBTU.toLocaleString()} BTU/hr maximum.
                                         </p>
                                       </div>
                                     </div>
