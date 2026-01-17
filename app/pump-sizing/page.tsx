@@ -18,11 +18,6 @@ import {
   calculateZoneHead,
   checkHydraulicCapacity,
   type HydraulicCapacityCheck,
-  calculateZoneMaxCapacity,
-  calculateZoneMaxCapacityWithOffset,
-  calculateMaxGPMFromVelocity,
-  calculateHydraulicCapacityBTU,
-  calculateEffectiveBTU,
 } from "../lib/hydraulics";
 import {
   type EmitterType,
@@ -32,7 +27,6 @@ import {
   checkEmitterSizing,
   type EmitterSizingCheck,
   EMITTER_DEFAULT_DELTA_T,
-  getHydraulicCapacityOffset,
 } from "../lib/data/emitterTypes";
 import { getManufacturerModelsForType } from "../lib/data/manufacturerEmitterData";
 import { generatePumpSizingPDF, type PDFExportData } from "../lib/pdfExport";
