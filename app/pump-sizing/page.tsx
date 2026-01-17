@@ -1543,7 +1543,7 @@ export default function PumpSizingPage() {
           </div>
 
           {showAdvanced && (
-            <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="mt-4 space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
               {/* Fluid type */}
               <div>
                 <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
@@ -1566,7 +1566,7 @@ export default function PumpSizingPage() {
 
               {/* Temperature */}
               <div>
-                <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
                   Temperature (°F)
                 </label>
                 <input
@@ -1675,7 +1675,7 @@ export default function PumpSizingPage() {
                   </p>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
                         Head Safety (%)
                       </label>
                       <input
@@ -1695,7 +1695,7 @@ export default function PumpSizingPage() {
                       </p>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
                         Flow Safety (%)
                       </label>
                       <input
@@ -1722,7 +1722,7 @@ export default function PumpSizingPage() {
               {advancedSettings.fluidType === "Custom" && (
                 <>
                   <div>
-                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
                       Density (lb/ft³)
                     </label>
                     <input
@@ -1739,7 +1739,7 @@ export default function PumpSizingPage() {
                     />
                   </div>
                   <div>
-                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                    <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
                       Viscosity (lb/ft·s)
                     </label>
                     <input
@@ -1761,7 +1761,7 @@ export default function PumpSizingPage() {
               {/* Pipe property overrides */}
               {advancedSettings.calculationMethod === "Darcy-Weisbach" && (
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
                     Custom Roughness (ft) - optional
                   </label>
                   <input
@@ -1782,7 +1782,7 @@ export default function PumpSizingPage() {
 
               {advancedSettings.calculationMethod === "Hazen-Williams" && (
                 <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
                     Custom C-value - optional
                   </label>
                   <input
