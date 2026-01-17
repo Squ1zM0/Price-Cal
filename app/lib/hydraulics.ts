@@ -292,3 +292,28 @@ export function checkHydraulicCapacity(
     velocity,
   };
 }
+
+/**
+ * Calculate the maximum deliverable BTU capacity for a zone
+ * Based on pipe size, velocity limits, and temperature difference
+ * 
+ * @param pipeData - Pipe specifications
+ * @param deltaT - Temperature difference in °F
+ * @param fluidType - Type of fluid
+ * @param useAbsoluteMax - If true, use absolute velocity limits; otherwise use recommended
+ * @returns Maximum deliverable BTU/hr for the zone
+ */
+export function calculateZoneMaxCapacity(
+  pipeData: PipeData,
+  deltaT: number,
+  fluidType: FluidType,
+  useAbsoluteMax: boolean = false
+): number {
+  const maxGPM = calculateMaxGPMFromVelocity(
+    pipeData.internalDiameter,
+    fluidType,
+    useAbsoluteMax
+  );
+  
+  return calculateHydraulicCapacityBTU(maxGPM, deltaT);
+}
