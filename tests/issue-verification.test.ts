@@ -8,6 +8,10 @@
  * - ΔT: 0.1°F (physically impossible)
  * - Flow: 19 GPM
  * - Velocity: 12.6 ft/s
+ * 
+ * Note: This test uses console.log for human-readable verification output
+ * rather than a formal test framework, as it's meant to be a comprehensive
+ * demonstration that all issues from the GitHub issue have been resolved.
  */
 
 import { strict as assert } from "assert";
@@ -156,10 +160,11 @@ assert.strictEqual(
   "Single zone system: System BTU = Zone BTU"
 );
 
+const expectedFlow = 19.0;
 assert.strictEqual(
   singleZoneFlow,
-  singleZoneFlow,
-  "Single zone system: System Flow = Zone Flow"
+  expectedFlow,
+  "Single zone system: Zone Flow equals expected flow"
 );
 
 console.log("✓ PASSED: Single zone system satisfies System = Zone\n");
@@ -197,5 +202,3 @@ console.log("4. ✓ Velocity limits constrain via warnings, not artificial caps"
 console.log("5. ✓ Single-zone systems collapse to system = zone");
 console.log("6. ✓ Head calculations built on correct inputs");
 console.log();
-
-process.exit(0);
