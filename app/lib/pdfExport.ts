@@ -255,21 +255,31 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         yPos += LINE_HEIGHT / 2;
         pdf.setTextColor(200, 0, 0);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('  ⚠ WARNING: Pipe Undersized - Critical Issue', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const warningTitle = '  ⚠ WARNING: Pipe Undersized - Critical Issue';
+        const warningLines = pdf.splitTextToSize(warningTitle, CONTENT_WIDTH);
+        pdf.text(warningLines, MARGIN_LEFT, yPos);
+        yPos += LINE_HEIGHT * warningLines.length;
+        
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`  Load exceeds absolute pipe capacity (${zoneData.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr)`, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const warningMsg = `  Load exceeds absolute pipe capacity (${zoneData.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr)`;
+        const warningMsgLines = pdf.splitTextToSize(warningMsg, CONTENT_WIDTH);
+        pdf.text(warningMsgLines, MARGIN_LEFT, yPos);
+        yPos += LINE_HEIGHT * warningMsgLines.length;
         pdf.setTextColor(0, 0, 0);
       } else if (zoneData.capacityCheck.exceedsRecommended) {
         yPos += LINE_HEIGHT / 2;
         pdf.setTextColor(180, 120, 0);
         pdf.setFont('helvetica', 'bold');
-        pdf.text('  ⚠ WARNING: Flow Velocity Exceeds Recommended Limit', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const warningTitle = '  ⚠ WARNING: Flow Velocity Exceeds Recommended Limit';
+        const warningLines = pdf.splitTextToSize(warningTitle, CONTENT_WIDTH);
+        pdf.text(warningLines, MARGIN_LEFT, yPos);
+        yPos += LINE_HEIGHT * warningLines.length;
+        
         pdf.setFont('helvetica', 'normal');
-        pdf.text(`  Load exceeds recommended capacity (${zoneData.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr)`, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const warningMsg = `  Load exceeds recommended capacity (${zoneData.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr)`;
+        const warningMsgLines = pdf.splitTextToSize(warningMsg, CONTENT_WIDTH);
+        pdf.text(warningMsgLines, MARGIN_LEFT, yPos);
+        yPos += LINE_HEIGHT * warningMsgLines.length;
         pdf.setTextColor(0, 0, 0);
       }
     }
@@ -292,19 +302,25 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
 
     // 1. Heat Transfer Calculation
     pdf.setFont('helvetica', 'bold');
-    pdf.text('1. Heat Transfer Calculation (GPM from BTU/hr and ΔT):', MARGIN_LEFT, yPos);
-    yPos += LINE_HEIGHT;
+    const heatTransferTitle = '1. Heat Transfer Calculation (GPM from BTU/hr and ΔT):';
+    const heatTransferLines = pdf.splitTextToSize(heatTransferTitle, CONTENT_WIDTH - 5);
+    pdf.text(heatTransferLines, MARGIN_LEFT, yPos);
+    yPos += LINE_HEIGHT * heatTransferLines.length;
     
     pdf.setFont('helvetica', 'normal');
     pdf.text('Formula: GPM = BTU/hr ÷ (500 × ΔT)', MARGIN_LEFT + 5, yPos);
     yPos += LINE_HEIGHT;
     
-    pdf.text(`Substituting values: GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ (500 × ${zoneData.effectiveDeltaT.toFixed(1)})`, MARGIN_LEFT + 5, yPos);
-    yPos += LINE_HEIGHT;
+    const substitutionText = `Substituting values: GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ (500 × ${zoneData.effectiveDeltaT.toFixed(1)})`;
+    const substitutionLines = pdf.splitTextToSize(substitutionText, CONTENT_WIDTH - 5);
+    pdf.text(substitutionLines, MARGIN_LEFT + 5, yPos);
+    yPos += LINE_HEIGHT * substitutionLines.length;
     
     const denominator = 500 * zoneData.effectiveDeltaT;
-    pdf.text(`GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ ${denominator.toFixed(1)}`, MARGIN_LEFT + 5, yPos);
-    yPos += LINE_HEIGHT;
+    const calcText = `GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ ${denominator.toFixed(1)}`;
+    const calcLines = pdf.splitTextToSize(calcText, CONTENT_WIDTH - 5);
+    pdf.text(calcLines, MARGIN_LEFT + 5, yPos);
+    yPos += LINE_HEIGHT * calcLines.length;
     
     pdf.setFont('helvetica', 'bold');
     pdf.text(`GPM = ${zoneData.flowGPM.toFixed(2)}`, MARGIN_LEFT + 5, yPos);
@@ -322,24 +338,34 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       yPos += LINE_HEIGHT;
       
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Formula: Velocity = Flow ÷ Pipe Cross-Sectional Area', MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const velocityFormula = 'Formula: Velocity = Flow ÷ Pipe Cross-Sectional Area';
+      const velocityFormulaLines = pdf.splitTextToSize(velocityFormula, CONTENT_WIDTH - 5);
+      pdf.text(velocityFormulaLines, MARGIN_LEFT + 5, yPos);
+      yPos += LINE_HEIGHT * velocityFormulaLines.length;
       
       const diameterFt = pipeData.internalDiameter / 12;
       const area = Math.PI * Math.pow(diameterFt / 2, 2);
       const flowCFS = zoneData.flowGPM / 448.83;
       
-      pdf.text(`Pipe Internal Diameter: ${pipeData.internalDiameter.toFixed(3)} inches = ${diameterFt.toFixed(4)} ft`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const diameterText = `Pipe Internal Diameter: ${pipeData.internalDiameter.toFixed(3)} inches = ${diameterFt.toFixed(4)} ft`;
+      const diameterLines = pdf.splitTextToSize(diameterText, CONTENT_WIDTH - 5);
+      pdf.text(diameterLines, MARGIN_LEFT + 5, yPos);
+      yPos += LINE_HEIGHT * diameterLines.length;
       
-      pdf.text(`Cross-Sectional Area: π × (${diameterFt.toFixed(4)} / 2)² = ${area.toFixed(6)} ft²`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const areaText = `Cross-Sectional Area: π × (${diameterFt.toFixed(4)} / 2)² = ${area.toFixed(6)} ft²`;
+      const areaLines = pdf.splitTextToSize(areaText, CONTENT_WIDTH - 5);
+      pdf.text(areaLines, MARGIN_LEFT + 5, yPos);
+      yPos += LINE_HEIGHT * areaLines.length;
       
-      pdf.text(`Flow: ${zoneData.flowGPM.toFixed(2)} GPM = ${flowCFS.toFixed(4)} ft³/s`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const flowText = `Flow: ${zoneData.flowGPM.toFixed(2)} GPM = ${flowCFS.toFixed(4)} ft³/s`;
+      const flowLines = pdf.splitTextToSize(flowText, CONTENT_WIDTH - 5);
+      pdf.text(flowLines, MARGIN_LEFT + 5, yPos);
+      yPos += LINE_HEIGHT * flowLines.length;
       
-      pdf.text(`Velocity: ${flowCFS.toFixed(4)} ÷ ${area.toFixed(6)} ft²`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const velocityCalcText = `Velocity: ${flowCFS.toFixed(4)} ÷ ${area.toFixed(6)} ft²`;
+      const velocityCalcLines = pdf.splitTextToSize(velocityCalcText, CONTENT_WIDTH - 5);
+      pdf.text(velocityCalcLines, MARGIN_LEFT + 5, yPos);
+      yPos += LINE_HEIGHT * velocityCalcLines.length;
       
       pdf.setFont('helvetica', 'bold');
       pdf.text(`Velocity = ${zoneData.velocity.toFixed(2)} ft/s`, MARGIN_LEFT + 5, yPos);
@@ -358,17 +384,23 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       yPos += LINE_HEIGHT;
       
       pdf.setFont('helvetica', 'normal');
-      pdf.text('Formula: Re = (Velocity × Diameter) ÷ Kinematic Viscosity', MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const reynoldsFormula = 'Formula: Re = (Velocity × Diameter) ÷ Kinematic Viscosity';
+      const reynoldsFormulaLines = pdf.splitTextToSize(reynoldsFormula, CONTENT_WIDTH - 5);
+      pdf.text(reynoldsFormulaLines, MARGIN_LEFT + 5, yPos);
+      yPos += LINE_HEIGHT * reynoldsFormulaLines.length;
       
       pdf.text(`Assumed Water Temperature: ${data.advancedSettings.temperature}°F`, MARGIN_LEFT + 5, yPos);
       yPos += LINE_HEIGHT;
       
-      pdf.text(`Kinematic Viscosity: ${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const viscosityText = `Kinematic Viscosity: ${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`;
+      const viscosityLines = pdf.splitTextToSize(viscosityText, CONTENT_WIDTH - 5);
+      pdf.text(viscosityLines, MARGIN_LEFT + 5, yPos);
+      yPos += LINE_HEIGHT * viscosityLines.length;
       
-      pdf.text(`Re = (${zoneData.velocity.toFixed(2)} × ${diameterFt.toFixed(4)}) ÷ ${data.fluidProps.kinematicViscosity.toExponential(3)}`, MARGIN_LEFT + 5, yPos);
-      yPos += LINE_HEIGHT;
+      const reynoldsCalcText = `Re = (${zoneData.velocity.toFixed(2)} × ${diameterFt.toFixed(4)}) ÷ ${data.fluidProps.kinematicViscosity.toExponential(3)}`;
+      const reynoldsCalcLines = pdf.splitTextToSize(reynoldsCalcText, CONTENT_WIDTH - 5);
+      pdf.text(reynoldsCalcLines, MARGIN_LEFT + 5, yPos);
+      yPos += LINE_HEIGHT * reynoldsCalcLines.length;
       
       pdf.setFont('helvetica', 'bold');
       pdf.text(`Reynolds Number = ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + 5, yPos);
@@ -382,18 +414,24 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       // 4. Friction Factor (if Darcy-Weisbach)
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
         pdf.setFont('helvetica', 'bold');
-        pdf.text('4. Friction Factor Calculation (Swamee-Jain Approximation):', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const frictionTitle = '4. Friction Factor Calculation (Swamee-Jain Approximation):';
+        const frictionTitleLines = pdf.splitTextToSize(frictionTitle, CONTENT_WIDTH - 5);
+        pdf.text(frictionTitleLines, MARGIN_LEFT, yPos);
+        yPos += LINE_HEIGHT * frictionTitleLines.length;
         
         pdf.setFont('helvetica', 'normal');
         const roughness = parseFloat(data.advancedSettings.customRoughness) || pipeData.roughness;
         const relativeRoughness = roughness / diameterFt;
         
-        pdf.text(`Absolute Roughness: ${roughness.toExponential(3)} ft`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        const roughnessText = `Absolute Roughness: ${roughness.toExponential(3)} ft`;
+        const roughnessLines = pdf.splitTextToSize(roughnessText, CONTENT_WIDTH - 5);
+        pdf.text(roughnessLines, MARGIN_LEFT + 5, yPos);
+        yPos += LINE_HEIGHT * roughnessLines.length;
         
-        pdf.text(`Relative Roughness: ${roughness.toExponential(3)} ÷ ${diameterFt.toFixed(4)} = ${relativeRoughness.toExponential(3)}`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        const relRoughnessText = `Relative Roughness: ${roughness.toExponential(3)} ÷ ${diameterFt.toFixed(4)} = ${relativeRoughness.toExponential(3)}`;
+        const relRoughnessLines = pdf.splitTextToSize(relRoughnessText, CONTENT_WIDTH - 5);
+        pdf.text(relRoughnessLines, MARGIN_LEFT + 5, yPos);
+        yPos += LINE_HEIGHT * relRoughnessLines.length;
         
         const frictionFactor = calculateFrictionFactor(zoneData.reynolds, roughness, pipeData.internalDiameter);
         
@@ -405,8 +443,10 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         } else {
           pdf.text('Turbulent flow - Swamee-Jain formula:', MARGIN_LEFT + 5, yPos);
           yPos += LINE_HEIGHT;
-          pdf.text('f = 0.25 / [log₁₀(ε/3.7D + 5.74/Re⁰·⁹)]²', MARGIN_LEFT + 5, yPos);
-          yPos += LINE_HEIGHT;
+          const formulaText = 'f = 0.25 / [log₁₀(ε/3.7D + 5.74/Re⁰·⁹)]²';
+          const formulaLines = pdf.splitTextToSize(formulaText, CONTENT_WIDTH - 5);
+          pdf.text(formulaLines, MARGIN_LEFT + 5, yPos);
+          yPos += LINE_HEIGHT * formulaLines.length;
         }
         
         pdf.setFont('helvetica', 'bold');
@@ -424,8 +464,10 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       // 5. Head Loss Calculation
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
         pdf.setFont('helvetica', 'bold');
-        pdf.text('5. Head Loss Calculation (Darcy-Weisbach Equation):', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const headLossTitle = '5. Head Loss Calculation (Darcy-Weisbach Equation):';
+        const headLossTitleLines = pdf.splitTextToSize(headLossTitle, CONTENT_WIDTH - 5);
+        pdf.text(headLossTitleLines, MARGIN_LEFT, yPos);
+        yPos += LINE_HEIGHT * headLossTitleLines.length;
         
         pdf.setFont('helvetica', 'normal');
         pdf.text('Formula: h = f × (L/D) × (V²/2g)', MARGIN_LEFT + 5, yPos);
@@ -440,8 +482,10 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         pdf.text(`  Emitter equivalent: ${zoneData.emitterEquivalentLength.toFixed(1)} ft`, MARGIN_LEFT + 10, yPos);
         yPos += LINE_HEIGHT;
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`  Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`, MARGIN_LEFT + 10, yPos);
-        yPos += LINE_HEIGHT;
+        const totalLengthText = `  Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`;
+        const totalLengthLines = pdf.splitTextToSize(totalLengthText, CONTENT_WIDTH - 10);
+        pdf.text(totalLengthLines, MARGIN_LEFT + 10, yPos);
+        yPos += LINE_HEIGHT * totalLengthLines.length;
         pdf.setFont('helvetica', 'normal');
         
         const g = 32.174;
@@ -450,14 +494,18 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         pdf.text(`Gravity constant (g): ${g} ft/s²`, MARGIN_LEFT + 5, yPos);
         yPos += LINE_HEIGHT;
         
-        pdf.text(`h = ${frictionFactor.toFixed(6)} × (${zoneData.totalEffectiveLength.toFixed(1)} / ${diameterFt.toFixed(4)}) × (${zoneData.velocity.toFixed(2)}² / (2 × ${g}))`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        const headLossFormulaText = `h = ${frictionFactor.toFixed(6)} × (${zoneData.totalEffectiveLength.toFixed(1)} / ${diameterFt.toFixed(4)}) × (${zoneData.velocity.toFixed(2)}² / (2 × ${g}))`;
+        const headLossFormulaLines = pdf.splitTextToSize(headLossFormulaText, CONTENT_WIDTH - 5);
+        pdf.text(headLossFormulaLines, MARGIN_LEFT + 5, yPos);
+        yPos += LINE_HEIGHT * headLossFormulaLines.length;
         
         const ldRatio = zoneData.totalEffectiveLength / diameterFt;
         const vSquaredOver2g = Math.pow(zoneData.velocity, 2) / (2 * g);
         
-        pdf.text(`h = ${frictionFactor.toFixed(6)} × ${ldRatio.toFixed(2)} × ${vSquaredOver2g.toFixed(4)}`, MARGIN_LEFT + 5, yPos);
-        yPos += LINE_HEIGHT;
+        const headLossSimplifiedText = `h = ${frictionFactor.toFixed(6)} × ${ldRatio.toFixed(2)} × ${vSquaredOver2g.toFixed(4)}`;
+        const headLossSimplifiedLines = pdf.splitTextToSize(headLossSimplifiedText, CONTENT_WIDTH - 5);
+        pdf.text(headLossSimplifiedLines, MARGIN_LEFT + 5, yPos);
+        yPos += LINE_HEIGHT * headLossSimplifiedLines.length;
         
         pdf.setFont('helvetica', 'bold');
         pdf.text(`Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + 5, yPos);
@@ -466,8 +514,10 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       } else {
         // Hazen-Williams
         pdf.setFont('helvetica', 'bold');
-        pdf.text('5. Head Loss Calculation (Hazen-Williams Equation):', MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT;
+        const hazenTitle = '5. Head Loss Calculation (Hazen-Williams Equation):';
+        const hazenTitleLines = pdf.splitTextToSize(hazenTitle, CONTENT_WIDTH - 5);
+        pdf.text(hazenTitleLines, MARGIN_LEFT, yPos);
+        yPos += LINE_HEIGHT * hazenTitleLines.length;
         
         pdf.setFont('helvetica', 'normal');
         pdf.text('Formula: h = 4.52 × L × Q¹·⁸⁵ / (C¹·⁸⁵ × D⁴·⁸⁷)', MARGIN_LEFT + 5, yPos);
@@ -614,13 +664,22 @@ function addSubsectionHeader(pdf: jsPDF, title: string, yPos: number): number {
 }
 
 /**
- * Add a key-value pair to the PDF
+ * Add a key-value pair to the PDF with proper text wrapping
  */
 function addKeyValue(pdf: jsPDF, key: string, value: string, yPos: number): number {
   pdf.setFont('helvetica', 'normal');
   pdf.text(key, MARGIN_LEFT, yPos);
   pdf.setFont('helvetica', 'bold');
-  pdf.text(value, MARGIN_LEFT + 70, yPos);
+  
+  // Calculate available width for value (from key position + offset to right margin)
+  const valueStartX = MARGIN_LEFT + 70;
+  const maxValueWidth = PAGE_WIDTH - MARGIN_RIGHT - valueStartX;
+  
+  // Split value text if it's too long
+  const valueLines = pdf.splitTextToSize(value, maxValueWidth);
+  pdf.text(valueLines, valueStartX, yPos);
+  
   pdf.setFont('helvetica', 'normal');
-  return yPos + LINE_HEIGHT;
+  // Return position accounting for wrapped lines
+  return yPos + (LINE_HEIGHT * valueLines.length);
 }
