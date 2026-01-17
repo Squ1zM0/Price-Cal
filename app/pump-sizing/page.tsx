@@ -72,12 +72,12 @@ function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
-// Get color class for capacity utilization
-function getUtilizationColorClass(utilizationPercent: number, isAdequate: boolean): string {
-  if (!isAdequate || utilizationPercent > 100) {
+// Get color class for capacity percentage
+function getUtilizationColorClass(capacityPercent: number, isAdequate: boolean): string {
+  if (!isAdequate || capacityPercent < 100) {
     return "text-red-600 dark:text-red-400";
   }
-  if (utilizationPercent > 85) {
+  if (capacityPercent < 115) {
     return "text-yellow-600 dark:text-yellow-400";
   }
   return "text-green-600 dark:text-green-400";
@@ -1207,16 +1207,16 @@ export default function PumpSizingPage() {
                                     <span className={[
                                       "font-semibold tabular-nums",
                                       getUtilizationColorClass(
-                                        result.emitterSizingCheck.utilizationPercent,
+                                        result.emitterSizingCheck.capacityPercent,
                                         result.emitterSizingCheck.isAdequate
                                       )
                                     ].join(" ")}>
-                                      {result.emitterSizingCheck.utilizationPercent.toFixed(0)}%
+                                      {result.emitterSizingCheck.capacityPercent.toFixed(0)}%
                                     </span>
                                   </div>
                                   
                                   {/* Warning for severely undersized emitter */}
-                                  {result.emitterSizingCheck.utilizationPercent > 150 && (
+                                  {result.emitterSizingCheck.capacityPercent < 20 && (
                                     <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600">
                                       <div className="flex gap-2">
                                         <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -1242,7 +1242,7 @@ export default function PumpSizingPage() {
                                   )}
                                   
                                   {/* Warning for moderately undersized emitter */}
-                                  {result.emitterSizingCheck.utilizationPercent > 100 && result.emitterSizingCheck.utilizationPercent <= 150 && (
+                                  {result.emitterSizingCheck.capacityPercent >= 20 && result.emitterSizingCheck.capacityPercent < 100 && (
                                     <div className="mt-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600">
                                       <div className="flex gap-2">
                                         <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -1264,7 +1264,7 @@ export default function PumpSizingPage() {
                                   )}
                                   
                                   {/* Good status for adequate emitter */}
-                                  {result.emitterSizingCheck.isAdequate && result.emitterSizingCheck.utilizationPercent > 0 && (
+                                  {result.emitterSizingCheck.isAdequate && result.emitterSizingCheck.capacityPercent > 0 && (
                                     <div className="mt-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
                                       <div className="flex gap-2 items-center">
                                         <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">

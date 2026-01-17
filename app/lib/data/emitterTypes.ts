@@ -242,7 +242,9 @@ export function getEmitterTypes(): EmitterType[] {
 export interface EmitterSizingCheck {
   /** True if emitter can deliver the required load at given conditions */
   isAdequate: boolean;
-  /** Percentage of emitter capacity being used (>100% = undersized) */
+  /** Percentage of required emitter length that is provided (100% = adequate, <100% = undersized) */
+  capacityPercent: number;
+  /** Percentage of emitter capacity being used (>100% = undersized) - kept for backward compatibility */
   utilizationPercent: number;
   /** Recommended emitter length in feet for this load */
   requiredLengthFt: number;
@@ -283,28 +285,40 @@ export function checkEmitterSizing(
   // Maximum output at this temperature
   const maxOutputBTU = standardCapacity * tempAdjustment;
   
-  // Utilization
-  const utilizationPercent = (heatLoadBTU / maxOutputBTU) * 100;
-  
   // Required length
   const requiredLengthFt = (heatLoadBTU / typicalBTUPerFoot) / tempAdjustment;
   
+  // Capacity percentage: what percentage of required length do we have?
+  // Example: 25 ft provided / 406 ft required = 6.2%
+  // Edge case: If no length is required (zero load), emitter is more than adequate
+  const capacityPercent = requiredLengthFt > 0 
+    ? (emitterLengthFt / requiredLengthFt) * 100 
+    : 200; // Return 200% for zero-load case (oversized for any zero requirement)
+  
+  // Utilization: what percentage of emitter's max output are we using?
+  // Example: 223,300 BTU required / 13,750 BTU capacity = 1625%
+  // (kept for backward compatibility but not displayed as "capacity")
+  const utilizationPercent = maxOutputBTU > 0 ? (heatLoadBTU / maxOutputBTU) * 100 : 0;
+  
   // Determine if adequate
-  const isAdequate = utilizationPercent <= 100;
+  const isAdequate = capacityPercent >= 100;
   
   let warning: string | undefined;
   let suggestion: string | undefined;
   
-  if (utilizationPercent > 150) {
+  if (capacityPercent < 20) {
+    // Severely undersized: less than 20% of required length
     warning = `Emitter severely undersized: requires ${requiredLengthFt.toFixed(0)} ft but only ${emitterLengthFt.toFixed(0)} ft provided`;
     suggestion = `Increase emitter length to at least ${requiredLengthFt.toFixed(0)} ft, or reduce zone load`;
-  } else if (utilizationPercent > 100) {
+  } else if (capacityPercent < 100) {
+    // Undersized: less than 100% of required length
     warning = `Emitter undersized: cannot deliver ${heatLoadBTU.toLocaleString()} BTU/hr at ${supplyWaterTemp}°F SWT`;
     suggestion = `Increase emitter length to ${requiredLengthFt.toFixed(0)} ft for full capacity`;
   }
   
   return {
     isAdequate,
+    capacityPercent,
     utilizationPercent,
     requiredLengthFt,
     maxOutputBTU,
