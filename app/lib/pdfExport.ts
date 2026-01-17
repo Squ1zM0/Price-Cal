@@ -306,7 +306,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     // 1. Heat Transfer Calculation
     pdf.setFont('helvetica', 'bold');
     const heatTransferTitle = '1. Heat Transfer Calculation (GPM from BTU/hr and ΔT):';
-    const heatTransferLines = pdf.splitTextToSize(heatTransferTitle, CONTENT_WIDTH - INDENT_OFFSET);
+    const heatTransferLines = pdf.splitTextToSize(heatTransferTitle, CONTENT_WIDTH);
     pdf.text(heatTransferLines, MARGIN_LEFT, yPos);
     yPos += LINE_HEIGHT * heatTransferLines.length;
     
@@ -418,7 +418,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
         pdf.setFont('helvetica', 'bold');
         const frictionTitle = '4. Friction Factor Calculation (Swamee-Jain Approximation):';
-        const frictionTitleLines = pdf.splitTextToSize(frictionTitle, CONTENT_WIDTH - INDENT_OFFSET);
+        const frictionTitleLines = pdf.splitTextToSize(frictionTitle, CONTENT_WIDTH);
         pdf.text(frictionTitleLines, MARGIN_LEFT, yPos);
         yPos += LINE_HEIGHT * frictionTitleLines.length;
         
@@ -476,7 +476,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
         pdf.setFont('helvetica', 'bold');
         const headLossTitle = '5. Head Loss Calculation (Darcy-Weisbach Equation):';
-        const headLossTitleLines = pdf.splitTextToSize(headLossTitle, CONTENT_WIDTH - INDENT_OFFSET);
+        const headLossTitleLines = pdf.splitTextToSize(headLossTitle, CONTENT_WIDTH);
         pdf.text(headLossTitleLines, MARGIN_LEFT, yPos);
         yPos += LINE_HEIGHT * headLossTitleLines.length;
         
@@ -538,7 +538,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         // Hazen-Williams
         pdf.setFont('helvetica', 'bold');
         const hazenTitle = '5. Head Loss Calculation (Hazen-Williams Equation):';
-        const hazenTitleLines = pdf.splitTextToSize(hazenTitle, CONTENT_WIDTH - INDENT_OFFSET);
+        const hazenTitleLines = pdf.splitTextToSize(hazenTitle, CONTENT_WIDTH);
         pdf.text(hazenTitleLines, MARGIN_LEFT, yPos);
         yPos += LINE_HEIGHT * hazenTitleLines.length;
         
