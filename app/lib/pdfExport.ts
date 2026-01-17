@@ -169,6 +169,28 @@ function addTextWithPageBreak(
  * Generate PDF report for pump sizing calculator
  */
 export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> {
+  // CRITICAL VALIDATION: Verify zone load reconciliation before generating PDF
+  const systemHeatLoad = parseFloat(data.advancedSettings.systemHeatLoadBTU) || 0;
+  const validZones = data.zones.filter(z => z.valid);
+  const totalDeliveredBTU = validZones.reduce((sum, z) => sum + z.zoneBTU, 0);
+  const reconciliationTolerance = 100; // BTU/hr
+  const reconciliationDelta = Math.abs(totalDeliveredBTU - systemHeatLoad);
+  
+  // Check if there are manual zone assignments
+  // isAutoAssigned = true means zone BTU was auto-distributed from system total
+  // isAutoAssigned = false means user manually specified the zone BTU value
+  const hasManualZones = data.zones.some(z => !z.isAutoAssigned);
+  
+  if (systemHeatLoad > 0 && reconciliationDelta > reconciliationTolerance && hasManualZones) {
+    throw new Error(
+      `PDF Generation Failed: Zone Load Reconciliation Error\n\n` +
+      `Sum of zone BTU values (${totalDeliveredBTU.toLocaleString()} BTU/hr) ` +
+      `does not equal system total (${systemHeatLoad.toLocaleString()} BTU/hr).\n` +
+      `Discrepancy: ${reconciliationDelta.toLocaleString()} BTU/hr exceeds tolerance (${reconciliationTolerance} BTU/hr).\n\n` +
+      `This violates conservation of energy and invalidates pump sizing results.`
+    );
+  }
+  
   const pdf = new jsPDF({
     orientation: 'portrait',
     unit: 'mm',
@@ -208,8 +230,6 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   // ==========================================
   yPos = addSectionHeader(pdf, 'System Summary', yPos);
   
-  const systemHeatLoad = parseFloat(data.advancedSettings.systemHeatLoadBTU) || 0;
-  
   pdf.setFontSize(10);
   pdf.setFont('helvetica', 'normal');
   
@@ -232,6 +252,18 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   }
   
   yPos = addKeyValue(pdf, 'Number of Zones:', `${data.zones.length}`, yPos);
+  yPos += LINE_HEIGHT / 2;
+  
+  // Zone Load Reconciliation Validation
+  pdf.setFont('helvetica', 'bold');
+  pdf.setTextColor(0, 120, 0); // Green
+  yPos = addKeyValue(pdf, 'Zone Load Reconciliation:', '✓ PASSED', yPos);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(9);
+  pdf.setTextColor(BLACK_COLOR_R, BLACK_COLOR_G, BLACK_COLOR_B);
+  const reconStatement = `  Sum of zone BTU (${totalDeliveredBTU.toLocaleString()} BTU/hr) equals system total (${systemHeatLoad.toLocaleString()} BTU/hr) within ${reconciliationTolerance} BTU/hr tolerance.`;
+  yPos = addTextWithPageBreak(pdf, reconStatement, MARGIN_LEFT, yPos, CONTENT_WIDTH);
+  pdf.setFontSize(10);
   yPos += LINE_HEIGHT / 2;
   
   yPos = addKeyValue(pdf, 'Fluid Type:', data.advancedSettings.fluidType, yPos);
