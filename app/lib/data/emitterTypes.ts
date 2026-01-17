@@ -144,6 +144,14 @@ export function calculateRecommendedDeltaT(
   // For a given heat load, ΔT should be constant regardless of emitter length.
   // The formula GPM = BTU / (500 × ΔT) means that varying ΔT causes incorrect flow calculations.
   // 
+  // WHY THE OLD APPROACH WAS WRONG:
+  // The previous load-ratio-based adjustment violated fundamental hydraulics:
+  // - It made DT vary with emitter length for the same heat load
+  // - This caused flow (GPM) to vary incorrectly: GPM = BTU / (500 × varying_DT)
+  // - This caused velocity (fps) to vary incorrectly along with flow
+  // - Example bug: 10ft emitter gave 3.25 GPM, 100ft emitter gave 3.71 GPM for same 30k BTU load
+  // 
+  // CORRECT PHYSICS:
   // Emitter length determines CAPACITY (ability to deliver heat), not ΔT.
   // - Short emitter → low capacity → may not meet heat load (shows as warning)
   // - Long emitter → high capacity → can easily meet heat load
@@ -151,8 +159,9 @@ export function calculateRecommendedDeltaT(
   // But in both cases, the ΔT for a given heat load should remain constant.
   // This ensures flow (GPM) and velocity (ft/s) remain constant for fixed heat load.
   
-  const bounds = getEmitterDeltaTBounds(emitterType);
-  return Math.max(bounds.min, Math.min(bounds.max, baseDeltaT));
+  // Return base DT without bounds check - base values are already within valid ranges
+  // for each emitter type (e.g., 20°F for Baseboard is within 15-30°F bounds)
+  return baseDeltaT;
 }
 
 /**
