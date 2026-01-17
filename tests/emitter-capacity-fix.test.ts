@@ -82,7 +82,7 @@ test("Emitter capacity percentage - adequate sizing", () => {
     `Capacity should be 85-100%, got ${result.capacityPercent.toFixed(1)}%`
   );
   
-  // Should not be quite adequate (need a bit more length)
+  // Should be slightly undersized (need a bit more length)
   assert.strictEqual(result.isAdequate, false, "Should be slightly undersized");
 });
 

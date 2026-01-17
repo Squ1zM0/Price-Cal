@@ -290,7 +290,10 @@ export function checkEmitterSizing(
   
   // Capacity percentage: what percentage of required length do we have?
   // Example: 25 ft provided / 406 ft required = 6.2%
-  const capacityPercent = requiredLengthFt > 0 ? (emitterLengthFt / requiredLengthFt) * 100 : 100;
+  // Edge case: If no length is required (zero load), emitter is more than adequate
+  const capacityPercent = requiredLengthFt > 0 
+    ? (emitterLengthFt / requiredLengthFt) * 100 
+    : 200; // Return 200% for zero-load case (oversized for any zero requirement)
   
   // Utilization: what percentage of emitter's max output are we using?
   // Example: 223,300 BTU required / 13,750 BTU capacity = 1625%

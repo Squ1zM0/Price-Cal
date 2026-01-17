@@ -18,6 +18,7 @@ import { getPipeData } from "../app/lib/pipeData";
 
 test("Reynolds number verification - issue scenario", () => {
   // From issue example: 115,000 BTU/hr with ΔT = 18.3°F gives ~12.6 GPM
+  // Calculation: GPM = BTU/hr ÷ (500 × ΔT) = 115,000 ÷ (500 × 18.3) ≈ 12.6 GPM
   const flowGPM = 12.6;
   
   // Assuming 1/2" pipe (small pipe would give higher velocity and Reynolds)
