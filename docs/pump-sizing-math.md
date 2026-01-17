@@ -409,6 +409,54 @@ We don't use this method directly to keep calculations simpler, but equivalent l
 
 ---
 
+## Understanding Capacity vs Demand
+
+A critical distinction in hydronic system design:
+
+### Boiler Capacity vs System Heat Load
+
+**Boiler BTU (Maximum Available Capacity):**
+- The nameplate rating of the heat source
+- Maximum heat the boiler CAN produce
+- Example: 190,000 BTU/hr boiler
+
+**System Heat Load (Active Demand):**
+- The actual heat being requested by active zones
+- What the pump and piping must deliver NOW
+- Example: 50,000 BTU/hr (3 zones @ 15k, 20k, 15k each)
+
+### Why This Matters for Pump Sizing
+
+**WRONG APPROACH (would cause massive errors):**
+```
+❌ Calculate flow from boiler capacity
+   Flow = 190,000 BTU/hr ÷ (500 × 20°F) = 19 GPM per zone
+   3 zones × 19 GPM = 57 GPM total
+   Result: 3× oversized pump, excessive noise, control issues
+```
+
+**CORRECT APPROACH (what this calculator does):**
+```
+✅ Calculate flow from zone demand
+   Zone 1: 15,000 BTU/hr ÷ (500 × 20°F) = 1.5 GPM
+   Zone 2: 20,000 BTU/hr ÷ (500 × 20°F) = 2.0 GPM
+   Zone 3: 15,000 BTU/hr ÷ (500 × 20°F) = 1.5 GPM
+   Total: 1.5 + 2.0 + 1.5 = 5.0 GPM
+   Result: Correctly sized pump for actual zone demand
+```
+
+### "Utilization" in Zoned Systems
+
+If you enter a large boiler capacity (190k BTU) and see low "utilization" (e.g., 26%), **this is normal and correct:**
+
+- **26% utilization means:** Zones are using 50k of 190k available capacity
+- **This is NOT inefficient:** It means the boiler can handle peak load and has capacity for future zones
+- **What matters for pump sizing:** The active 50k BTU demand, not the 190k available capacity
+
+The calculator uses zone demand (50k) to calculate flow and head, ensuring the pump is sized for actual system behavior, not theoretical maximum capacity.
+
+---
+
 ## Zone Independence
 
 The calculator maintains strict zone independence to ensure accurate multi-zone calculations:
@@ -555,19 +603,40 @@ The following tests verify zone independence:
 
 ### Current Assumptions
 
-**Note:** These assumptions are documented as of the version specified in the "Version History" section below. Any changes to these assumptions should be tracked in that section.
+**Note:** These assumptions are explicitly documented and, where possible, made toggleable through safety factors or custom parameters. Any changes to these assumptions should be tracked in the Version History section.
+
+**Core Calculation Principles (Hard-Coded, Physically Based):**
+
+1. **Zone BTU Drives Flow:** GPM = BTU/hr ÷ (500 × ΔT)
+   - Each zone's flow is calculated independently from its assigned heat load
+   - NOT derived from boiler capacity or system nameplate
+   - **Impact:** Ensures accurate flow sizing based on actual demand
+   
+2. **Total Flow = Sum of Zone Flows:** Q_system = Σ Q_zone
+   - Zones operate in parallel (not series)
+   - Adding zones increases total flow proportionally to added load
+   - **Impact:** Prevents oversizing by zone count multiplication
+   
+3. **Pump Head = Maximum Zone Head:** h_pump = MAX(h_zone)
+   - Pump must overcome the single most restrictive path (critical zone)
+   - Parallel zones do NOT add head (they branch from common supply/return)
+   - **Impact:** Prevents massive pump oversizing from head summation
+
+**Explicit Material & Fluid Assumptions:**
 
 1. **Pipe Condition:** New, clean pipe
-   - Roughness values are for new pipe
+   - Roughness values are for new pipe (copper: 0.000005 ft, black iron: 0.00015 ft, PEX: 0.000003 ft)
    - May increase with age/corrosion (not modeled)
    - **Impact:** Head loss calculations may underestimate for aged systems
-   - **Recommendation:** Apply safety factor for existing systems
+   - **Recommendation:** Apply head safety factor (default 10%) for existing systems
+   - **Toggleable:** Users can set custom roughness values if known
 
 2. **Fluid:** Pure water or ethylene/propylene glycol solutions
-   - Glycol properties are approximations
+   - Glycol properties are approximations based on concentration
    - For critical applications, use exact manufacturer data
    - **Impact:** Glycol calculations may vary ±10% from actual
    - **Recommendation:** Validate with manufacturer data for final designs
+   - **Toggleable:** Custom fluid properties can be specified
 
 3. **Temperature:** User-specified constant temperature
    - Default: 60°F
@@ -616,6 +685,22 @@ The following tests verify zone independence:
   - Documented assumptions: new pipe, constant temperature, no elevation
   - Default temperature: 60°F
   - Supported range: 40-180°F
+
+- **Version 1.1** (January 2026)
+  - **Changed:** UI terminology and documentation clarity improvements
+  - **Reason:** Address confusion between boiler capacity and active zone demand
+  - **What changed:**
+    - Renamed "Total System Heat Load" to clarify it represents "active zone demand" not boiler capacity
+    - Changed "Capacity utilization" to "Pipe capacity usage" for hydraulic checks
+    - Added explicit documentation of core calculation principles in UI and docs
+    - Added "Understanding Capacity vs Demand" section to documentation
+    - Enhanced assumption documentation with toggleability notes
+    - Added calculation method explanation panel in UI
+    - Updated disclaimer to emphasize first-principles basis
+  - **Impact on calculations:** NONE - calculations remain unchanged and mathematically correct
+  - **Impact on presentation:** Much clearer about what's being calculated and why
+  - **Migration:** None required - purely clarification of existing behavior
+  - **Key principle reinforced:** Zone BTU drives flow (GPM = BTU/hr ÷ 500ΔT), not boiler capacity
 
 ### Tracking Changes
 
