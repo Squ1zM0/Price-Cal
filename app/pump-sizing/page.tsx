@@ -72,6 +72,17 @@ function clamp(n: number, min: number, max: number): number {
   return Math.max(min, Math.min(max, n));
 }
 
+// Get color class for capacity utilization
+function getUtilizationColorClass(utilizationPercent: number, isAdequate: boolean): string {
+  if (!isAdequate || utilizationPercent > 100) {
+    return "text-red-600 dark:text-red-400";
+  }
+  if (utilizationPercent > 85) {
+    return "text-yellow-600 dark:text-yellow-400";
+  }
+  return "text-green-600 dark:text-green-400";
+}
+
 // Pill button component
 function PillButton({
   active,
@@ -1195,11 +1206,10 @@ export default function PumpSizingPage() {
                                     <span className="text-slate-600 dark:text-slate-400">Emitter capacity:</span>
                                     <span className={[
                                       "font-semibold tabular-nums",
-                                      !result.emitterSizingCheck.isAdequate
-                                        ? "text-red-600 dark:text-red-400"
-                                        : result.emitterSizingCheck.utilizationPercent > 85
-                                        ? "text-yellow-600 dark:text-yellow-400"
-                                        : "text-green-600 dark:text-green-400"
+                                      getUtilizationColorClass(
+                                        result.emitterSizingCheck.utilizationPercent,
+                                        result.emitterSizingCheck.isAdequate
+                                      )
                                     ].join(" ")}>
                                       {result.emitterSizingCheck.utilizationPercent.toFixed(0)}%
                                     </span>

@@ -240,12 +240,18 @@ export function getEmitterTypes(): EmitterType[] {
  * Returns sizing status and recommendations
  */
 export interface EmitterSizingCheck {
-  isAdequate: boolean;           // True if emitter can deliver the load
-  utilizationPercent: number;     // Percentage of emitter capacity being used
-  requiredLengthFt: number;      // Recommended emitter length for this load
-  maxOutputBTU: number;          // Maximum output this emitter can deliver
-  warning?: string;              // Warning message if undersized
-  suggestion?: string;           // Actionable suggestion
+  /** True if emitter can deliver the required load at given conditions */
+  isAdequate: boolean;
+  /** Percentage of emitter capacity being used (>100% = undersized) */
+  utilizationPercent: number;
+  /** Recommended emitter length in feet for this load */
+  requiredLengthFt: number;
+  /** Maximum output this emitter can deliver in BTU/hr */
+  maxOutputBTU: number;
+  /** Warning message if emitter is undersized */
+  warning?: string;
+  /** Actionable suggestion to address undersizing */
+  suggestion?: string;
 }
 
 /**
