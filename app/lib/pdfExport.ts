@@ -52,6 +52,8 @@ export interface ZoneDataForPDF {
   valid: boolean;
   zoneBTU: number;
   isAutoAssigned: boolean;
+  isCapacityLimited: boolean;
+  maxZoneCapacity: number;
   effectiveDeltaT: number;
   isAutoDeltaT: boolean;
   flowGPM: number;
@@ -85,6 +87,7 @@ export interface SystemResultsForPDF {
   totalFlowGPM: number;
   requiredHeadFt: number;
   criticalZone: string | null;
+  undeliverableBTU: number;
 }
 
 export interface AdvancedSettingsForPDF {
@@ -206,6 +209,20 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   yPos = addKeyValue(pdf, 'Total System Flow:', `${data.systemResults.totalFlowGPM.toFixed(2)} GPM`, yPos);
   yPos = addKeyValue(pdf, 'Required Pump Head:', `${data.systemResults.requiredHeadFt.toFixed(2)} ft`, yPos);
   yPos = addKeyValue(pdf, 'Critical Zone:', data.systemResults.criticalZone || 'N/A', yPos);
+  
+  // Show undeliverable BTU if any
+  if (data.systemResults.undeliverableBTU > 0) {
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(200, 100, 0); // Orange color for warning
+    yPos = addKeyValue(pdf, 'Undeliverable Load:', `${data.systemResults.undeliverableBTU.toLocaleString()} BTU/hr`, yPos);
+    pdf.setFont('helvetica', 'italic');
+    pdf.setFontSize(9);
+    pdf.text('  (One or more zones at hydraulic capacity limit)', MARGIN_LEFT + INDENT_OFFSET, yPos);
+    yPos += LINE_HEIGHT;
+    pdf.setTextColor(0, 0, 0); // Reset to black
+    pdf.setFontSize(10);
+  }
+  
   yPos = addKeyValue(pdf, 'Number of Zones:', `${data.zones.length}`, yPos);
   yPos += LINE_HEIGHT / 2;
   
@@ -262,6 +279,21 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     pdf.setFont('helvetica', 'normal');
     
     yPos = addKeyValue(pdf, '  Zone Heat Load:', `${zoneData.zoneBTU.toLocaleString()} BTU/hr ${zoneData.isAutoAssigned ? '(auto-distributed)' : '(manual)'}`, yPos);
+    
+    // Show capacity limit if zone is capacity-limited
+    if (zoneData.isAutoAssigned && zoneData.isCapacityLimited && zoneData.maxZoneCapacity > 0) {
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(200, 100, 0); // Orange color for warning
+      yPos = addKeyValue(pdf, '  Max Zone Capacity:', `${zoneData.maxZoneCapacity.toLocaleString()} BTU/hr (CAPPED)`, yPos);
+      pdf.setFont('helvetica', 'italic');
+      pdf.setFontSize(9);
+      pdf.text('    (Zone at hydraulic capacity limit based on pipe size)', MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
+      yPos += LINE_HEIGHT;
+      pdf.setTextColor(0, 0, 0); // Reset to black
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+    }
+    
     yPos = addKeyValue(pdf, '  Emitter Type:', zoneData.zone.emitterType, yPos);
     yPos = addKeyValue(pdf, '  Emitter Equivalent Length:', `${zoneData.emitterEquivalentLength.toFixed(1)} ft`, yPos);
     yPos = addKeyValue(pdf, '  Temperature Difference (Delta-T):', `${zoneData.effectiveDeltaT.toFixed(1)}°F ${zoneData.isAutoDeltaT ? '(auto)' : '(manual)'}`, yPos);
