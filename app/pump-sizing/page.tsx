@@ -1459,8 +1459,8 @@ export default function PumpSizingPage() {
                                     </span>
                                   </div>
                                   
-                                  {/* Warning for exceeding capacity */}
-                                  {result.capacityCheck.exceedsAbsolute && (
+                                  {/* HARD LIMIT: Warning for exceeding absolute physical capacity (manual assignment only) */}
+                                  {result.capacityCheck.exceedsAbsolute && !result.isCapacityLimited && (
                                     <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600">
                                       <div className="flex gap-2">
                                         <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -1468,14 +1468,15 @@ export default function PumpSizingPage() {
                                         </svg>
                                         <div className="flex-1">
                                           <p className="text-sm font-bold text-red-900 dark:text-red-200">
-                                            <span className="sr-only">Warning: </span>Pipe Undersized - Critical Issue
+                                            <span className="sr-only">Hard Limit Violation: </span>HARD LIMIT: Pipe Undersized
                                           </p>
                                           <p className="text-xs text-red-800 dark:text-red-300 mt-1">
-                                            Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds absolute pipe capacity 
-                                            ({result.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr at {result.capacityCheck.maxAbsoluteGPM.toFixed(1)} GPM).
+                                            Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds absolute physical pipe capacity 
+                                            ({result.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr at {result.capacityCheck.maxAbsoluteGPM.toFixed(1)} GPM). 
+                                            This pipe cannot physically transfer this amount of heat.
                                           </p>
                                           <p className="text-xs text-red-800 dark:text-red-300 mt-2 font-semibold">
-                                            Required actions:
+                                            Required actions (physical constraint):
                                           </p>
                                           <ul className="text-xs text-red-800 dark:text-red-300 mt-1 space-y-1 list-disc list-inside">
                                             <li>Increase pipe size to {zone.size === '1/2"' ? '3/4"' : zone.size === '3/4"' ? '1"' : zone.size === '1"' ? '1-1/4"' : 'larger diameter'}</li>
@@ -1488,8 +1489,31 @@ export default function PumpSizingPage() {
                                     </div>
                                   )}
                                   
-                                  {/* Warning for exceeding recommended but not absolute */}
-                                  {result.capacityCheck.exceedsRecommended && !result.capacityCheck.exceedsAbsolute && (
+                                  {/* Informational: Zone at hard limit (auto-capped) */}
+                                  {result.isCapacityLimited && result.capacityCheck.exceedsAbsolute && (
+                                    <div className="mt-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-blue-900 dark:text-blue-200">
+                                            <span className="sr-only">Info: </span>Zone at Hard Hydraulic Limit
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">
+                                            This zone has been capped at its maximum physical capacity ({result.zoneBTU.toLocaleString()} BTU/hr) 
+                                            based on pipe size and absolute velocity limits. The system cannot deliver more heat through this pipe configuration.
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
+                                            To increase capacity, you must increase pipe size or system ΔT.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* SOFT LIMIT: Advisory warning for exceeding recommended but not absolute (manual assignment only) */}
+                                  {result.capacityCheck.exceedsRecommended && !result.capacityCheck.exceedsAbsolute && !result.isCapacityLimited && (
                                     <div className="mt-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600">
                                       <div className="flex gap-2">
                                         <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -1497,24 +1521,50 @@ export default function PumpSizingPage() {
                                         </svg>
                                         <div className="flex-1">
                                           <p className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
-                                            <span className="sr-only">Warning: </span>Flow Velocity Exceeds Recommended Limit
+                                            <span className="sr-only">Advisory: </span>SOFT LIMIT: Flow Velocity Above Recommended Range
                                           </p>
                                           <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-1">
-                                            Assigned load ({result.zoneBTU.toLocaleString()} BTU/hr) exceeds recommended pipe capacity 
-                                            ({result.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr at {result.capacityCheck.maxRecommendedGPM.toFixed(1)} GPM).
+                                            Operating load ({result.zoneBTU.toLocaleString()} BTU/hr) requires flow velocity above recommended design range 
+                                            (recommended capacity: {result.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr at {result.capacityCheck.maxRecommendedGPM.toFixed(1)} GPM).
                                             Current velocity: {result.velocity.toFixed(2)} ft/s.
                                           </p>
                                           <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2">
-                                            <strong>Potential issues:</strong> Increased noise, higher head loss, accelerated erosion over time.
+                                            <strong>Potential concerns (advisory):</strong> Increased noise, higher head loss, accelerated wear over time. 
+                                            System will function but may not meet quiet operation standards.
                                           </p>
                                           <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2 font-semibold">
-                                            Recommended actions:
+                                            Recommended actions (optional):
                                           </p>
                                           <ul className="text-xs text-yellow-800 dark:text-yellow-300 mt-1 space-y-1 list-disc list-inside">
                                             <li>Consider increasing pipe size for quieter, more efficient operation</li>
                                             <li>Increase ΔT to reduce required flow</li>
-                                            <li>Accept higher velocity if noise and erosion are acceptable</li>
+                                            <li>Accept higher velocity if noise and wear are acceptable</li>
                                           </ul>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Informational: Zone operating near/at recommended limit (auto-capped) */}
+                                  {result.isCapacityLimited && result.capacityCheck.exceedsRecommended && !result.capacityCheck.exceedsAbsolute && (
+                                    <div className="mt-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-400 dark:border-blue-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-blue-900 dark:text-blue-200">
+                                            <span className="sr-only">Info: </span>Zone Capped at Recommended Hydraulic Capacity
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">
+                                            This zone has been capped at recommended capacity ({result.zoneBTU.toLocaleString()} BTU/hr) 
+                                            to maintain velocity within design guidelines ({result.velocity.toFixed(2)} ft/s). 
+                                            System is operating within physical limits but at the upper end of recommended design range.
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
+                                            <strong>Note:</strong> This is an advisory threshold, not a physical constraint. 
+                                            To increase capacity while staying in recommended range, increase pipe size or system ΔT.
+                                          </p>
                                         </div>
                                       </div>
                                     </div>

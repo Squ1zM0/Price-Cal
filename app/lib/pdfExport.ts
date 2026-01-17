@@ -342,29 +342,58 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     yPos = addKeyValue(pdf, '  Total Effective Length:', `${zoneData.totalEffectiveLength.toFixed(1)} ft`, yPos);
     yPos = addKeyValue(pdf, '  Head Loss:', `${zoneData.headLoss.toFixed(2)} ft`, yPos);
     
-    // Warnings
+    // Warnings - distinguish hard vs soft limits and auto-capped zones
     if (zoneData.capacityCheck) {
-      if (zoneData.capacityCheck.exceedsAbsolute) {
+      // HARD LIMIT: Exceeds absolute capacity (only for manual assignments)
+      if (zoneData.capacityCheck.exceedsAbsolute && !zoneData.isCapacityLimited) {
         yPos += LINE_HEIGHT / 2;
         pdf.setTextColor(200, 0, 0);
         pdf.setFont('helvetica', 'bold');
-        const warningTitle = '  ⚠ WARNING: Pipe Undersized - Critical Issue';
+        const warningTitle = '  ⚠ HARD LIMIT: Pipe Undersized - Physical Constraint';
         yPos = addTextWithPageBreak(pdf, warningTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
-        const warningMsg = `  Load exceeds absolute pipe capacity (${zoneData.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr)`;
+        const warningMsg = `  Assigned load exceeds absolute physical pipe capacity (${zoneData.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr). Pipe cannot transfer this heat.`;
         yPos = addTextWithPageBreak(pdf, warningMsg, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         pdf.setTextColor(0, 0, 0);
-      } else if (zoneData.capacityCheck.exceedsRecommended) {
+      }
+      // Informational: Zone at hard limit (auto-capped)
+      else if (zoneData.isCapacityLimited && zoneData.capacityCheck.exceedsAbsolute) {
+        yPos += LINE_HEIGHT / 2;
+        pdf.setTextColor(0, 100, 200);
+        pdf.setFont('helvetica', 'bold');
+        const infoTitle = '  ℹ Zone at Hard Hydraulic Limit';
+        yPos = addTextWithPageBreak(pdf, infoTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
+        
+        pdf.setFont('helvetica', 'normal');
+        const infoMsg = `  Zone capped at maximum physical capacity (${zoneData.zoneBTU.toLocaleString()} BTU/hr) based on pipe size and absolute velocity limits.`;
+        yPos = addTextWithPageBreak(pdf, infoMsg, MARGIN_LEFT, yPos, CONTENT_WIDTH);
+        pdf.setTextColor(0, 0, 0);
+      }
+      // SOFT LIMIT: Exceeds recommended but not absolute (only for manual assignments)
+      else if (zoneData.capacityCheck.exceedsRecommended && !zoneData.isCapacityLimited) {
         yPos += LINE_HEIGHT / 2;
         pdf.setTextColor(180, 120, 0);
         pdf.setFont('helvetica', 'bold');
-        const warningTitle = '  ⚠ WARNING: Flow Velocity Exceeds Recommended Limit';
+        const warningTitle = '  ⚠ SOFT LIMIT: Flow Velocity Above Recommended Range';
         yPos = addTextWithPageBreak(pdf, warningTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
-        const warningMsg = `  Load exceeds recommended capacity (${zoneData.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr)`;
+        const warningMsg = `  Operating above recommended design range (${zoneData.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr). Advisory only - may cause noise/wear.`;
         yPos = addTextWithPageBreak(pdf, warningMsg, MARGIN_LEFT, yPos, CONTENT_WIDTH);
+        pdf.setTextColor(0, 0, 0);
+      }
+      // Informational: Zone at recommended limit (auto-capped)
+      else if (zoneData.isCapacityLimited && zoneData.capacityCheck.exceedsRecommended) {
+        yPos += LINE_HEIGHT / 2;
+        pdf.setTextColor(0, 100, 200);
+        pdf.setFont('helvetica', 'bold');
+        const infoTitle = '  ℹ Zone Capped at Recommended Hydraulic Capacity';
+        yPos = addTextWithPageBreak(pdf, infoTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
+        
+        pdf.setFont('helvetica', 'normal');
+        const infoMsg = `  Zone capped at recommended capacity (${zoneData.zoneBTU.toLocaleString()} BTU/hr) to maintain velocity within design guidelines. This is advisory, not a hard limit.`;
+        yPos = addTextWithPageBreak(pdf, infoMsg, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         pdf.setTextColor(0, 0, 0);
       }
     }
