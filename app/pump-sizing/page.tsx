@@ -1427,100 +1427,8 @@ export default function PumpSizingPage() {
                               </span>
                             </div>
                             
-                            {/* Emitter Sizing Check */}
-                            {result.emitterSizingCheck && (
-                              <>
-                                <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
-                                <div className="space-y-2">
-                                  <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">Emitter capacity:</span>
-                                    <span className={[
-                                      "font-semibold tabular-nums",
-                                      getUtilizationColorClass(
-                                        result.emitterSizingCheck.capacityPercent,
-                                        result.emitterSizingCheck.isAdequate
-                                      )
-                                    ].join(" ")}>
-                                      {result.emitterSizingCheck.capacityPercent.toFixed(0)}%
-                                    </span>
-                                  </div>
-                                  
-                                  {/* Manufacturer data indicator */}
-                                  {result.emitterSizingCheck.usingManufacturerData && (
-                                    <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
-                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                      </svg>
-                                      <span>Using {result.emitterSizingCheck.manufacturerModel} performance data</span>
-                                    </div>
-                                  )}
-                                  
-                                  {/* Warning for severely undersized emitter */}
-                                  {result.emitterSizingCheck.capacityPercent < 20 && (
-                                    <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600">
-                                      <div className="flex gap-2">
-                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
-                                        <div className="flex-1">
-                                          <p className="text-sm font-bold text-red-900 dark:text-red-200">
-                                            <span className="sr-only">Warning: </span>Emitter Severely Undersized
-                                          </p>
-                                          <p className="text-xs text-red-800 dark:text-red-300 mt-1">
-                                            {result.emitterSizingCheck.warning}
-                                          </p>
-                                          <p className="text-xs text-red-800 dark:text-red-300 mt-2">
-                                            <strong>Impact:</strong> Auto-ΔT is limited to {result.effectiveDeltaT.toFixed(1)}°F due to insufficient emitter surface area. 
-                                            The emitter cannot deliver the full {result.zoneBTU.toLocaleString()} BTU/hr at design conditions.
-                                          </p>
-                                          <p className="text-xs text-red-800 dark:text-red-300 mt-2 font-semibold">
-                                            {result.emitterSizingCheck.suggestion}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                                  {/* Warning for moderately undersized emitter */}
-                                  {result.emitterSizingCheck.capacityPercent >= 20 && result.emitterSizingCheck.capacityPercent < 100 && (
-                                    <div className="mt-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600">
-                                      <div className="flex gap-2">
-                                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                        </svg>
-                                        <div className="flex-1">
-                                          <p className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
-                                            <span className="sr-only">Warning: </span>Emitter Undersized
-                                          </p>
-                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-1">
-                                            {result.emitterSizingCheck.warning}
-                                          </p>
-                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2">
-                                            <strong>Suggestion:</strong> {result.emitterSizingCheck.suggestion}
-                                          </p>
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-                                  
-                                  {/* Good status for adequate emitter */}
-                                  {result.emitterSizingCheck.isAdequate && result.emitterSizingCheck.capacityPercent > 0 && (
-                                    <div className="mt-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
-                                      <div className="flex gap-2 items-center">
-                                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                        <p className="text-xs text-green-800 dark:text-green-300">
-                                          <span className="sr-only">Success: </span>Emitter adequately sized. Can deliver {result.emitterSizingCheck.maxOutputBTU.toLocaleString()} BTU/hr maximum.
-                                        </p>
-                                      </div>
-                                    </div>
-                                  )}
-                                </div>
-                              </>
-                            )}
-                            
-                            {/* Phase 3: Hydraulic Capacity Check */}
+                            {/* Phase 1: Hydraulic Capacity Check - PRIMARY CONSTRAINT */}
+                            {/* Pipes + pump determine maximum transferable BTU. This is checked FIRST. */}
                             {result.capacityCheck && (
                               <>
                                 <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
@@ -1647,6 +1555,122 @@ export default function PumpSizingPage() {
                                             Consider air elimination devices if this is a concern for your system.
                                           </p>
                                         </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+                            
+                            {/* Phase 2: Emitter Feasibility Check - SECONDARY CONSTRAINT */}
+                            {/* Emitters determine whether transferred heat can be released at given temperatures. */}
+                            {/* This is evaluated AFTER hydraulics to maintain correct causality. */}
+                            {result.emitterSizingCheck && (
+                              <>
+                                <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600 dark:text-slate-400">Emitter capacity:</span>
+                                    <span className={[
+                                      "font-semibold tabular-nums",
+                                      getUtilizationColorClass(
+                                        result.emitterSizingCheck.capacityPercent,
+                                        result.emitterSizingCheck.isAdequate
+                                      )
+                                    ].join(" ")}>
+                                      {result.emitterSizingCheck.capacityPercent.toFixed(0)}%
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Manufacturer data indicator */}
+                                  {result.emitterSizingCheck.usingManufacturerData && (
+                                    <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                      <span>Using {result.emitterSizingCheck.manufacturerModel} performance data</span>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Warning for severely undersized emitter - ONLY if hydraulics are adequate */}
+                                  {result.emitterSizingCheck.capacityPercent < 20 && !result.capacityCheck?.exceedsRecommended && (
+                                    <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-red-900 dark:text-red-200">
+                                            <span className="sr-only">Warning: </span>Emitter Insufficient for Heat Release
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-1">
+                                            {result.emitterSizingCheck.warning}
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-2">
+                                            <strong>Note:</strong> Pipes can transfer {result.zoneBTU.toLocaleString()} BTU/hr at {result.effectiveDeltaT.toFixed(1)}°F ΔT (resulting from {result.flowGPM.toFixed(1)} GPM flow rate), but the emitter cannot release this amount of heat into the space at design conditions.
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-2 font-semibold">
+                                            {result.emitterSizingCheck.suggestion}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Informational message when hydraulics limit AND emitter is undersized */}
+                                  {result.emitterSizingCheck.capacityPercent < 20 && result.capacityCheck?.exceedsRecommended && (
+                                    <div className="mt-2 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-300 dark:border-blue-700">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-blue-900 dark:text-blue-200">
+                                            <span className="sr-only">Information: </span>Emitter Sizing Note
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-1">
+                                            Emitter is undersized ({result.emitterSizingCheck.capacityPercent.toFixed(0)}% of required length), but this is secondary to the hydraulic limitation above.
+                                          </p>
+                                          <p className="text-xs text-blue-800 dark:text-blue-300 mt-2">
+                                            <strong>Causality:</strong> The ΔT of {result.effectiveDeltaT.toFixed(1)}°F is determined by the flow rate limit ({result.flowGPM.toFixed(1)} GPM) set by pipe capacity, not by emitter surface area. Address the hydraulic constraint first.
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Warning for moderately undersized emitter - ONLY if hydraulics are adequate */}
+                                  {result.emitterSizingCheck.capacityPercent >= 20 && result.emitterSizingCheck.capacityPercent < 100 && !result.capacityCheck?.exceedsRecommended && (
+                                    <div className="mt-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
+                                            <span className="sr-only">Warning: </span>Emitter Undersized for Heat Release
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-1">
+                                            {result.emitterSizingCheck.warning}
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2">
+                                            <strong>Suggestion:</strong> {result.emitterSizingCheck.suggestion}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Good status for adequate emitter */}
+                                  {result.emitterSizingCheck.isAdequate && result.emitterSizingCheck.capacityPercent > 0 && (
+                                    <div className="mt-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
+                                      <div className="flex gap-2 items-center">
+                                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <p className="text-xs text-green-800 dark:text-green-300">
+                                          <span className="sr-only">Success: </span>Emitter can release transferred heat. Maximum output {result.emitterSizingCheck.maxOutputBTU.toLocaleString()} BTU/hr.
+                                        </p>
                                       </div>
                                     </div>
                                   )}
