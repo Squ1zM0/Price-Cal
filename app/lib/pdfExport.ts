@@ -131,7 +131,12 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     orientation: 'portrait',
     unit: 'mm',
     format: 'letter',
+    compress: true,
   });
+
+  // Set default font settings for better rendering
+  pdf.setFont('helvetica', 'normal');
+  pdf.setFontSize(10);
 
   let yPos = MARGIN_TOP;
 
@@ -687,7 +692,7 @@ function addSectionHeader(pdf: jsPDF, title: string, yPos: number): number {
   pdf.setLineWidth(0.5);
   pdf.line(MARGIN_LEFT, yPos - 2, PAGE_WIDTH - MARGIN_RIGHT, yPos - 2);
   
-  yPos += LINE_HEIGHT / 2;
+  yPos += LINE_HEIGHT * 0.75; // Increased spacing after section header
   return yPos;
 }
 
@@ -700,7 +705,8 @@ function addSubsectionHeader(pdf: jsPDF, title: string, yPos: number): number {
   pdf.setTextColor(60, 60, 60);
   pdf.text(title, MARGIN_LEFT, yPos);
   pdf.setTextColor(0, 0, 0);
-  yPos += LINE_HEIGHT;
+  pdf.setFontSize(10); // Reset to default font size
+  yPos += LINE_HEIGHT * 1.25; // Increased spacing after subsection header
   return yPos;
 }
 
