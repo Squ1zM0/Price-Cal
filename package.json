@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "npm run test:hydraulics && npm run test:zone-allocation && npm run test:hydraulic-capacity && npm run test:pump-math && npm run test:auto-distribution-ui && npm run test:5-8-pex && npm run test:emitter-types",
+    "test": "npm run test:hydraulics && npm run test:zone-allocation && npm run test:hydraulic-capacity && npm run test:pump-math && npm run test:auto-distribution-ui && npm run test:5-8-pex && npm run test:emitter-types && npm run test:manufacturer-emitter-data",
     "test:hydraulics": "tsx tests/hydraulics.test.ts",
     "test:zone-allocation": "tsx tests/zone-allocation.test.ts",
     "test:hydraulic-capacity": "tsx tests/hydraulic-capacity.test.ts",
@@ -15,6 +15,7 @@
     "test:auto-distribution-ui": "tsx tests/auto-distribution-ui.test.ts",
     "test:5-8-pex": "tsx tests/5-8-pex.test.ts",
     "test:emitter-types": "tsx tests/emitter-types.test.ts",
+    "test:manufacturer-emitter-data": "tsx tests/manufacturer-emitter-data.test.ts",
     "prebuild": "node scripts/sync-techdirect.cjs",
     "predev": "node scripts/sync-techdirect.cjs"
   },

@@ -3,7 +3,16 @@
  * 
  * This module defines hydronic emitter types and provides logic for
  * automatically determining appropriate ΔT based on emitter characteristics.
+ * 
+ * Now enhanced with manufacturer-specific performance data for accurate
+ * output calculations at various temperatures and flow rates.
  */
+
+import {
+  type ManufacturerEmitterModel,
+  getManufacturerModel,
+  interpolateEmitterOutput,
+} from "./manufacturerEmitterData";
 
 export type EmitterType = 
   | "Baseboard"
@@ -236,6 +245,114 @@ export function getEmitterTypes(): EmitterType[] {
 }
 
 /**
+ * Get emitter output using manufacturer data if available, otherwise use generic values
+ * 
+ * @param emitterType - Type of emitter
+ * @param avgWaterTemp - Average water temperature (°F)
+ * @param flowRate - Flow rate (GPM)
+ * @param manufacturerModel - Optional manufacturer model key (e.g., "Slant/Fin Fine/Line 30")
+ * @returns BTU per foot output
+ */
+export function getEmitterOutput(
+  emitterType: EmitterType,
+  avgWaterTemp: number,
+  flowRate: number,
+  manufacturerModel?: string
+): number {
+  // Try manufacturer data first if model is specified
+  if (manufacturerModel) {
+    const model = getManufacturerModel(manufacturerModel);
+    if (model) {
+      const output = interpolateEmitterOutput(avgWaterTemp, flowRate, model);
+      if (output !== undefined) {
+        return output;
+      }
+      // If out of range, fall through to generic calculation
+    }
+  }
+
+  // Fall back to generic temperature-corrected output
+  const standardBTUPerFoot = EMITTER_BTU_PER_FOOT[emitterType];
+  const outputScalingExponent = getEmitterExponent(emitterType);
+  const tempRatio = Math.max(0.1, (avgWaterTemp - ROOM_TEMP) / (STANDARD_AWT - ROOM_TEMP));
+  
+  return standardBTUPerFoot * Math.pow(tempRatio, outputScalingExponent);
+}
+
+/**
+ * Calculate ΔT iteratively using manufacturer data or generic curves
+ * 
+ * This solves for the ΔT that balances:
+ * 1. Heat load = flow × 500 × ΔT
+ * 2. Heat load = emitter output × emitter length
+ * 
+ * Where emitter output depends on average water temp (which depends on ΔT)
+ * 
+ * @param emitterType - Type of emitter
+ * @param emitterLengthFt - Emitter length in feet
+ * @param heatLoadBTU - Required heat load in BTU/hr
+ * @param supplyWaterTemp - Supply water temperature in °F
+ * @param flowRate - Flow rate in GPM (optional, calculated from load if not provided)
+ * @param manufacturerModel - Optional manufacturer model key
+ * @returns Calculated ΔT in °F
+ */
+export function calculateDeltaTFromEmitterOutput(
+  emitterType: EmitterType,
+  emitterLengthFt: number,
+  heatLoadBTU: number,
+  supplyWaterTemp: number,
+  flowRate?: number,
+  manufacturerModel?: string
+): number {
+  if (emitterLengthFt <= 0 || heatLoadBTU <= 0) {
+    return EMITTER_DEFAULT_DELTA_T[emitterType];
+  }
+
+  // Initial guess for ΔT
+  let deltaT = EMITTER_DEFAULT_DELTA_T[emitterType];
+  
+  // Iterative solver (Newton-Raphson style)
+  const maxIterations = 20;
+  const tolerance = 0.1; // °F
+  
+  for (let i = 0; i < maxIterations; i++) {
+    // Calculate flow rate if not provided
+    const gpm = flowRate ?? (heatLoadBTU / (500 * deltaT));
+    
+    // Calculate average water temperature
+    const avgWaterTemp = supplyWaterTemp - deltaT / 2;
+    
+    // Get emitter output at this condition
+    const btuPerFoot = getEmitterOutput(emitterType, avgWaterTemp, gpm, manufacturerModel);
+    
+    // Calculate what the emitter can deliver
+    const emitterCapacity = btuPerFoot * emitterLengthFt;
+    
+    // Error: difference between required and delivered
+    const error = heatLoadBTU - emitterCapacity;
+    
+    // Check convergence
+    if (Math.abs(error) < tolerance) {
+      break;
+    }
+    
+    // Adjust ΔT based on error
+    // If emitter delivers too little, reduce ΔT (lower return temp → higher avg temp → more output)
+    // If emitter delivers too much, increase ΔT
+    const adjustmentFactor = 0.3; // Damping factor for stability
+    const deltaTAdjustment = -(error / emitterCapacity) * deltaT * adjustmentFactor;
+    
+    deltaT = deltaT + deltaTAdjustment;
+    
+    // Apply bounds
+    const bounds = getEmitterDeltaTBounds(emitterType);
+    deltaT = Math.max(bounds.min, Math.min(bounds.max, deltaT));
+  }
+  
+  return deltaT;
+}
+
+/**
  * Check if emitter is adequately sized for the heat load
  * Returns sizing status and recommendations
  */
@@ -254,6 +371,10 @@ export interface EmitterSizingCheck {
   warning?: string;
   /** Actionable suggestion to address undersizing */
   suggestion?: string;
+  /** True if using manufacturer data instead of generic */
+  usingManufacturerData?: boolean;
+  /** Manufacturer model being used, if any */
+  manufacturerModel?: string;
 }
 
 /**
@@ -262,42 +383,44 @@ export interface EmitterSizingCheck {
  * @param emitterLengthFt - Actual emitter length in feet
  * @param heatLoadBTU - Required heat load in BTU/hr
  * @param supplyWaterTemp - Supply water temperature in °F
+ * @param flowRate - Optional flow rate in GPM (calculated if not provided)
+ * @param manufacturerModel - Optional manufacturer model key for accurate data
  * @returns Sizing check result
  */
 export function checkEmitterSizing(
   emitterType: EmitterType,
   emitterLengthFt: number,
   heatLoadBTU: number,
-  supplyWaterTemp: number = 180
+  supplyWaterTemp: number = 180,
+  flowRate?: number,
+  manufacturerModel?: string
 ): EmitterSizingCheck {
-  const typicalBTUPerFoot = EMITTER_BTU_PER_FOOT[emitterType];
   const baseDeltaT = EMITTER_DEFAULT_DELTA_T[emitterType];
   
-  // Calculate standard capacity
-  const standardCapacity = emitterLengthFt * typicalBTUPerFoot;
+  // Determine if using manufacturer data
+  const usingManufacturerData = manufacturerModel !== undefined && getManufacturerModel(manufacturerModel) !== undefined;
   
-  // Account for water temperature effects
-  const standardAWT = supplyWaterTemp - baseDeltaT / 2;
-  const refAWT = STANDARD_AWT;
-  const outputScalingExponent = getEmitterExponent(emitterType);
-  const tempAdjustment = Math.pow((standardAWT - ROOM_TEMP) / (refAWT - ROOM_TEMP), outputScalingExponent);
+  // Calculate flow rate if not provided
+  const gpm = flowRate ?? (heatLoadBTU / (500 * baseDeltaT));
   
-  // Maximum output at this temperature
-  const maxOutputBTU = standardCapacity * tempAdjustment;
+  // Calculate average water temperature (using base ΔT as estimate)
+  const avgWaterTemp = supplyWaterTemp - baseDeltaT / 2;
   
-  // Required length
-  const requiredLengthFt = (heatLoadBTU / typicalBTUPerFoot) / tempAdjustment;
+  // Get BTU per foot using manufacturer data if available
+  const btuPerFoot = getEmitterOutput(emitterType, avgWaterTemp, gpm, manufacturerModel);
+  
+  // Calculate maximum output at this temperature and flow
+  const maxOutputBTU = emitterLengthFt * btuPerFoot;
+  
+  // Calculate required length
+  const requiredLengthFt = heatLoadBTU / btuPerFoot;
   
   // Capacity percentage: what percentage of required length do we have?
-  // Example: 25 ft provided / 406 ft required = 6.2%
-  // Edge case: If no length is required (zero load), emitter is more than adequate
   const capacityPercent = requiredLengthFt > 0 
     ? (emitterLengthFt / requiredLengthFt) * 100 
-    : 200; // Return 200% for zero-load case (oversized for any zero requirement)
+    : 200; // Return 200% for zero-load case
   
   // Utilization: what percentage of emitter's max output are we using?
-  // Example: 223,300 BTU required / 13,750 BTU capacity = 1625%
-  // (kept for backward compatibility but not displayed as "capacity")
   const utilizationPercent = maxOutputBTU > 0 ? (heatLoadBTU / maxOutputBTU) * 100 : 0;
   
   // Determine if adequate
@@ -324,5 +447,7 @@ export function checkEmitterSizing(
     maxOutputBTU,
     warning,
     suggestion,
+    usingManufacturerData,
+    manufacturerModel: usingManufacturerData ? manufacturerModel : undefined,
   };
 }
