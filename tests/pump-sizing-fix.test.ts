@@ -14,7 +14,8 @@ test("Hydraulic capacity check uses design ΔT, not collapsed ΔT", () => {
   // Scenario: Emitter-limited zone with collapsed ΔT
   // The pipe should NOT show a false capacity failure
   
-  const pipeData = getPipeData("Copper", '1/2"');  // Smaller pipe for more dramatic effect
+  const TEST_PIPE_SIZE = '1/2"';  // Small pipe chosen to demonstrate the issue clearly
+  const pipeData = getPipeData("Copper", TEST_PIPE_SIZE);
   assert.ok(pipeData, "Pipe data should exist");
   
   // Zone requested 50,000 BTU but emitter can only deliver 10,000 BTU
@@ -89,10 +90,11 @@ test("Hydraulic capacity check uses design ΔT, not collapsed ΔT", () => {
     "Capacity should scale linearly with ΔT"
   );
   
-  // With design ΔT, capacity should be significantly higher
+  // With design ΔT, capacity should be deltaTRatio times higher (approximately)
+  const expectedMinRatio = deltaTRatio - 1;  // Account for rounding
   assert.ok(
-    correctCheck.capacityBTURecommended > wrongCheck.capacityBTURecommended * 4,
-    "With design ΔT (20°F), capacity should be 5x higher than with collapsed ΔT (4°F)"
+    correctCheck.capacityBTURecommended > wrongCheck.capacityBTURecommended * expectedMinRatio,
+    `With design ΔT (${designDeltaT}°F), capacity should be ${deltaTRatio.toFixed(1)}x higher than with collapsed ΔT (${effectiveDeltaT}°F)`
   );
   
   console.log("\n✓ CORRECT: Using design ΔT provides accurate capacity estimate");

@@ -68,6 +68,7 @@ interface AdvancedSettings {
 
 // Constants
 const BTU_CONVERGENCE_THRESHOLD = 0.01; // BTU/hr - threshold for iterative distribution convergence
+const BTU_RECONCILIATION_TOLERANCE = 100; // BTU/hr - tolerance for comparing system vs delivered BTU
 
 // Utility functions
 function parseNum(s: string): number {
@@ -681,9 +682,10 @@ export default function PumpSizingPage() {
       // Get design ΔT for hydraulic capacity check (not effective ΔT)
       // When emitter limits delivery, effective ΔT may collapse, but pipe capacity should be
       // calculated using design ΔT to avoid false capacity failures
+      const deltaTValidation = isDeltaTValid(zone.deltaT);
       const designDeltaTForCapacityCheck = zone.deltaTMode === "auto" 
         ? (EMITTER_DEFAULT_DELTA_T[zone.emitterType as EmitterType] || 20)
-        : (isDeltaTValid(zone.deltaT).valid ? isDeltaTValid(zone.deltaT).deltaT : 20);
+        : (deltaTValidation.valid ? deltaTValidation.deltaT : 20);
 
       // Phase 3: Hydraulic Reality Check
       const capacityCheck = checkHydraulicCapacity(
@@ -968,7 +970,7 @@ export default function PumpSizingPage() {
                   <div className="text-lg font-bold">{systemResults.totalDeliveredBTU.toLocaleString()} BTU/hr</div>
                 </div>
               </div>
-              {Math.abs(systemResults.systemBTU - systemResults.totalDeliveredBTU) > 100 && (
+              {Math.abs(systemResults.systemBTU - systemResults.totalDeliveredBTU) > BTU_RECONCILIATION_TOLERANCE && (
                 <div className="mt-2 text-xs opacity-90">
                   {systemResults.totalDeliveredBTU < systemResults.systemBTU ? (
                     <p>
