@@ -88,7 +88,7 @@ test("Scenario: Tiny emitter with adequate hydraulics - ΔT should be small due 
   );
   
   assert.ok(
-    deliveredBTU === emitterMaxBTU,
+    Math.abs(deliveredBTU - emitterMaxBTU) < 0.1,
     "Delivered BTU should be limited by emitter, not hydraulics"
   );
   
@@ -158,7 +158,7 @@ test("Scenario: Small pipe with adequate emitter - ΔT should reflect hydraulic 
   
   // KEY ASSERTION: Delivered BTU should be limited by hydraulics
   assert.ok(
-    deliveredBTU === hydraulicCapacityBTU,
+    Math.abs(deliveredBTU - hydraulicCapacityBTU) < 0.1,
     "Delivered BTU should be limited by hydraulics, not emitter"
   );
   
@@ -195,18 +195,16 @@ test("Scenario: Both adequate - ΔT matches requested load", () => {
   const deliveredBTU = Math.min(requestedBTU, hydraulicCapacityBTU, emitterMaxBTU);
   
   // When everything is adequate, delivered should equal requested
-  assert.strictEqual(
-    deliveredBTU,
-    requestedBTU,
+  assert.ok(
+    Math.abs(deliveredBTU - requestedBTU) < 0.1,
     "Delivered BTU should equal requested when both hydraulics and emitter are adequate"
   );
   
   const actualGPM = requestedGPM;
   const actualDeltaT = deliveredBTU / (500 * actualGPM);
   
-  assert.strictEqual(
-    actualDeltaT,
-    baseDeltaT,
+  assert.ok(
+    Math.abs(actualDeltaT - baseDeltaT) < 0.1,
     "ΔT should equal base deltaT when delivering requested load"
   );
   

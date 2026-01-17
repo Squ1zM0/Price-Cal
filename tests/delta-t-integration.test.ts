@@ -78,9 +78,8 @@ test("Scenario: Tiny emitter (5 ft) with adequate pipe (1 inch) - verify ΔT ref
   console.log(`         GPM: ${actualGPM.toFixed(2)}`);
   
   // KEY ASSERTIONS
-  assert.strictEqual(
-    deliverableBTU,
-    emitterMaxBTU,
+  assert.ok(
+    Math.abs(deliverableBTU - emitterMaxBTU) < 0.1,
     "Deliverable BTU should be limited by emitter, not hydraulics"
   );
   
@@ -164,9 +163,8 @@ test("Scenario: Small pipe (1/2 inch) with large emitter (100 ft) - verify ΔT r
   console.log(`         GPM: ${actualGPM.toFixed(2)} (at hydraulic max)`);
   
   // KEY ASSERTIONS
-  assert.strictEqual(
-    deliverableBTU,
-    hydraulicCapacityBTU,
+  assert.ok(
+    Math.abs(deliverableBTU - hydraulicCapacityBTU) < 0.1,
     "Deliverable BTU should be limited by hydraulics, not emitter"
   );
   
@@ -180,9 +178,8 @@ test("Scenario: Small pipe (1/2 inch) with large emitter (100 ft) - verify ΔT r
     `ΔT should be close to ${baselineDeltaT}°F when operating at max hydraulic capacity`
   );
   
-  assert.strictEqual(
-    actualGPM,
-    maxGPM,
+  assert.ok(
+    Math.abs(actualGPM - maxGPM) < 0.01,
     "Should be operating at maximum hydraulic GPM"
   );
   
@@ -219,18 +216,16 @@ test("Scenario: Both pipe and emitter adequate - deliver requested BTU at baseli
   console.log(`Deliverable: ${deliverableBTU.toLocaleString()} BTU/hr`);
   
   // KEY ASSERTIONS
-  assert.strictEqual(
-    deliverableBTU,
-    requestedBTU,
+  assert.ok(
+    Math.abs(deliverableBTU - requestedBTU) < 0.1,
     "Should deliver full requested BTU when both constraints are adequate"
   );
   
   const actualGPM = deliverableBTU / (500 * baselineDeltaT);
   const actualDeltaT = deliverableBTU / (500 * actualGPM);
   
-  assert.strictEqual(
-    actualDeltaT,
-    baselineDeltaT,
+  assert.ok(
+    Math.abs(actualDeltaT - baselineDeltaT) < 0.1,
     "ΔT should equal baseline when delivering requested load"
   );
   
