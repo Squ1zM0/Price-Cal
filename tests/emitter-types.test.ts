@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { within } from "./testUtils";
 
 import {
   type EmitterType,
@@ -8,14 +9,10 @@ import {
   calculateRecommendedDeltaT,
   EMITTER_DEFAULT_DELTA_T,
   EMITTER_BTU_PER_FOOT,
+  getEmitterOutput,
+  calculateDeltaTFromEmitterOutput,
+  checkEmitterSizing,
 } from "../app/lib/data/emitterTypes";
-
-const within = (actual: number, expected: number, tolerance: number, label: string) => {
-  assert.ok(
-    Math.abs(actual - expected) <= tolerance,
-    `${label}: expected ${expected.toFixed(3)} ±${tolerance} but got ${actual.toFixed(3)}`
-  );
-};
 
 test("All emitter types have default ΔT values", () => {
   const types = getEmitterTypes();
@@ -252,4 +249,126 @@ test("ΔT should decrease (not increase) when emitter is too short for load", ()
   assert.ok(deltaTShort <= 30, "Short emitter ΔT should be limited");
   assert.ok(deltaTMedium <= 30, "Medium emitter ΔT should be limited");
   assert.ok(deltaTLong <= 25, "Long emitter ΔT should be normal");
+});
+
+// Tests for manufacturer data integration
+test("getEmitterOutput: generic baseboard at standard conditions", () => {
+  // 170°F average, 2 GPM, no manufacturer data
+  const output = getEmitterOutput("Baseboard", 170, 2);
+  
+  // Should be close to the generic 550 BTU/ft at standard conditions
+  within(output, 550, 50, "Generic baseboard output at 170°F");
+});
+
+test("getEmitterOutput: with Slant/Fin Fine/Line 30 manufacturer data", () => {
+  // 170°F average, 1 GPM, with manufacturer model
+  const output = getEmitterOutput("Baseboard", 170, 1, "Slant/Fin Fine/Line 30");
+  
+  // Should match manufacturer data: 535 BTU/ft at 170°F, 1 GPM
+  within(output, 535, 1, "Slant/Fin output at 170°F, 1 GPM");
+});
+
+test("getEmitterOutput: manufacturer data shows flow rate impact", () => {
+  // Same temperature, different flow rates
+  const output1GPM = getEmitterOutput("Baseboard", 170, 1, "Slant/Fin Fine/Line 30");
+  const output4GPM = getEmitterOutput("Baseboard", 170, 4, "Slant/Fin Fine/Line 30");
+  
+  // Higher flow should give more output
+  assert.ok(output4GPM > output1GPM, "Higher flow increases output");
+  within(output1GPM, 535, 1, "1 GPM output");
+  within(output4GPM, 580, 1, "4 GPM output");
+});
+
+test("getEmitterOutput: low temperature with manufacturer data", () => {
+  // 120°F average water temp, 1 GPM
+  const output = getEmitterOutput("Baseboard", 120, 1, "Slant/Fin Fine/Line 30");
+  
+  // Should match manufacturer data: 235 BTU/ft at 120°F
+  within(output, 235, 1, "Low temp output at 120°F");
+  
+  // Compare to standard temp (much lower)
+  const standardOutput = getEmitterOutput("Baseboard", 170, 1, "Slant/Fin Fine/Line 30");
+  assert.ok(output < standardOutput * 0.5, "Low temp significantly reduces output");
+});
+
+test("calculateDeltaTFromEmitterOutput: iterative solver with manufacturer data", () => {
+  // 30 ft baseboard, 15,000 BTU/hr, 180°F supply
+  // Using Slant/Fin data
+  const deltaT = calculateDeltaTFromEmitterOutput(
+    "Baseboard",
+    30,
+    15000,
+    180,
+    undefined,
+    "Slant/Fin Fine/Line 30"
+  );
+  
+  // Should converge to a reasonable ΔT
+  assert.ok(deltaT >= 15 && deltaT <= 30, `ΔT should be reasonable: ${deltaT.toFixed(1)}°F`);
+  
+  // Verify the solution makes sense:
+  // Flow = 15000 / (500 * deltaT)
+  const flow = 15000 / (500 * deltaT);
+  const avgTemp = 180 - deltaT / 2;
+  const btuPerFoot = getEmitterOutput("Baseboard", avgTemp, flow, "Slant/Fin Fine/Line 30");
+  const emitterCapacity = 30 * btuPerFoot;
+  
+  // Should be close to required load
+  within(emitterCapacity, 15000, 500, "Emitter capacity should match load");
+});
+
+test("checkEmitterSizing: with manufacturer data flag", () => {
+  // 40 ft baseboard, 20,000 BTU/hr, 180°F supply, 2 GPM
+  const check = checkEmitterSizing(
+    "Baseboard",
+    40,
+    20000,
+    180,
+    2,
+    "Slant/Fin Fine/Line 30"
+  );
+  
+  assert.ok(check.usingManufacturerData === true, "Should indicate using manufacturer data");
+  assert.strictEqual(check.manufacturerModel, "Slant/Fin Fine/Line 30");
+  
+  // At 180°F supply, 20°F ΔT → 170°F avg
+  // At 2 GPM: interpolated output ~557.5 BTU/ft
+  // 40 ft × 557.5 = 22,300 BTU/hr capacity
+  // Should be adequate for 20,000 BTU/hr
+  assert.ok(check.isAdequate, "Should be adequate");
+  assert.ok(check.capacityPercent >= 100, "Capacity should be > 100%");
+});
+
+test("checkEmitterSizing: manufacturer data shows accurate low-temp undersizing", () => {
+  // 40 ft baseboard, 20,000 BTU/hr, 120°F supply (low temp), 2 GPM
+  const check = checkEmitterSizing(
+    "Baseboard",
+    40,
+    20000,
+    120,
+    2,
+    "Slant/Fin Fine/Line 30"
+  );
+  
+  // At 120°F supply, 20°F ΔT → 110°F avg
+  // At 2 GPM: ~195 BTU/ft (interpolated)
+  // 40 ft × 195 = 7,800 BTU/hr capacity
+  // Should be severely undersized for 20,000 BTU/hr
+  assert.ok(!check.isAdequate, "Should be undersized at low temp");
+  assert.ok(check.capacityPercent < 50, "Capacity should be low");
+  assert.ok(check.warning !== undefined, "Should have warning");
+});
+
+test("checkEmitterSizing: fallback to generic when no manufacturer data", () => {
+  const check = checkEmitterSizing(
+    "Baseboard",
+    40,
+    20000,
+    180,
+    2
+    // No manufacturer model
+  );
+  
+  assert.ok(check.usingManufacturerData === false, "Should use generic data");
+  assert.strictEqual(check.manufacturerModel, undefined);
 });
