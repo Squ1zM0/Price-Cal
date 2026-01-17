@@ -9,12 +9,14 @@ import {
 import { PIPE_DATA } from "../app/lib/pipeData";
 
 /**
- * Tests for zone heat-transfer capacity enforcement
+ * Tests for zone heat-transfer capacity calculation
  * 
  * These tests verify that:
  * 1. Zones have calculable maximum deliverable BTU capacities
- * 2. Auto BTU distribution respects these capacity limits
- * 3. Undeliverable load is tracked when zones hit capacity
+ * 2. Capacity varies correctly with pipe size, deltaT, and fluid type
+ * 3. Recommended and absolute limits are properly enforced
+ * 
+ * Note: Integration tests for auto BTU distribution behavior are in auto-distribution-ui.test.ts
  */
 
 test("calculateZoneMaxCapacity returns correct capacity for 3/4\" copper with water", () => {

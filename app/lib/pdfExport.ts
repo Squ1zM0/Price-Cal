@@ -30,6 +30,14 @@ const KEY_VALUE_OFFSET = 70; // Horizontal offset for key-value pairs
 const NESTED_INDENT_OFFSET = 10; // Offset for nested/double-indented text
 const PAGE_BREAK_THRESHOLD = PAGE_HEIGHT - MARGIN_BOTTOM; // When to break to new page
 
+// PDF Colors
+const WARNING_COLOR_R = 200;
+const WARNING_COLOR_G = 100;
+const WARNING_COLOR_B = 0;
+const BLACK_COLOR_R = 0;
+const BLACK_COLOR_G = 0;
+const BLACK_COLOR_B = 0;
+
 // Zone data interface for PDF generation
 export interface ZoneDataForPDF {
   zone: {
@@ -213,13 +221,13 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   // Show undeliverable BTU if any
   if (data.systemResults.undeliverableBTU > 0) {
     pdf.setFont('helvetica', 'bold');
-    pdf.setTextColor(200, 100, 0); // Orange color for warning
+    pdf.setTextColor(WARNING_COLOR_R, WARNING_COLOR_G, WARNING_COLOR_B);
     yPos = addKeyValue(pdf, 'Undeliverable Load:', `${data.systemResults.undeliverableBTU.toLocaleString()} BTU/hr`, yPos);
     pdf.setFont('helvetica', 'italic');
     pdf.setFontSize(9);
     pdf.text('  (One or more zones at hydraulic capacity limit)', MARGIN_LEFT + INDENT_OFFSET, yPos);
     yPos += LINE_HEIGHT;
-    pdf.setTextColor(0, 0, 0); // Reset to black
+    pdf.setTextColor(BLACK_COLOR_R, BLACK_COLOR_G, BLACK_COLOR_B);
     pdf.setFontSize(10);
   }
   
@@ -283,13 +291,13 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     // Show capacity limit if zone is capacity-limited
     if (zoneData.isAutoAssigned && zoneData.isCapacityLimited && zoneData.maxZoneCapacity > 0) {
       pdf.setFont('helvetica', 'bold');
-      pdf.setTextColor(200, 100, 0); // Orange color for warning
+      pdf.setTextColor(WARNING_COLOR_R, WARNING_COLOR_G, WARNING_COLOR_B);
       yPos = addKeyValue(pdf, '  Max Zone Capacity:', `${zoneData.maxZoneCapacity.toLocaleString()} BTU/hr (CAPPED)`, yPos);
       pdf.setFont('helvetica', 'italic');
       pdf.setFontSize(9);
       pdf.text('    (Zone at hydraulic capacity limit based on pipe size)', MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
       yPos += LINE_HEIGHT;
-      pdf.setTextColor(0, 0, 0); // Reset to black
+      pdf.setTextColor(BLACK_COLOR_R, BLACK_COLOR_G, BLACK_COLOR_B);
       pdf.setFontSize(10);
       pdf.setFont('helvetica', 'normal');
     }

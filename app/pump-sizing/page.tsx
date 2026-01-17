@@ -5,6 +5,7 @@ import { AppHeader } from "../components/AppHeader";
 import { useLocalStorage } from "../hooks/useLocalStorage";
 import {
   type PipeMaterial,
+  type PipeData,
   type FittingType,
   getAvailableSizes,
   getPipeData,
@@ -64,6 +65,9 @@ interface AdvancedSettings {
   flowSafetyFactor: string;
   systemHeatLoadBTU: string;
 }
+
+// Constants
+const BTU_CONVERGENCE_THRESHOLD = 0.01; // BTU/hr - threshold for iterative distribution convergence
 
 // Utility functions
 function parseNum(s: string): number {
@@ -319,7 +323,7 @@ export default function PumpSizingPage() {
       weight: number;
       maxCapacity: number;
       deltaT: number;
-      pipeData: any;
+      pipeData: PipeData | null;
       hasValidData: boolean;
     }
     
@@ -395,7 +399,7 @@ export default function PumpSizingPage() {
       const availableZones = new Set(zones.map((_, i) => i));
       
       // Iteratively distribute BTU, capping zones that hit their limits
-      while (remainingBTU > 0.01 && availableZones.size > 0) {
+      while (remainingBTU > BTU_CONVERGENCE_THRESHOLD && availableZones.size > 0) {
         // Calculate weights for remaining zones
         let remainingWeight = 0;
         for (const i of availableZones) {
