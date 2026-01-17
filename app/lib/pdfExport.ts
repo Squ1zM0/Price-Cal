@@ -439,13 +439,21 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         const frictionFactor = calculateFrictionFactor(zoneData.reynolds, roughness, pipeData.internalDiameter);
         
         if (zoneData.reynolds < 2300) {
-          pdf.text('Laminar flow: f = 64 / Re', MARGIN_LEFT + INDENT_OFFSET, yPos);
-          yPos += LINE_HEIGHT;
-          pdf.text(`f = 64 / ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-          yPos += LINE_HEIGHT;
+          const laminarText = 'Laminar flow: f = 64 / Re';
+          const laminarLines = pdf.splitTextToSize(laminarText, CONTENT_WIDTH - INDENT_OFFSET);
+          pdf.text(laminarLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+          yPos += LINE_HEIGHT * laminarLines.length;
+          
+          const laminarCalcText = `f = 64 / ${zoneData.reynolds.toFixed(0)}`;
+          const laminarCalcLines = pdf.splitTextToSize(laminarCalcText, CONTENT_WIDTH - INDENT_OFFSET);
+          pdf.text(laminarCalcLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+          yPos += LINE_HEIGHT * laminarCalcLines.length;
         } else {
-          pdf.text('Turbulent flow - Swamee-Jain formula:', MARGIN_LEFT + INDENT_OFFSET, yPos);
-          yPos += LINE_HEIGHT;
+          const turbulentText = 'Turbulent flow - Swamee-Jain formula:';
+          const turbulentLines = pdf.splitTextToSize(turbulentText, CONTENT_WIDTH - INDENT_OFFSET);
+          pdf.text(turbulentLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+          yPos += LINE_HEIGHT * turbulentLines.length;
+          
           const formulaText = 'f = 0.25 / [log₁₀(ε/3.7D + 5.74/Re⁰·⁹)]²';
           const formulaLines = pdf.splitTextToSize(formulaText, CONTENT_WIDTH - INDENT_OFFSET);
           pdf.text(formulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
@@ -473,17 +481,29 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         yPos += LINE_HEIGHT * headLossTitleLines.length;
         
         pdf.setFont('helvetica', 'normal');
-        pdf.text('Formula: h = f × (L/D) × (V²/2g)', MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
+        const darcyFormulaText = 'Formula: h = f × (L/D) × (V²/2g)';
+        const darcyFormulaLines = pdf.splitTextToSize(darcyFormulaText, CONTENT_WIDTH - INDENT_OFFSET);
+        pdf.text(darcyFormulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * darcyFormulaLines.length;
         
         pdf.text('Effective Length Breakdown:', MARGIN_LEFT + INDENT_OFFSET, yPos);
         yPos += LINE_HEIGHT;
-        pdf.text(`  Straight pipe: ${zoneData.straightLength.toFixed(1)} ft`, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`  Fitting equivalent: ${zoneData.fittingEquivalentLength.toFixed(1)} ft`, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`  Emitter equivalent: ${zoneData.emitterEquivalentLength.toFixed(1)} ft`, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
+        
+        const straightPipeText = `  Straight pipe: ${zoneData.straightLength.toFixed(1)} ft`;
+        const straightPipeLines = pdf.splitTextToSize(straightPipeText, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
+        pdf.text(straightPipeLines, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * straightPipeLines.length;
+        
+        const fittingEquivText = `  Fitting equivalent: ${zoneData.fittingEquivalentLength.toFixed(1)} ft`;
+        const fittingEquivLines = pdf.splitTextToSize(fittingEquivText, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
+        pdf.text(fittingEquivLines, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * fittingEquivLines.length;
+        
+        const emitterEquivText = `  Emitter equivalent: ${zoneData.emitterEquivalentLength.toFixed(1)} ft`;
+        const emitterEquivLines = pdf.splitTextToSize(emitterEquivText, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
+        pdf.text(emitterEquivLines, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * emitterEquivLines.length;
+        
         pdf.setFont('helvetica', 'bold');
         const totalLengthText = `  Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`;
         const totalLengthLines = pdf.splitTextToSize(totalLengthText, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
@@ -523,19 +543,32 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         yPos += LINE_HEIGHT * hazenTitleLines.length;
         
         pdf.setFont('helvetica', 'normal');
-        pdf.text('Formula: h = 4.52 × L × Q¹·⁸⁵ / (C¹·⁸⁵ × D⁴·⁸⁷)', MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
+        const hazenFormulaText = 'Formula: h = 4.52 × L × Q¹·⁸⁵ / (C¹·⁸⁵ × D⁴·⁸⁷)';
+        const hazenFormulaLines = pdf.splitTextToSize(hazenFormulaText, CONTENT_WIDTH - INDENT_OFFSET);
+        pdf.text(hazenFormulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * hazenFormulaLines.length;
         
         const cValue = parseFloat(data.advancedSettings.customCValue) || pipeData.hazenWilliamsC;
         
-        pdf.text(`C-value: ${cValue}`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`Flow (Q): ${zoneData.flowGPM.toFixed(2)} GPM`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
-        pdf.text(`Diameter (D): ${pipeData.internalDiameter.toFixed(3)} inches`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
+        const cValueText = `C-value: ${cValue}`;
+        const cValueLines = pdf.splitTextToSize(cValueText, CONTENT_WIDTH - INDENT_OFFSET);
+        pdf.text(cValueLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * cValueLines.length;
+        
+        const hazenLengthText = `Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`;
+        const hazenLengthLines = pdf.splitTextToSize(hazenLengthText, CONTENT_WIDTH - INDENT_OFFSET);
+        pdf.text(hazenLengthLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * hazenLengthLines.length;
+        
+        const hazenFlowText = `Flow (Q): ${zoneData.flowGPM.toFixed(2)} GPM`;
+        const hazenFlowLines = pdf.splitTextToSize(hazenFlowText, CONTENT_WIDTH - INDENT_OFFSET);
+        pdf.text(hazenFlowLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * hazenFlowLines.length;
+        
+        const hazenDiameterText = `Diameter (D): ${pipeData.internalDiameter.toFixed(3)} inches`;
+        const hazenDiameterLines = pdf.splitTextToSize(hazenDiameterText, CONTENT_WIDTH - INDENT_OFFSET);
+        pdf.text(hazenDiameterLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
+        yPos += LINE_HEIGHT * hazenDiameterLines.length;
         
         pdf.setFont('helvetica', 'bold');
         pdf.text(`Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + INDENT_OFFSET, yPos);
