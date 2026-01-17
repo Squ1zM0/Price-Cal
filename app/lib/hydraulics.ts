@@ -225,6 +225,32 @@ export function calculateHydraulicCapacityBTU(
 }
 
 /**
+ * Calculate effective BTU using hydraulic capacity offset
+ * 
+ * This function applies an emitter-specific offset to prevent ΔT collapse
+ * under high-flow conditions. The offset represents the fraction of hydraulic
+ * capacity that the emitter can effectively utilize for heat transfer.
+ * 
+ * Purpose: Maintains realistic ΔT values (≥10°F typical) while preserving
+ * accurate pipe sizing based on actual hydraulic flow.
+ * 
+ * @param actualGPM - Actual flow rate determined by hydraulics (GPM)
+ * @param deltaT - Temperature difference in °F
+ * @param hydraulicCapacityOffset - Offset factor from 0 to 1 (emitter-specific)
+ * @returns Effective thermal capacity in BTU/hr
+ */
+export function calculateEffectiveBTU(
+  actualGPM: number,
+  deltaT: number,
+  hydraulicCapacityOffset: number
+): number {
+  // effectiveGPM = actualGPM × offset
+  // BTU/hr = effectiveGPM × 500 × ΔT
+  const effectiveGPM = actualGPM * hydraulicCapacityOffset;
+  return effectiveGPM * 500 * deltaT;
+}
+
+/**
  * Result of hydraulic capacity check
  */
 export interface HydraulicCapacityCheck {
@@ -316,4 +342,31 @@ export function calculateZoneMaxCapacity(
   );
   
   return calculateHydraulicCapacityBTU(maxGPM, deltaT);
+}
+
+/**
+ * Calculate the maximum deliverable BTU capacity for a zone with hydraulic offset
+ * Applies emitter-specific offset to prevent unrealistic ΔT values
+ * 
+ * @param pipeData - Pipe specifications
+ * @param deltaT - Temperature difference in °F
+ * @param fluidType - Type of fluid
+ * @param hydraulicCapacityOffset - Emitter-specific offset factor (0 to 1)
+ * @param useAbsoluteMax - If true, use absolute velocity limits; otherwise use recommended
+ * @returns Maximum deliverable BTU/hr for the zone with offset applied
+ */
+export function calculateZoneMaxCapacityWithOffset(
+  pipeData: PipeData,
+  deltaT: number,
+  fluidType: FluidType,
+  hydraulicCapacityOffset: number,
+  useAbsoluteMax: boolean = false
+): number {
+  const maxGPM = calculateMaxGPMFromVelocity(
+    pipeData.internalDiameter,
+    fluidType,
+    useAbsoluteMax
+  );
+  
+  return calculateEffectiveBTU(maxGPM, deltaT, hydraulicCapacityOffset);
 }
