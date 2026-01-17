@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "npm run test:hydraulics && npm run test:zone-allocation && npm run test:hydraulic-capacity && npm run test:hydraulic-capacity-offset && npm run test:pump-math && npm run test:auto-distribution-ui && npm run test:5-8-pex && npm run test:emitter-types && npm run test:manufacturer-emitter-data && npm run test:zone-capacity-enforcement && npm run test:warning-causality && npm run test:hard-soft-limit-warnings && npm run test:delta-t-causality && npm run test:delta-t-integration && npm run test:dominant-limit-switching",
+    "test": "npm run test:hydraulics && npm run test:zone-allocation && npm run test:hydraulic-capacity && npm run test:hydraulic-capacity-offset && npm run test:pump-math && npm run test:auto-distribution-ui && npm run test:5-8-pex && npm run test:emitter-types && npm run test:manufacturer-emitter-data && npm run test:zone-capacity-enforcement && npm run test:warning-causality && npm run test:hard-soft-limit-warnings && npm run test:delta-t-causality && npm run test:delta-t-integration && npm run test:dominant-limit-switching && npm run test:fundamental-physics-fix",
     "test:hydraulics": "tsx tests/hydraulics.test.ts",
     "test:zone-allocation": "tsx tests/zone-allocation.test.ts",
     "test:hydraulic-capacity": "tsx tests/hydraulic-capacity.test.ts",
@@ -23,6 +23,7 @@
     "test:delta-t-causality": "tsx tests/delta-t-causality.test.ts",
     "test:delta-t-integration": "tsx tests/delta-t-integration.test.ts",
     "test:dominant-limit-switching": "tsx tests/dominant-limit-switching.test.ts",
+    "test:fundamental-physics-fix": "tsx tests/fundamental-physics-fix.test.ts",
     "prebuild": "node scripts/sync-techdirect.cjs",
     "predev": "node scripts/sync-techdirect.cjs"
   },
