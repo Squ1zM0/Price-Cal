@@ -140,57 +140,19 @@ export function calculateRecommendedDeltaT(
   const tempRatio = Math.max(0.1, (actualAWT - ROOM_TEMP) / (standardAWT - ROOM_TEMP));
   const temperatureAdjustedCapacity = standardCapacity * Math.pow(tempRatio, outputScalingExponent);
   
-  // Calculate load ratio
-  const loadRatio = heatLoadBTU / temperatureAdjustedCapacity;
+  // CORRECTED LOGIC:
+  // For a given heat load, ΔT should be constant regardless of emitter length.
+  // The formula GPM = BTU / (500 × ΔT) means that varying ΔT causes incorrect flow calculations.
+  // 
+  // Emitter length determines CAPACITY (ability to deliver heat), not ΔT.
+  // - Short emitter → low capacity → may not meet heat load (shows as warning)
+  // - Long emitter → high capacity → can easily meet heat load
+  // 
+  // But in both cases, the ΔT for a given heat load should remain constant.
+  // This ensures flow (GPM) and velocity (ft/s) remain constant for fixed heat load.
   
-  // NEW PHYSICS-BASED LOGIC:
-  // Instead of increasing ΔT for high load ratios, we recognize physical limits
-  
-  if (loadRatio <= 1.0) {
-    // Emitter has adequate capacity - can operate at or below base ΔT
-    // For lower loads, reduce ΔT (need less temperature drop)
-    // Using power law with exponent < 1 for smooth transition
-    const adjustedDeltaT = baseDeltaT * Math.pow(loadRatio, 0.35);
-    
-    const bounds = getEmitterDeltaTBounds(emitterType);
-    return Math.max(bounds.min, Math.min(bounds.max, adjustedDeltaT));
-    
-  } else {
-    // Emitter is UNDERSIZED (loadRatio > 1.0)
-    // Physics: short emitters CANNOT sustain arbitrarily large ΔT
-    // The achievable ΔT is limited by:
-    //   1. Heat transfer surface area (emitter length)
-    //   2. Flow rate needed to carry the heat
-    
-    // For undersized emitters, ΔT should be CONSTRAINED, not increased
-    // The actual behavior: water passes through too quickly to cool much
-    
-    // Calculate "length adequacy factor" - how much of needed length we have
-    const lengthAdequacyFactor = Math.min(1.0, 1.0 / loadRatio);
-    
-    // Maximum achievable ΔT is reduced when emitter is very short
-    // Use a damping function that limits ΔT for short emitters
-    const maxAchievableDeltaT = baseDeltaT * (1.0 + 0.3 * lengthAdequacyFactor);
-    
-    // For very undersized emitters (loadRatio > 2), ΔT should approach base or lower
-    // because the emitter simply can't extract enough heat
-    let adjustedDeltaT: number;
-    
-    if (loadRatio > 2.0) {
-      // Severely undersized - ΔT collapses toward base
-      // The emitter is so short it can't cool the water significantly
-      adjustedDeltaT = baseDeltaT * (0.9 + 0.1 / (loadRatio - 1));
-    } else {
-      // Moderately undersized - slight ΔT increase but capped
-      adjustedDeltaT = baseDeltaT * (1.0 + 0.2 * (loadRatio - 1.0));
-    }
-    
-    // Ensure we don't exceed the physically achievable maximum
-    adjustedDeltaT = Math.min(adjustedDeltaT, maxAchievableDeltaT);
-    
-    const bounds = getEmitterDeltaTBounds(emitterType);
-    return Math.max(bounds.min, Math.min(bounds.max, adjustedDeltaT));
-  }
+  const bounds = getEmitterDeltaTBounds(emitterType);
+  return Math.max(bounds.min, Math.min(bounds.max, baseDeltaT));
 }
 
 /**
