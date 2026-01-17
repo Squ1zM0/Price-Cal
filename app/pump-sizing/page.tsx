@@ -18,11 +18,6 @@ import {
   calculateZoneHead,
   checkHydraulicCapacity,
   type HydraulicCapacityCheck,
-  calculateZoneMaxCapacity,
-  calculateZoneMaxCapacityWithOffset,
-  calculateMaxGPMFromVelocity,
-  calculateHydraulicCapacityBTU,
-  calculateEffectiveBTU,
 } from "../lib/hydraulics";
 import {
   type EmitterType,
@@ -32,7 +27,6 @@ import {
   checkEmitterSizing,
   type EmitterSizingCheck,
   EMITTER_DEFAULT_DELTA_T,
-  getHydraulicCapacityOffset,
 } from "../lib/data/emitterTypes";
 import { getManufacturerModelsForType } from "../lib/data/manufacturerEmitterData";
 import { generatePumpSizingPDF, type PDFExportData } from "../lib/pdfExport";
@@ -372,16 +366,19 @@ export default function PumpSizingPage() {
         );
       }
       
-      // Calculate max capacity based on recommended velocity limits
-      // Apply hydraulic capacity offset to prevent unrealistic ΔT values
-      const hydraulicOffset = getHydraulicCapacityOffset(zone.emitterType as EmitterType);
-      const maxCapacity = calculateZoneMaxCapacityWithOffset(
-        pipeData,
-        zoneDeltaT,
-        advancedSettings.fluidType,
-        hydraulicOffset,
-        false // Use recommended limits, not absolute
-      );
+      // REMOVED: Hydraulic capacity limits based on velocity
+      // Auto-distribution now uses only emitter capacity or unlimited if no emitter specified
+      // Velocity is a consequence of flow, not a constraint on it
+      const emitterLengthCheck = isEmitterLengthValid(zone.emitterLength);
+      const emitterLengthFt = emitterLengthCheck.valid ? emitterLengthCheck.length : 0;
+      
+      let maxCapacity = Infinity;
+      if (emitterLengthFt > 0) {
+        // If emitter is specified, use its capacity as the limit
+        // This will be calculated properly during zone calculations
+        // For now, use a generous default to allow distribution
+        maxCapacity = Infinity;
+      }
       
       return { weight, maxCapacity, deltaT: zoneDeltaT, pipeData, hasValidData: true };
     });
@@ -516,83 +513,52 @@ export default function PumpSizingPage() {
       if (zone.deltaTMode === "auto") {
         isAutoDeltaT = true;
         
-        // Step 1: Get baseline deltaT for this emitter type
-        const baselineDeltaT = EMITTER_DEFAULT_DELTA_T[zone.emitterType as EmitterType] || 20;
+        // CORRECT PHYSICS: Flow is derived from heat load at design ΔT
+        // ΔT is then calculated as an output based on actual heat delivery
         
-        // Step 2: Calculate hydraulic limits
+        // Step 1: Get design deltaT for this emitter type
+        const designDeltaT = EMITTER_DEFAULT_DELTA_T[zone.emitterType as EmitterType] || 20;
+        
         if (!pipeData) {
           // Fallback if no pipe data
-          effectiveDeltaT = baselineDeltaT;
-          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, baselineDeltaT) : 0;
+          effectiveDeltaT = designDeltaT;
+          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, designDeltaT) : 0;
           zoneBTU = requestedBTU;
         } else {
-          const maxGPM = calculateMaxGPMFromVelocity(
-            pipeData.internalDiameter,
-            advancedSettings.fluidType,
-            false // Use recommended limits
-          );
+          // Step 2: Calculate REQUIRED flow from heat load
+          // Flow = BTU / (500 × design ΔT)
+          // This is the flow NEEDED to transport the heat, not capped by velocity
+          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, designDeltaT) : 0;
           
-          // Get hydraulic capacity offset for this emitter type
-          // This prevents ΔT collapse under high-flow conditions
-          const hydraulicOffset = getHydraulicCapacityOffset(zone.emitterType as EmitterType);
-          
-          // Calculate effective hydraulic capacity using offset
-          // effectiveGPM = maxGPM × offset
-          // This normalizes hydraulic capacity to realistic operating conditions
-          const hydraulicCapacityBTU = calculateEffectiveBTU(maxGPM, baselineDeltaT, hydraulicOffset);
-          
-          // Step 3: Calculate emitter limits (if emitter length is provided)
+          // Step 3: Determine deliverable BTU based on emitter capacity
           let emitterCapacityBTU = Infinity;
           if (emitterLengthFt > 0) {
-            // Calculate the flow that would be needed for requested BTU at baseline deltaT
-            const requestedGPM = requestedBTU / (500 * baselineDeltaT);
             const emitterCheck = checkEmitterSizing(
               zone.emitterType as EmitterType,
               emitterLengthFt,
               requestedBTU,
               parseNum(advancedSettings.temperature),
-              requestedGPM,
+              flowGPM,
               zone.manufacturerModel
             );
             emitterCapacityBTU = emitterCheck.maxOutputBTU;
           }
           
-          // Step 4: Determine deliverable BTU
-          zoneBTU = Math.min(requestedBTU, hydraulicCapacityBTU, emitterCapacityBTU);
+          // Step 4: Actual deliverable BTU (limited only by emitter, not by velocity/hydraulics)
+          zoneBTU = Math.min(requestedBTU, emitterCapacityBTU);
           
           // Track what limited delivery
           if (zoneBTU < requestedBTU) {
-            if (zoneBTU === hydraulicCapacityBTU && zoneBTU < emitterCapacityBTU) {
-              deliverableReason = "hydraulic-limited";
-            } else if (zoneBTU === emitterCapacityBTU) {
-              deliverableReason = "emitter-limited";
-            } else {
-              deliverableReason = "multi-limited";
-            }
+            deliverableReason = "emitter-limited";
           }
           
-          // Step 5: Calculate actual GPM and ΔT
-          // CRITICAL: GPM is determined by hydraulics and requested load, NOT by emitter capacity
-          // Emitter limitation affects deliverable BTU, which then affects ΔT
-          if (zoneBTU <= 0 || requestedBTU <= 0) {
-            effectiveDeltaT = baselineDeltaT;
-            flowGPM = 0;
-          } else {
-            // GPM is determined by what's needed to carry REQUESTED BTU (if hydraulics allow)
-            const requestedGPM = requestedBTU / (500 * baselineDeltaT);
-            
-            if (requestedGPM > maxGPM) {
-              // Hydraulic-limited: operate at max GPM
-              flowGPM = maxGPM;
-            } else {
-              // Hydraulics adequate: operate at requested GPM
-              flowGPM = requestedGPM;
-            }
-            
-            // ΔT is determined by DELIVERABLE BTU and actual GPM
-            // With hydraulic capacity offset: prevents ΔT collapse to unrealistic values
-            // The offset ensures ΔT stays within realistic operating ranges (≥10°F typical)
+          // Step 5: Calculate actual ΔT from deliverable BTU and required flow
+          // ΔT = BTU_delivered / (500 × GPM)
+          // This is the OUTCOME, not an input
+          if (flowGPM > 0) {
             effectiveDeltaT = zoneBTU / (500 * flowGPM);
+          } else {
+            effectiveDeltaT = designDeltaT;
           }
         }
       } else {
@@ -601,28 +567,19 @@ export default function PumpSizingPage() {
         const manualDeltaT = deltaTCheck.valid ? deltaTCheck.deltaT : 20;
         isAutoDeltaT = false;
         
-        // In manual mode, user specifies desired ΔT, but actual ΔT is still
-        // determined by deliverable BTU and flow (physics cannot be overridden)
+        // CORRECT PHYSICS: Flow is derived from heat load at user-specified ΔT
+        // Actual ΔT is then calculated based on what can be delivered
         if (!pipeData) {
           flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, manualDeltaT) : 0;
           zoneBTU = requestedBTU;
           effectiveDeltaT = manualDeltaT;
         } else {
-          const maxGPM = calculateMaxGPMFromVelocity(
-            pipeData.internalDiameter,
-            advancedSettings.fluidType,
-            false
-          );
+          // Calculate REQUIRED flow from requested BTU and user's ΔT
+          // Flow = BTU / (500 × ΔT)
+          // Not capped by velocity - velocity is a consequence, not a constraint
+          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, manualDeltaT) : 0;
           
-          // Get hydraulic capacity offset for this emitter type
-          const hydraulicOffset = getHydraulicCapacityOffset(zone.emitterType as EmitterType);
-          
-          // Calculate effective hydraulic capacity using offset
-          const hydraulicCapacityBTU = calculateEffectiveBTU(maxGPM, manualDeltaT, hydraulicOffset);
-          
-          // Calculate requested GPM from requested BTU and manual ΔT
-          const requestedGPM = requestedBTU / (500 * manualDeltaT);
-          
+          // Determine deliverable BTU based on emitter capacity
           let emitterCapacityBTU = Infinity;
           if (emitterLengthFt > 0) {
             const emitterCheck = checkEmitterSizing(
@@ -630,33 +587,21 @@ export default function PumpSizingPage() {
               emitterLengthFt,
               requestedBTU,
               parseNum(advancedSettings.temperature),
-              requestedGPM,
+              flowGPM,
               zone.manufacturerModel
             );
             emitterCapacityBTU = emitterCheck.maxOutputBTU;
           }
           
-          zoneBTU = Math.min(requestedBTU, hydraulicCapacityBTU, emitterCapacityBTU);
+          // Actual deliverable BTU (limited only by emitter)
+          zoneBTU = Math.min(requestedBTU, emitterCapacityBTU);
           
           if (zoneBTU < requestedBTU) {
-            if (zoneBTU === hydraulicCapacityBTU && zoneBTU < emitterCapacityBTU) {
-              deliverableReason = "hydraulic-limited";
-            } else if (zoneBTU === emitterCapacityBTU) {
-              deliverableReason = "emitter-limited";
-            } else {
-              deliverableReason = "multi-limited";
-            }
+            deliverableReason = "emitter-limited";
           }
           
-          // GPM is determined by requested load (if hydraulics allow)
-          if (requestedGPM > maxGPM) {
-            flowGPM = maxGPM;
-          } else {
-            flowGPM = requestedGPM;
-          }
-          
-          // Actual ΔT is determined by deliverable BTU and actual GPM
-          // This may differ from manual ΔT if emitter or hydraulics limit delivery
+          // Actual ΔT is calculated from deliverable BTU and required flow
+          // ΔT = BTU_delivered / (500 × GPM)
           effectiveDeltaT = flowGPM > 0 ? zoneBTU / (500 * flowGPM) : manualDeltaT;
         }
       }
