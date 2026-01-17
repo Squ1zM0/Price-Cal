@@ -20,6 +20,7 @@ import { calculateVelocity, calculateReynolds, calculateFrictionFactor } from '.
 const MARGIN_LEFT = 20;
 const MARGIN_RIGHT = 20;
 const MARGIN_TOP = 20;
+const MARGIN_BOTTOM = 20; // Bottom margin for page breaks
 const PAGE_WIDTH = 215.9; // 8.5" in mm
 const PAGE_HEIGHT = 279.4; // 11" in mm
 const LINE_HEIGHT = 6;
@@ -27,6 +28,7 @@ const CONTENT_WIDTH = PAGE_WIDTH - MARGIN_LEFT - MARGIN_RIGHT;
 const INDENT_OFFSET = 5; // Offset for indented text
 const KEY_VALUE_OFFSET = 70; // Horizontal offset for key-value pairs
 const NESTED_INDENT_OFFSET = 10; // Offset for nested/double-indented text
+const PAGE_BREAK_THRESHOLD = PAGE_HEIGHT - MARGIN_BOTTOM; // When to break to new page
 
 // Zone data interface for PDF generation
 export interface ZoneDataForPDF {
@@ -104,6 +106,21 @@ export interface PDFExportData {
   advancedSettings: AdvancedSettingsForPDF;
   pipeDataMap: Map<string, PipeData>;
   fluidProps: FluidProperties;
+}
+
+/**
+ * Check if we need a page break and add one if necessary
+ * @param pdf - jsPDF instance
+ * @param currentY - Current Y position
+ * @param requiredSpace - Space needed for the next content (in mm)
+ * @returns New Y position (either same or MARGIN_TOP if page was added)
+ */
+function checkPageBreak(pdf: jsPDF, currentY: number, requiredSpace: number): number {
+  if (currentY + requiredSpace > PAGE_BREAK_THRESHOLD) {
+    pdf.addPage();
+    return MARGIN_TOP;
+  }
+  return currentY;
 }
 
 /**
@@ -193,11 +210,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       continue; // Skip invalid zones
     }
 
-    // Check if we need a new page
-    if (yPos > PAGE_HEIGHT - 40) {
-      pdf.addPage();
-      yPos = MARGIN_TOP;
-    }
+    // Check if we need a new page (reserve space for zone header + inputs section)
+    yPos = checkPageBreak(pdf, yPos, 60);
 
     // Zone header
     yPos = addSectionHeader(pdf, `Zone ${i + 1}: ${zoneData.zone.name}`, yPos);
@@ -289,11 +303,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     
     yPos += LINE_HEIGHT;
 
-    // Check if we need a new page before proof of math
-    if (yPos > PAGE_HEIGHT - 80) {
-      pdf.addPage();
-      yPos = MARGIN_TOP;
-    }
+    // Check if we need a new page before proof of math (reserve space for section header + first calculation)
+    yPos = checkPageBreak(pdf, yPos, 80);
 
     // ==========================================
     // PROOF OF MATH SECTION (MANDATORY)
@@ -376,10 +387,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       pdf.setFont('helvetica', 'normal');
 
       // Check if we need a new page
-      if (yPos > PAGE_HEIGHT - 60) {
-        pdf.addPage();
-        yPos = MARGIN_TOP;
-      }
+      // Check if we need a new page before Reynolds calculation
+      yPos = checkPageBreak(pdf, yPos, 50);
 
       // 3. Reynolds Number
       pdf.setFont('helvetica', 'bold');
@@ -467,10 +476,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       }
 
       // Check if we need a new page
-      if (yPos > PAGE_HEIGHT - 50) {
-        pdf.addPage();
-        yPos = MARGIN_TOP;
-      }
+      // Check if we need a new page before head loss calculation
+      yPos = checkPageBreak(pdf, yPos, 60);
 
       // 5. Head Loss Calculation
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
@@ -590,10 +597,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   // ==========================================
   // SECTION 4: ASSUMPTIONS & CONSTRAINTS
   // ==========================================
-  if (yPos > PAGE_HEIGHT - 80) {
-    pdf.addPage();
-    yPos = MARGIN_TOP;
-  }
+  // Check if we need a new page for Assumptions section
+  yPos = checkPageBreak(pdf, yPos, 80);
 
   yPos = addSectionHeader(pdf, 'Assumptions & Constraints', yPos);
   
