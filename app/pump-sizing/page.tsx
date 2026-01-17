@@ -1148,7 +1148,7 @@ export default function PumpSizingPage() {
                           
                           {zone.deltaTMode === "auto" && (
                             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                              ΔT automatically adjusted based on {zone.emitterType} emitter type, emitter length, and zone heat load.
+                              ΔT automatically calculated based on zone heat load and flow rate. The {zone.emitterType} emitter type and length influence the calculation by affecting heat release capacity.
                             </p>
                           )}
                         </div>
