@@ -1543,7 +1543,7 @@ export default function PumpSizingPage() {
           </div>
 
           {showAdvanced && (
-            <div className="mt-4 space-y-4 md:grid md:grid-cols-2 md:gap-4 md:space-y-0">
+            <div className="mt-4 space-y-4 md:space-y-0 md:grid md:grid-cols-2 md:gap-4">
               {/* Fluid type */}
               <div>
                 <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
