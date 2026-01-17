@@ -226,9 +226,9 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   yPos += LINE_HEIGHT;
   pdf.setFontSize(10);
   
-  yPos = addKeyValue(pdf, '  Gravity Constant:', '32.174 ft/s²', yPos);
-  yPos = addKeyValue(pdf, '  Fluid Density:', `${data.fluidProps.density.toFixed(3)} lb/ft³`, yPos);
-  yPos = addKeyValue(pdf, '  Kinematic Viscosity:', `${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`, yPos);
+  yPos = addKeyValue(pdf, '  Gravity Constant:', '32.174 ft/s^2', yPos);
+  yPos = addKeyValue(pdf, '  Fluid Density:', `${data.fluidProps.density.toFixed(3)} lb/ft^3`, yPos);
+  yPos = addKeyValue(pdf, '  Kinematic Viscosity:', `${data.fluidProps.kinematicViscosity.toExponential(3)} ft^2/s`, yPos);
   yPos += LINE_HEIGHT / 2;
   
   yPos = addKeyValue(pdf, 'Head Safety Factor:', `${data.advancedSettings.headSafetyFactor}%`, yPos);
@@ -264,7 +264,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
     yPos = addKeyValue(pdf, '  Zone Heat Load:', `${zoneData.zoneBTU.toLocaleString()} BTU/hr ${zoneData.isAutoAssigned ? '(auto-distributed)' : '(manual)'}`, yPos);
     yPos = addKeyValue(pdf, '  Emitter Type:', zoneData.zone.emitterType, yPos);
     yPos = addKeyValue(pdf, '  Emitter Equivalent Length:', `${zoneData.emitterEquivalentLength.toFixed(1)} ft`, yPos);
-    yPos = addKeyValue(pdf, '  Temperature Difference (ΔT):', `${zoneData.effectiveDeltaT.toFixed(1)}°F ${zoneData.isAutoDeltaT ? '(auto)' : '(manual)'}`, yPos);
+    yPos = addKeyValue(pdf, '  Temperature Difference (Delta-T):', `${zoneData.effectiveDeltaT.toFixed(1)}°F ${zoneData.isAutoDeltaT ? '(auto)' : '(manual)'}`, yPos);
     yPos = addKeyValue(pdf, '  Straight Pipe Length:', `${zoneData.straightLength.toFixed(1)} ft`, yPos);
     yPos = addKeyValue(pdf, '  Pipe Material:', zoneData.zone.material, yPos);
     yPos = addKeyValue(pdf, '  Pipe Size:', zoneData.zone.size, yPos);
@@ -344,11 +344,11 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
 
     // 1. Heat Transfer Calculation
     pdf.setFont('helvetica', 'bold');
-    const heatTransferTitle = '1. Heat Transfer Calculation (GPM from BTU/hr and ΔT):';
+    const heatTransferTitle = '1. Heat Transfer Calculation (GPM from BTU/hr and Delta-T):';
     yPos = addTextWithPageBreak(pdf, heatTransferTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
     
     pdf.setFont('helvetica', 'normal');
-    yPos = addTextWithPageBreak(pdf, 'Formula: GPM = BTU/hr ÷ (500 × ΔT)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+    yPos = addTextWithPageBreak(pdf, 'Formula: GPM = BTU/hr ÷ (500 × Delta-T)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
     
     const substitutionText = `Substituting values: GPM = ${zoneData.zoneBTU.toLocaleString()} ÷ (500 × ${zoneData.effectiveDeltaT.toFixed(1)})`;
     yPos = addTextWithPageBreak(pdf, substitutionText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
@@ -381,13 +381,13 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       const diameterText = `Pipe Internal Diameter: ${pipeData.internalDiameter.toFixed(3)} inches = ${diameterFt.toFixed(4)} ft`;
       yPos = addTextWithPageBreak(pdf, diameterText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      const areaText = `Cross-Sectional Area: π × (${diameterFt.toFixed(4)} / 2)² = ${area.toFixed(6)} ft²`;
+      const areaText = `Cross-Sectional Area: π × (${diameterFt.toFixed(4)} / 2)^2 = ${area.toFixed(6)} ft^2`;
       yPos = addTextWithPageBreak(pdf, areaText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      const flowText = `Flow: ${zoneData.flowGPM.toFixed(2)} GPM = ${flowCFS.toFixed(4)} ft³/s`;
+      const flowText = `Flow: ${zoneData.flowGPM.toFixed(2)} GPM = ${flowCFS.toFixed(4)} ft^3/s`;
       yPos = addTextWithPageBreak(pdf, flowText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      const velocityCalcText = `Velocity: ${flowCFS.toFixed(4)} ÷ ${area.toFixed(6)} ft²`;
+      const velocityCalcText = `Velocity: ${flowCFS.toFixed(4)} ÷ ${area.toFixed(6)} ft^2`;
       yPos = addTextWithPageBreak(pdf, velocityCalcText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       pdf.setFont('helvetica', 'bold');
@@ -404,7 +404,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
       
       yPos = addTextWithPageBreak(pdf, `Assumed Water Temperature: ${data.advancedSettings.temperature}°F`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
-      const viscosityText = `Kinematic Viscosity: ${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`;
+      const viscosityText = `Kinematic Viscosity: ${data.fluidProps.kinematicViscosity.toExponential(3)} ft^2/s`;
       yPos = addTextWithPageBreak(pdf, viscosityText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
       
       const reynoldsCalcText = `Re = (${zoneData.velocity.toFixed(2)} × ${diameterFt.toFixed(4)}) ÷ ${data.fluidProps.kinematicViscosity.toExponential(3)}`;
@@ -441,7 +441,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
           yPos = addTextWithPageBreak(pdf, `f = 64 / ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         } else {
           yPos = addTextWithPageBreak(pdf, 'Turbulent flow - Swamee-Jain formula:', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
-          yPos = addTextWithPageBreak(pdf, 'f = 0.25 / [log₁₀(ε/3.7D + 5.74/Re⁰·⁹)]²', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+          yPos = addTextWithPageBreak(pdf, 'f = 0.25 / [log_10(ε/3.7D + 5.74/Re^0.9)]^2', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         }
         
         pdf.setFont('helvetica', 'bold');
@@ -457,7 +457,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         yPos = addTextWithPageBreak(pdf, headLossTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
-        yPos = addTextWithPageBreak(pdf, 'Formula: h = f × (L/D) × (V²/2g)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos = addTextWithPageBreak(pdf, 'Formula: h = f × (L/D) × (V^2/2g)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         yPos = addTextWithPageBreak(pdf, 'Effective Length Breakdown:', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
@@ -478,9 +478,9 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         const g = 32.174;
         const frictionFactor = calculateFrictionFactor(zoneData.reynolds, parseFloat(data.advancedSettings.customRoughness) || pipeData.roughness, pipeData.internalDiameter);
         
-        yPos = addTextWithPageBreak(pdf, `Gravity constant (g): ${g} ft/s²`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos = addTextWithPageBreak(pdf, `Gravity constant (g): ${g} ft/s^2`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
-        const headLossFormulaText = `h = ${frictionFactor.toFixed(6)} × (${zoneData.totalEffectiveLength.toFixed(1)} / ${diameterFt.toFixed(4)}) × (${zoneData.velocity.toFixed(2)}² / (2 × ${g}))`;
+        const headLossFormulaText = `h = ${frictionFactor.toFixed(6)} × (${zoneData.totalEffectiveLength.toFixed(1)} / ${diameterFt.toFixed(4)}) × (${zoneData.velocity.toFixed(2)}^2 / (2 × ${g}))`;
         yPos = addTextWithPageBreak(pdf, headLossFormulaText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const ldRatio = zoneData.totalEffectiveLength / diameterFt;
@@ -500,7 +500,7 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         yPos = addTextWithPageBreak(pdf, hazenTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
-        yPos = addTextWithPageBreak(pdf, 'Formula: h = 4.52 × L × Q¹·⁸⁵ / (C¹·⁸⁵ × D⁴·⁸⁷)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos = addTextWithPageBreak(pdf, 'Formula: h = 4.52 × L × Q^1.85 / (C^1.85 × D^4.87)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const cValue = parseFloat(data.advancedSettings.customCValue) || pipeData.hazenWilliamsC;
         
@@ -545,8 +545,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   yPos += LINE_HEIGHT;
   yPos = addKeyValue(pdf, '  Fluid:', data.advancedSettings.fluidType, yPos);
   yPos = addKeyValue(pdf, '  Temperature:', `${data.advancedSettings.temperature}°F`, yPos);
-  yPos = addKeyValue(pdf, '  Density:', `${data.fluidProps.density.toFixed(3)} lb/ft³`, yPos);
-  yPos = addKeyValue(pdf, '  Kinematic Viscosity:', `${data.fluidProps.kinematicViscosity.toExponential(3)} ft²/s`, yPos);
+  yPos = addKeyValue(pdf, '  Density:', `${data.fluidProps.density.toFixed(3)} lb/ft^3`, yPos);
+  yPos = addKeyValue(pdf, '  Kinematic Viscosity:', `${data.fluidProps.kinematicViscosity.toExponential(3)} ft^2/s`, yPos);
   yPos += LINE_HEIGHT;
   
   pdf.text('Calculation Method:', MARGIN_LEFT, yPos);
