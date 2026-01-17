@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { within } from "./testUtils";
 
 import {
   type EmitterType,
@@ -12,13 +13,6 @@ import {
   calculateDeltaTFromEmitterOutput,
   checkEmitterSizing,
 } from "../app/lib/data/emitterTypes";
-
-const within = (actual: number, expected: number, tolerance: number, label: string) => {
-  assert.ok(
-    Math.abs(actual - expected) <= tolerance,
-    `${label}: expected ${expected.toFixed(3)} ±${tolerance} but got ${actual.toFixed(3)}`
-  );
-};
 
 test("All emitter types have default ΔT values", () => {
   const types = getEmitterTypes();

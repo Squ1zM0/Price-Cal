@@ -200,9 +200,13 @@ export function interpolateEmitterOutput(
     let minDist = Infinity;
     
     for (const point of data) {
+      // Calculate Euclidean distance with weighted dimensions
+      // Flow rate is multiplied by 10 to weight it less than temperature in the distance calculation
+      // This is because a 10°F temperature difference has more impact on output than a 1 GPM flow difference
+      // For example: 10°F temp change ≈ 1 GPM flow change in terms of output impact
       const dist = Math.sqrt(
         Math.pow(point.avgWaterTemp - avgWaterTemp, 2) +
-        Math.pow((point.flowRate - flowRate) * 10, 2) // Weight flow rate less
+        Math.pow((point.flowRate - flowRate) * 10, 2)
       );
       if (dist < minDist) {
         minDist = dist;

@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { within } from "./testUtils";
 
 import {
   SLANTFIN_FINELINE30,
@@ -8,13 +9,6 @@ import {
   getManufacturerModel,
   getManufacturerModelsForType,
 } from "../app/lib/data/manufacturerEmitterData";
-
-const within = (actual: number, expected: number, tolerance: number, label: string) => {
-  assert.ok(
-    Math.abs(actual - expected) <= tolerance,
-    `${label}: expected ${expected.toFixed(3)} ±${tolerance} but got ${actual.toFixed(3)}`
-  );
-};
 
 test("Slant/Fin Fine/Line 30 model is properly defined", () => {
   assert.strictEqual(SLANTFIN_FINELINE30.manufacturer, "Slant/Fin");
