@@ -26,6 +26,7 @@ import {
   checkEmitterSizing,
   type EmitterSizingCheck,
 } from "../lib/data/emitterTypes";
+import { getManufacturerModelsForType } from "../lib/data/manufacturerEmitterData";
 import { generatePumpSizingPDF, type PDFExportData } from "../lib/pdfExport";
 
 // Types
@@ -43,6 +44,7 @@ interface Zone {
   deltaTMode: "auto" | "manual"; // Whether ΔT is auto-calculated or manually set
   emitterType: EmitterType; // Type of emitter (Baseboard, Radiant Floor, etc.)
   emitterLength: string; // Emitter equivalent length in feet
+  manufacturerModel?: string; // Optional manufacturer model for accurate data
   material: PipeMaterial;
   size: string;
   straightLength: string;
@@ -174,6 +176,7 @@ export default function PumpSizingPage() {
       deltaTMode: "auto",
       emitterType: "Baseboard",
       emitterLength: "",
+      manufacturerModel: undefined,
       material: "Copper",
       size: "3/4\"",
       straightLength: "",
@@ -466,7 +469,9 @@ export default function PumpSizingPage() {
             zone.emitterType as EmitterType,
             emitterLengthFt,
             zoneBTU,
-            parseNum(advancedSettings.temperature)
+            parseNum(advancedSettings.temperature),
+            flowGPM, // Pass calculated flow rate
+            zone.manufacturerModel // Pass manufacturer model if selected
           )
         : undefined;
 
@@ -527,6 +532,7 @@ export default function PumpSizingPage() {
       deltaTMode: "auto",
       emitterType: "Baseboard",
       emitterLength: "",
+      manufacturerModel: undefined,
       material: "Copper",
       size: "3/4\"",
       straightLength: "",
@@ -848,6 +854,32 @@ export default function PumpSizingPage() {
                             {getEmitterDescription(zone.emitterType as EmitterType)}
                           </p>
                         </div>
+
+                        {/* Manufacturer Model Selector (for Baseboard only initially) */}
+                        {zone.emitterType === "Baseboard" && (
+                          <div>
+                            <label className="text-xs font-bold text-slate-600 dark:text-slate-400 mb-2 block">
+                              Manufacturer Data (Optional)
+                            </label>
+                            <select
+                              value={zone.manufacturerModel || ""}
+                              onChange={(e) => updateZone(zone.id, { manufacturerModel: e.target.value || undefined })}
+                              className="w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                              <option value="">Generic Baseboard (Default)</option>
+                              {getManufacturerModelsForType("Baseboard").map((model) => (
+                                <option key={`${model.manufacturer} ${model.model}`} value={`${model.manufacturer} ${model.model}`}>
+                                  {model.manufacturer} {model.model}
+                                </option>
+                              ))}
+                            </select>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                              {zone.manufacturerModel 
+                                ? "🎯 Using manufacturer performance curves for accurate output at all temperatures"
+                                : "Using generic baseboard approximation (~550 BTU/ft at 180°F)"}
+                            </p>
+                          </div>
+                        )}
 
                         {/* Emitter Equivalent Length */}
                         <div>
@@ -1214,6 +1246,16 @@ export default function PumpSizingPage() {
                                       {result.emitterSizingCheck.capacityPercent.toFixed(0)}%
                                     </span>
                                   </div>
+                                  
+                                  {/* Manufacturer data indicator */}
+                                  {result.emitterSizingCheck.usingManufacturerData && (
+                                    <div className="flex items-center gap-1.5 text-xs text-blue-600 dark:text-blue-400">
+                                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                      </svg>
+                                      <span>Using {result.emitterSizingCheck.manufacturerModel} performance data</span>
+                                    </div>
+                                  )}
                                   
                                   {/* Warning for severely undersized emitter */}
                                   {result.emitterSizingCheck.capacityPercent < 20 && (
