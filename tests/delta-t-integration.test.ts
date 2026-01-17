@@ -69,13 +69,14 @@ test("Scenario: Tiny emitter (5 ft) with adequate pipe (1 inch) - verify ΔT ref
   console.log(`Step 4 - Deliverable BTU: ${deliverableBTU.toLocaleString()}`);
   console.log(`         Limited by: ${deliverableBTU === emitterMaxBTU ? 'EMITTER' : 'HYDRAULICS'}`);
   
-  // Step 5: Compute actual deltaT and GPM from deliverable BTU
-  const actualGPM = deliverableBTU / (500 * baselineDeltaT);
+  // Step 5: Compute actual deltaT and GPM
+  // CRITICAL: GPM is based on requested load (if hydraulics allow), NOT emitter capacity
+  const actualGPM = requestedGPM; // Hydraulics can handle it
   const actualDeltaT = deliverableBTU / (500 * actualGPM);
   
   console.log(`Step 5 - Actual operating point:`);
-  console.log(`         ΔT: ${actualDeltaT.toFixed(1)}°F`);
-  console.log(`         GPM: ${actualGPM.toFixed(2)}`);
+  console.log(`         GPM: ${actualGPM.toFixed(2)} (based on requested load)`);
+  console.log(`         ΔT: ${actualDeltaT.toFixed(2)}°F (very small!)`);
   
   // KEY ASSERTIONS
   assert.ok(
@@ -88,17 +89,20 @@ test("Scenario: Tiny emitter (5 ft) with adequate pipe (1 inch) - verify ΔT ref
     "Deliverable BTU should be less than requested"
   );
   
+  // CRITICAL: GPM should NOT be reduced by emitter limitation
   assert.ok(
-    actualDeltaT === baselineDeltaT,
-    `ΔT should be ${baselineDeltaT}°F (baseline) since we're operating below hydraulic limits`
+    Math.abs(actualGPM - requestedGPM) < 0.01,
+    "GPM should be based on requested load, not emitter capacity"
   );
   
+  // CRITICAL: ΔT should be VERY SMALL when emitter limits delivery
   assert.ok(
-    actualGPM < maxGPM,
-    "GPM should be well below hydraulic max"
+    actualDeltaT < 5,
+    `ΔT should be very small (< 5°F) when emitter severely limits delivery`
   );
   
-  console.log(`\n✓ CORRECT: ΔT is ${actualDeltaT.toFixed(1)}°F (not inflated by emitter limitation)`);
+  console.log(`\n✓ CORRECT: GPM is ${actualGPM.toFixed(2)} (based on requested load, not emitter)`);
+  console.log(`✓ CORRECT: ΔT is ${actualDeltaT.toFixed(2)}°F (very small due to emitter limitation)`);
   console.log(`✓ CORRECT: Only delivering ${deliverableBTU.toLocaleString()} BTU/hr (not ${requestedBTU.toLocaleString()})`);
 });
 

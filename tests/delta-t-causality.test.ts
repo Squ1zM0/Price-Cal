@@ -51,7 +51,7 @@ test("Scenario: Tiny emitter with adequate hydraulics - ΔT should be small due 
   console.log(`Step 2 - Hydraulic capacity at ${baseDeltaT}°F ΔT: ${hydraulicCapacityBTU.toLocaleString()} BTU/hr`);
   
   // Step 3: Compute emitter max deliverable BTU
-  // For this, we need to calculate the GPM that would be needed for requested BTU at base deltaT
+  // CRITICAL: GPM is determined by requested load (if hydraulics allow)
   const requestedGPM = requestedBTU / (500 * baseDeltaT);
   
   const emitterCheck = checkEmitterSizing(
@@ -74,35 +74,43 @@ test("Scenario: Tiny emitter with adequate hydraulics - ΔT should be small due 
   console.log(`         Limited by: ${deliveredBTU === emitterMaxBTU ? 'EMITTER' : deliveredBTU === hydraulicCapacityBTU ? 'HYDRAULICS' : 'REQUEST'}`);
   
   // Step 5: Compute Zone ΔT = DeliveredBTU / (500 × GPM)
-  // Use the GPM needed to deliver the actual deliverable BTU
-  const actualGPM = deliveredBTU / (500 * baseDeltaT); // Start with base deltaT
+  // CRITICAL: GPM is NOT reduced by emitter limitation!
+  // GPM is determined by requested load (if hydraulics allow)
+  const actualGPM = requestedGPM; // Hydraulics can handle it
   const actualDeltaT = deliveredBTU / (500 * actualGPM);
   
-  console.log(`Step 5 - Actual ΔT: ${actualDeltaT.toFixed(1)}°F`);
-  console.log(`         Actual GPM: ${actualGPM.toFixed(2)} GPM`);
+  console.log(`Step 5 - Actual operating point:`);
+  console.log(`         GPM: ${actualGPM.toFixed(2)} (based on requested load, NOT emitter capacity)`);
+  console.log(`         ΔT: ${actualDeltaT.toFixed(2)}°F (very small due to low deliverable BTU)`);
   
   // KEY ASSERTION: With a tiny emitter, the deliverable BTU should be very low
-  assert.ok(
-    deliveredBTU < requestedBTU,
-    "Delivered BTU should be less than requested due to emitter limitation"
-  );
-  
   assert.ok(
     Math.abs(deliveredBTU - emitterMaxBTU) < 0.1,
     "Delivered BTU should be limited by emitter, not hydraulics"
   );
   
-  // KEY ASSERTION: ΔT should be reasonable (around base deltaT), not inflated
-  // because we're only delivering what the emitter can handle
   assert.ok(
-    actualDeltaT <= baseDeltaT * 1.5,
-    `ΔT should not be inflated beyond ~${baseDeltaT * 1.5}°F when emitter limits delivery`
+    deliveredBTU < requestedBTU,
+    "Delivered BTU should be less than requested due to emitter limitation"
   );
   
-  console.log("\n✓ ΔT correctly computed from deliverable BTU (emitter-limited)");
-  console.log(`  - Requested: ${requestedBTU.toLocaleString()} BTU/hr`);
-  console.log(`  - Delivered: ${deliveredBTU.toLocaleString()} BTU/hr`);
-  console.log(`  - ΔT: ${actualDeltaT.toFixed(1)}°F (not inflated)`);
+  // KEY ASSERTION: GPM should NOT collapse when emitter is limited
+  // GPM is determined by requested load (if hydraulics allow)
+  assert.ok(
+    Math.abs(actualGPM - requestedGPM) < 0.01,
+    "GPM should be based on requested load, not emitter capacity"
+  );
+  
+  // KEY ASSERTION: ΔT should be VERY SMALL when emitter limits delivery
+  // With tiny emitter and normal flow, very little heat is extracted
+  assert.ok(
+    actualDeltaT < 5,
+    `ΔT should be very small (< 5°F) when emitter severely limits delivery, got ${actualDeltaT.toFixed(2)}°F`
+  );
+  
+  console.log(`\n✓ CORRECT: GPM remains at ${actualGPM.toFixed(2)} (not reduced by emitter)`);
+  console.log(`✓ CORRECT: ΔT is ${actualDeltaT.toFixed(2)}°F (very small due to emitter limitation)`);
+  console.log(`✓ CORRECT: Only delivering ${deliveredBTU.toLocaleString()} BTU/hr (not ${requestedBTU.toLocaleString()})`);
 });
 
 test("Scenario: Small pipe with adequate emitter - ΔT should reflect hydraulic limit", () => {

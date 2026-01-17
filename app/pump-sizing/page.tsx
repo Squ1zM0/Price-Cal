@@ -557,48 +557,54 @@ export default function PumpSizingPage() {
             }
           }
           
-          // Step 5: Calculate actual deltaT and GPM from deliverable BTU
-          // Use the deliverable BTU to determine the actual operating point
-          if (zoneBTU <= 0) {
+          // Step 5: Calculate actual GPM and ΔT
+          // CRITICAL: GPM is determined by hydraulics and requested load, NOT by emitter capacity
+          // Emitter limitation affects deliverable BTU, which then affects ΔT
+          if (zoneBTU <= 0 || requestedBTU <= 0) {
             effectiveDeltaT = baselineDeltaT;
             flowGPM = 0;
           } else {
-            // Calculate flow needed for deliverable BTU at baseline deltaT
-            flowGPM = zoneBTU / (500 * baselineDeltaT);
+            // GPM is determined by what's needed to carry REQUESTED BTU (if hydraulics allow)
+            const requestedGPM = requestedBTU / (500 * baselineDeltaT);
             
-            // If flow exceeds hydraulic max, we're hydraulic-limited
-            // and should operate at max GPM with whatever deltaT results
-            if (flowGPM > maxGPM) {
+            if (requestedGPM > maxGPM) {
+              // Hydraulic-limited: operate at max GPM
               flowGPM = maxGPM;
-              effectiveDeltaT = zoneBTU / (500 * maxGPM);
             } else {
-              // Otherwise, operate at the flow needed for deliverable BTU
-              effectiveDeltaT = baselineDeltaT;
+              // Hydraulics adequate: operate at requested GPM
+              flowGPM = requestedGPM;
             }
+            
+            // ΔT is determined by DELIVERABLE BTU and actual GPM
+            // With emitter limitation: low deliverable BTU → low ΔT (not low GPM!)
+            effectiveDeltaT = zoneBTU / (500 * flowGPM);
           }
         }
       } else {
         // Manual deltaT mode - use user's deltaT value
         const deltaTCheck = isDeltaTValid(zone.deltaT);
-        effectiveDeltaT = deltaTCheck.valid ? deltaTCheck.deltaT : 20;
+        const manualDeltaT = deltaTCheck.valid ? deltaTCheck.deltaT : 20;
         isAutoDeltaT = false;
         
-        // In manual mode, we still respect deliverable limits
-        // but use the manual deltaT for calculations
+        // In manual mode, user specifies desired ΔT, but actual ΔT is still
+        // determined by deliverable BTU and flow (physics cannot be overridden)
         if (!pipeData) {
-          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, effectiveDeltaT) : 0;
+          flowGPM = requestedBTU > 0 ? calculateGPM(requestedBTU, manualDeltaT) : 0;
           zoneBTU = requestedBTU;
+          effectiveDeltaT = manualDeltaT;
         } else {
           const maxGPM = calculateMaxGPMFromVelocity(
             pipeData.internalDiameter,
             advancedSettings.fluidType,
             false
           );
-          const hydraulicCapacityBTU = calculateHydraulicCapacityBTU(maxGPM, effectiveDeltaT);
+          const hydraulicCapacityBTU = calculateHydraulicCapacityBTU(maxGPM, manualDeltaT);
+          
+          // Calculate requested GPM from requested BTU and manual ΔT
+          const requestedGPM = requestedBTU / (500 * manualDeltaT);
           
           let emitterCapacityBTU = Infinity;
           if (emitterLengthFt > 0) {
-            const requestedGPM = requestedBTU / (500 * effectiveDeltaT);
             const emitterCheck = checkEmitterSizing(
               zone.emitterType as EmitterType,
               emitterLengthFt,
@@ -622,7 +628,16 @@ export default function PumpSizingPage() {
             }
           }
           
-          flowGPM = zoneBTU > 0 ? calculateGPM(zoneBTU, effectiveDeltaT) : 0;
+          // GPM is determined by requested load (if hydraulics allow)
+          if (requestedGPM > maxGPM) {
+            flowGPM = maxGPM;
+          } else {
+            flowGPM = requestedGPM;
+          }
+          
+          // Actual ΔT is determined by deliverable BTU and actual GPM
+          // This may differ from manual ΔT if emitter or hydraulics limit delivery
+          effectiveDeltaT = flowGPM > 0 ? zoneBTU / (500 * flowGPM) : manualDeltaT;
         }
       }
 
