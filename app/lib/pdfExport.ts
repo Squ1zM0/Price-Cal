@@ -437,150 +437,93 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         const relativeRoughness = roughness / diameterFt;
         
         const roughnessText = `Absolute Roughness: ${roughness.toExponential(3)} ft`;
-        const roughnessLines = pdf.splitTextToSize(roughnessText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(roughnessLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * roughnessLines.length;
+        yPos = addTextWithPageBreak(pdf, roughnessText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const relRoughnessText = `Relative Roughness: ${roughness.toExponential(3)} ÷ ${diameterFt.toFixed(4)} = ${relativeRoughness.toExponential(3)}`;
-        const relRoughnessLines = pdf.splitTextToSize(relRoughnessText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(relRoughnessLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * relRoughnessLines.length;
+        yPos = addTextWithPageBreak(pdf, relRoughnessText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const frictionFactor = calculateFrictionFactor(zoneData.reynolds, roughness, pipeData.internalDiameter);
         
         if (zoneData.reynolds < 2300) {
-          const laminarText = 'Laminar flow: f = 64 / Re';
-          const laminarLines = pdf.splitTextToSize(laminarText, CONTENT_WIDTH - INDENT_OFFSET);
-          pdf.text(laminarLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-          yPos += LINE_HEIGHT * laminarLines.length;
-          
-          const laminarCalcText = `f = 64 / ${zoneData.reynolds.toFixed(0)}`;
-          const laminarCalcLines = pdf.splitTextToSize(laminarCalcText, CONTENT_WIDTH - INDENT_OFFSET);
-          pdf.text(laminarCalcLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-          yPos += LINE_HEIGHT * laminarCalcLines.length;
+          yPos = addTextWithPageBreak(pdf, 'Laminar flow: f = 64 / Re', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+          yPos = addTextWithPageBreak(pdf, `f = 64 / ${zoneData.reynolds.toFixed(0)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         } else {
-          const turbulentText = 'Turbulent flow - Swamee-Jain formula:';
-          const turbulentLines = pdf.splitTextToSize(turbulentText, CONTENT_WIDTH - INDENT_OFFSET);
-          pdf.text(turbulentLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-          yPos += LINE_HEIGHT * turbulentLines.length;
-          
-          const formulaText = 'f = 0.25 / [log₁₀(ε/3.7D + 5.74/Re⁰·⁹)]²';
-          const formulaLines = pdf.splitTextToSize(formulaText, CONTENT_WIDTH - INDENT_OFFSET);
-          pdf.text(formulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-          yPos += LINE_HEIGHT * formulaLines.length;
+          yPos = addTextWithPageBreak(pdf, 'Turbulent flow - Swamee-Jain formula:', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+          yPos = addTextWithPageBreak(pdf, 'f = 0.25 / [log₁₀(ε/3.7D + 5.74/Re⁰·⁹)]²', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         }
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Friction Factor (f) = ${frictionFactor.toFixed(6)}`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * 1.5;
+        yPos = addTextWithPageBreak(pdf, `Friction Factor (f) = ${frictionFactor.toFixed(6)}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos += LINE_HEIGHT * 0.5; // Extra spacing
         pdf.setFont('helvetica', 'normal');
       }
-
-      // Check if we need a new page
-      // Check if we need a new page before head loss calculation
-      yPos = checkPageBreak(pdf, yPos, 60);
 
       // 5. Head Loss Calculation
       if (data.advancedSettings.calculationMethod === 'Darcy-Weisbach') {
         pdf.setFont('helvetica', 'bold');
         const headLossTitle = '5. Head Loss Calculation (Darcy-Weisbach Equation):';
-        const headLossTitleLines = pdf.splitTextToSize(headLossTitle, CONTENT_WIDTH);
-        pdf.text(headLossTitleLines, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT * headLossTitleLines.length;
+        yPos = addTextWithPageBreak(pdf, headLossTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
-        const darcyFormulaText = 'Formula: h = f × (L/D) × (V²/2g)';
-        const darcyFormulaLines = pdf.splitTextToSize(darcyFormulaText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(darcyFormulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * darcyFormulaLines.length;
+        yPos = addTextWithPageBreak(pdf, 'Formula: h = f × (L/D) × (V²/2g)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
-        pdf.text('Effective Length Breakdown:', MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
+        yPos = addTextWithPageBreak(pdf, 'Effective Length Breakdown:', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const straightPipeText = `  Straight pipe: ${zoneData.straightLength.toFixed(1)} ft`;
-        const straightPipeLines = pdf.splitTextToSize(straightPipeText, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
-        pdf.text(straightPipeLines, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * straightPipeLines.length;
+        yPos = addTextWithPageBreak(pdf, straightPipeText, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
         
         const fittingEquivText = `  Fitting equivalent: ${zoneData.fittingEquivalentLength.toFixed(1)} ft`;
-        const fittingEquivLines = pdf.splitTextToSize(fittingEquivText, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
-        pdf.text(fittingEquivLines, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * fittingEquivLines.length;
+        yPos = addTextWithPageBreak(pdf, fittingEquivText, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
         
         const emitterEquivText = `  Emitter equivalent: ${zoneData.emitterEquivalentLength.toFixed(1)} ft`;
-        const emitterEquivLines = pdf.splitTextToSize(emitterEquivText, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
-        pdf.text(emitterEquivLines, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * emitterEquivLines.length;
+        yPos = addTextWithPageBreak(pdf, emitterEquivText, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
         
         pdf.setFont('helvetica', 'bold');
         const totalLengthText = `  Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`;
-        const totalLengthLines = pdf.splitTextToSize(totalLengthText, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
-        pdf.text(totalLengthLines, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * totalLengthLines.length;
+        yPos = addTextWithPageBreak(pdf, totalLengthText, MARGIN_LEFT + NESTED_INDENT_OFFSET, yPos, CONTENT_WIDTH - NESTED_INDENT_OFFSET);
         pdf.setFont('helvetica', 'normal');
         
         const g = 32.174;
         const frictionFactor = calculateFrictionFactor(zoneData.reynolds, parseFloat(data.advancedSettings.customRoughness) || pipeData.roughness, pipeData.internalDiameter);
         
-        pdf.text(`Gravity constant (g): ${g} ft/s²`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT;
+        yPos = addTextWithPageBreak(pdf, `Gravity constant (g): ${g} ft/s²`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const headLossFormulaText = `h = ${frictionFactor.toFixed(6)} × (${zoneData.totalEffectiveLength.toFixed(1)} / ${diameterFt.toFixed(4)}) × (${zoneData.velocity.toFixed(2)}² / (2 × ${g}))`;
-        const headLossFormulaLines = pdf.splitTextToSize(headLossFormulaText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(headLossFormulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * headLossFormulaLines.length;
+        yPos = addTextWithPageBreak(pdf, headLossFormulaText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const ldRatio = zoneData.totalEffectiveLength / diameterFt;
         const vSquaredOver2g = Math.pow(zoneData.velocity, 2) / (2 * g);
         
         const headLossSimplifiedText = `h = ${frictionFactor.toFixed(6)} × ${ldRatio.toFixed(2)} × ${vSquaredOver2g.toFixed(4)}`;
-        const headLossSimplifiedLines = pdf.splitTextToSize(headLossSimplifiedText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(headLossSimplifiedLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * headLossSimplifiedLines.length;
+        yPos = addTextWithPageBreak(pdf, headLossSimplifiedText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * 1.5;
+        yPos = addTextWithPageBreak(pdf, `Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos += LINE_HEIGHT * 0.5; // Extra spacing
         pdf.setFont('helvetica', 'normal');
       } else {
         // Hazen-Williams
         pdf.setFont('helvetica', 'bold');
         const hazenTitle = '5. Head Loss Calculation (Hazen-Williams Equation):';
-        const hazenTitleLines = pdf.splitTextToSize(hazenTitle, CONTENT_WIDTH);
-        pdf.text(hazenTitleLines, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT * hazenTitleLines.length;
+        yPos = addTextWithPageBreak(pdf, hazenTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
-        const hazenFormulaText = 'Formula: h = 4.52 × L × Q¹·⁸⁵ / (C¹·⁸⁵ × D⁴·⁸⁷)';
-        const hazenFormulaLines = pdf.splitTextToSize(hazenFormulaText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(hazenFormulaLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * hazenFormulaLines.length;
+        yPos = addTextWithPageBreak(pdf, 'Formula: h = 4.52 × L × Q¹·⁸⁵ / (C¹·⁸⁵ × D⁴·⁸⁷)', MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const cValue = parseFloat(data.advancedSettings.customCValue) || pipeData.hazenWilliamsC;
         
-        const cValueText = `C-value: ${cValue}`;
-        const cValueLines = pdf.splitTextToSize(cValueText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(cValueLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * cValueLines.length;
+        yPos = addTextWithPageBreak(pdf, `C-value: ${cValue}`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         const hazenLengthText = `Total effective length (L): ${zoneData.totalEffectiveLength.toFixed(1)} ft`;
-        const hazenLengthLines = pdf.splitTextToSize(hazenLengthText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(hazenLengthLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * hazenLengthLines.length;
+        yPos = addTextWithPageBreak(pdf, hazenLengthText, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
-        const hazenFlowText = `Flow (Q): ${zoneData.flowGPM.toFixed(2)} GPM`;
-        const hazenFlowLines = pdf.splitTextToSize(hazenFlowText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(hazenFlowLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * hazenFlowLines.length;
+        yPos = addTextWithPageBreak(pdf, `Flow (Q): ${zoneData.flowGPM.toFixed(2)} GPM`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
-        const hazenDiameterText = `Diameter (D): ${pipeData.internalDiameter.toFixed(3)} inches`;
-        const hazenDiameterLines = pdf.splitTextToSize(hazenDiameterText, CONTENT_WIDTH - INDENT_OFFSET);
-        pdf.text(hazenDiameterLines, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * hazenDiameterLines.length;
+        yPos = addTextWithPageBreak(pdf, `Diameter (D): ${pipeData.internalDiameter.toFixed(3)} inches`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
         
         pdf.setFont('helvetica', 'bold');
-        pdf.text(`Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + INDENT_OFFSET, yPos);
-        yPos += LINE_HEIGHT * 1.5;
+        yPos = addTextWithPageBreak(pdf, `Head Loss = ${zoneData.headLoss.toFixed(2)} ft`, MARGIN_LEFT + INDENT_OFFSET, yPos, CONTENT_WIDTH - INDENT_OFFSET);
+        yPos += LINE_HEIGHT * 0.5; // Extra spacing
         pdf.setFont('helvetica', 'normal');
       }
     }
