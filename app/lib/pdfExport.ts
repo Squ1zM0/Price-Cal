@@ -309,30 +309,22 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
         pdf.setTextColor(200, 0, 0);
         pdf.setFont('helvetica', 'bold');
         const warningTitle = '  ⚠ WARNING: Pipe Undersized - Critical Issue';
-        const warningLines = pdf.splitTextToSize(warningTitle, CONTENT_WIDTH);
-        pdf.text(warningLines, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT * warningLines.length;
+        yPos = addTextWithPageBreak(pdf, warningTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
         const warningMsg = `  Load exceeds absolute pipe capacity (${zoneData.capacityCheck.capacityBTUAbsolute.toLocaleString()} BTU/hr)`;
-        const warningMsgLines = pdf.splitTextToSize(warningMsg, CONTENT_WIDTH);
-        pdf.text(warningMsgLines, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT * warningMsgLines.length;
+        yPos = addTextWithPageBreak(pdf, warningMsg, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         pdf.setTextColor(0, 0, 0);
       } else if (zoneData.capacityCheck.exceedsRecommended) {
         yPos += LINE_HEIGHT / 2;
         pdf.setTextColor(180, 120, 0);
         pdf.setFont('helvetica', 'bold');
         const warningTitle = '  ⚠ WARNING: Flow Velocity Exceeds Recommended Limit';
-        const warningLines = pdf.splitTextToSize(warningTitle, CONTENT_WIDTH);
-        pdf.text(warningLines, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT * warningLines.length;
+        yPos = addTextWithPageBreak(pdf, warningTitle, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         
         pdf.setFont('helvetica', 'normal');
         const warningMsg = `  Load exceeds recommended capacity (${zoneData.capacityCheck.capacityBTURecommended.toLocaleString()} BTU/hr)`;
-        const warningMsgLines = pdf.splitTextToSize(warningMsg, CONTENT_WIDTH);
-        pdf.text(warningMsgLines, MARGIN_LEFT, yPos);
-        yPos += LINE_HEIGHT * warningMsgLines.length;
+        yPos = addTextWithPageBreak(pdf, warningMsg, MARGIN_LEFT, yPos, CONTENT_WIDTH);
         pdf.setTextColor(0, 0, 0);
       }
     }
