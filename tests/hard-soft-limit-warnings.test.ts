@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { checkHydraulicCapacity } from "../app/lib/hydraulics";
+import { checkHydraulicCapacity, calculateZoneMaxCapacity } from "../app/lib/hydraulics";
 import { getPipeData } from "../app/lib/pipeData";
 
 /**
@@ -86,10 +86,12 @@ test("Auto-Capped Zone: No 'exceeds' language when zone is capped at capacity", 
   const pipeData = getPipeData("Copper", '1/2"');
   assert.ok(pipeData, "Pipe data should exist");
   
-  // Auto-distribution capped this zone at its max capacity
-  const maxCapacity = 29084.544; // This is the hard limit for this pipe
-  const assignedBTU = maxCapacity; // Zone was CAPPED at this value
   const deltaT = 20;
+  // Calculate max capacity dynamically instead of hardcoding
+  const maxCapacity = calculateZoneMaxCapacity(pipeData, deltaT, "Water", false);
+  
+  // Auto-distribution capped this zone at its max capacity
+  const assignedBTU = maxCapacity; // Zone was CAPPED at this value
   const flowGPM = assignedBTU / (500 * deltaT);
   const velocity = 3.25; // At recommended limit
   
@@ -121,6 +123,10 @@ test("Auto-Capped Zone: No 'exceeds' language when zone is capped at capacity", 
   assert.ok(
     isCapacityLimited,
     "Zone should be marked as capacity-limited when auto-capped"
+  );
+  assert.ok(
+    assignedBTU === maxCapacity,
+    "Zone BTU should equal its max capacity (capped)"
   );
 });
 
@@ -175,11 +181,11 @@ test("Scenario: System with 100k BTU distributed across 3 zones, one gets capped
   const zone3Pipe = getPipeData("Copper", '1"');
   assert.ok(zone3Pipe, "Zone 3 pipe data should exist");
   
-  // Calculate max capacities (this is what auto-distribution does)
+  // Calculate max capacities dynamically (this is what auto-distribution does)
   const deltaT = 20;
-  const zone1MaxCapacity = 29084.544; // 1/2" max recommended capacity
-  const zone2MaxCapacity = 60340.454; // 3/4" max recommended capacity
-  const zone3MaxCapacity = 102876.692; // 1" max recommended capacity
+  const zone1MaxCapacity = calculateZoneMaxCapacity(zone1Pipe, deltaT, "Water", false);
+  const zone2MaxCapacity = calculateZoneMaxCapacity(zone2Pipe, deltaT, "Water", false);
+  const zone3MaxCapacity = calculateZoneMaxCapacity(zone3Pipe, deltaT, "Water", false);
   
   // Total requested: 100,000 BTU
   // Auto-distribution would try to allocate based on weights, but cap zones that hit limits
@@ -206,13 +212,13 @@ test("Scenario: System with 100k BTU distributed across 3 zones, one gets capped
   console.log(`  Zone 2 (3/4" pipe):`);
   console.log(`    - Assigned: ${zone2BTU.toLocaleString()} BTU/hr`);
   console.log(`    - Max capacity: ${zone2MaxCapacity.toLocaleString()} BTU/hr`);
-  console.log(`    - Status: Within limits (47% utilization)`);
+  console.log(`    - Status: Within limits (${((zone2BTU/zone2MaxCapacity)*100).toFixed(0)}% utilization)`);
   console.log(`    - Warning: None - green checkmark`);
   console.log("");
   console.log(`  Zone 3 (1" pipe):`);
   console.log(`    - Assigned: ${zone3BTU.toLocaleString()} BTU/hr`);
   console.log(`    - Max capacity: ${zone3MaxCapacity.toLocaleString()} BTU/hr`);
-  console.log(`    - Status: Within limits (41% utilization)`);
+  console.log(`    - Status: Within limits (${((zone3BTU/zone3MaxCapacity)*100).toFixed(0)}% utilization)`);
   console.log(`    - Warning: None - green checkmark`);
   console.log("");
   console.log(`  Undeliverable BTU: ${(100000 - (zone1BTU + zone2BTU + zone3BTU)).toFixed(0)} BTU/hr`);
@@ -231,10 +237,12 @@ test("Edge case: Zone exactly at recommended limit should not show 'exceeds' war
   const pipeData = getPipeData("Copper", '3/4"');
   assert.ok(pipeData, "Pipe data should exist");
   
-  // Set BTU exactly at recommended capacity
-  const recommendedCapacity = 60340.454;
-  const assignedBTU = recommendedCapacity;
   const deltaT = 20;
+  // Calculate recommended capacity dynamically
+  const recommendedCapacity = calculateZoneMaxCapacity(pipeData, deltaT, "Water", false);
+  
+  // Set BTU exactly at recommended capacity
+  const assignedBTU = recommendedCapacity;
   const flowGPM = assignedBTU / (500 * deltaT);
   const velocity = 4.0; // Exactly at recommended max
   
