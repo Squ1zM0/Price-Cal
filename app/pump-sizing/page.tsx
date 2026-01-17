@@ -71,6 +71,7 @@ const BTU_CONVERGENCE_THRESHOLD = 0.01; // BTU/hr - threshold for iterative dist
 const BTU_RECONCILIATION_TOLERANCE = 100; // BTU/hr - tolerance for comparing system vs delivered BTU
 const MIN_DELTA_T_RECOMMENDED = 10; // °F - Recommended minimum ΔT to prevent unrealistic high flow
 const MIN_DELTA_T_ABSOLUTE = 5; // °F - Absolute minimum ΔT (requires explicit user awareness)
+const DEFAULT_FALLBACK_DELTA_T = 20; // °F - Default ΔT when emitter type is not recognized
 
 // Utility functions
 function parseNum(s: string): number {
@@ -522,7 +523,7 @@ export default function PumpSizingPage() {
         
         // Step 1: Get design deltaT for this emitter type
         // Enforce minimum ΔT to prevent unrealistic high flow rates
-        const baseDeltaT = EMITTER_DEFAULT_DELTA_T[zone.emitterType as EmitterType] || 20;
+        const baseDeltaT = EMITTER_DEFAULT_DELTA_T[zone.emitterType as EmitterType] || DEFAULT_FALLBACK_DELTA_T;
         const designDeltaT = Math.max(MIN_DELTA_T_RECOMMENDED, baseDeltaT);
         
         if (!pipeData) {
@@ -566,7 +567,7 @@ export default function PumpSizingPage() {
       } else {
         // Manual deltaT mode - use user's deltaT value with minimum constraint
         const deltaTCheck = isDeltaTValid(zone.deltaT);
-        const userDeltaT = deltaTCheck.valid ? deltaTCheck.deltaT : 20;
+        const userDeltaT = deltaTCheck.valid ? deltaTCheck.deltaT : DEFAULT_FALLBACK_DELTA_T;
         // Enforce minimum ΔT to prevent physically unrealistic scenarios
         const manualDeltaT = Math.max(MIN_DELTA_T_RECOMMENDED, userDeltaT);
         isAutoDeltaT = false;
@@ -772,11 +773,13 @@ export default function PumpSizingPage() {
     
     // MANDATORY VALIDATION: Zone loads must reconcile with system load
     // Exception: Auto-distribution is allowed to have shortfall if zones are capacity-limited
+    // because zones cannot deliver more than their physical capacity. Manual assignments
+    // must reconcile because the user explicitly set the values.
     const reconciliationDelta = systemBTU > 0 ? Math.abs(totalDeliveredBTU - systemBTU) : 0;
     const hasManualZones = zones.some((z) => isHeatLoadValid(z.assignedBTU).valid);
     const reconciliationError = systemBTU > 0 && 
                                  reconciliationDelta > BTU_RECONCILIATION_TOLERANCE && 
-                                 hasManualZones; // Only error for manual assignments
+                                 hasManualZones;
 
     const headSafetyFactor = 1 + parseNum(advancedSettings.headSafetyFactor) / 100;
     const flowSafetyFactor = 1 + parseNum(advancedSettings.flowSafetyFactor) / 100;

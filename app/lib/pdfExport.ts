@@ -177,6 +177,8 @@ export async function generatePumpSizingPDF(data: PDFExportData): Promise<void> 
   const reconciliationDelta = Math.abs(totalDeliveredBTU - systemHeatLoad);
   
   // Check if there are manual zone assignments
+  // isAutoAssigned = true means zone BTU was auto-distributed from system total
+  // isAutoAssigned = false means user manually specified the zone BTU value
   const hasManualZones = data.zones.some(z => !z.isAutoAssigned);
   
   if (systemHeatLoad > 0 && reconciliationDelta > reconciliationTolerance && hasManualZones) {

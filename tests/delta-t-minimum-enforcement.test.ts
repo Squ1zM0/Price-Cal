@@ -14,6 +14,8 @@ import { EMITTER_DEFAULT_DELTA_T } from "../app/lib/data/emitterTypes";
  * 4. Emitter limitations affect delivered BTU, not ΔT
  */
 
+// This constant matches MIN_DELTA_T_RECOMMENDED in app/pump-sizing/page.tsx
+// It is duplicated here for test clarity and to avoid importing from a page component
 const MIN_DELTA_T_RECOMMENDED = 10; // °F - From page.tsx constants
 
 test("Auto-ΔT enforces minimum 10°F threshold", () => {
