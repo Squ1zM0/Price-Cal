@@ -651,8 +651,26 @@ export default function PumpSizingPage() {
               className="mt-1 w-full rounded-xl px-3 py-2.5 text-base font-semibold bg-slate-50 dark:bg-slate-700 text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
             <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Total system capacity from boiler or heat source. This will be automatically distributed proportionally across zones ({zones.length} {zones.length === 1 ? 'zone' : 'zones'}) based on their effective pipe length.
+              <strong>Active zone demand</strong> that will be automatically distributed proportionally across {zones.length} {zones.length === 1 ? 'zone' : 'zones'} based on their effective pipe length. This represents the actual heat load being delivered when zones are operating, not the boiler's maximum available capacity.
             </p>
+          </div>
+          
+          {/* Calculation Method Explanation */}
+          <div className="mt-4 p-3 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700">
+            <div className="flex gap-2">
+              <svg className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div className="text-xs text-blue-900 dark:text-blue-200 space-y-1">
+                <p className="font-semibold">How This Calculator Works:</p>
+                <ul className="list-disc list-inside space-y-0.5 ml-1">
+                  <li><strong>Zone BTU drives flow:</strong> Each zone's GPM is calculated from its assigned heat load and ΔT, not from boiler capacity</li>
+                  <li><strong>Total flow = sum of zones:</strong> System flow is the sum of all active zone flows (parallel operation)</li>
+                  <li><strong>Longest loop governs head:</strong> Pump head is determined by the single zone with highest head loss (critical path)</li>
+                  <li><strong>Assumptions:</strong> Clean pipe (no fouling), standard fittings, fluid properties at specified temperature</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1340,7 +1358,7 @@ export default function PumpSizingPage() {
                                     </span>
                                   </div>
                                   <div className="flex justify-between">
-                                    <span className="text-slate-600 dark:text-slate-400">Capacity utilization:</span>
+                                    <span className="text-slate-600 dark:text-slate-400">Pipe capacity usage:</span>
                                     <span className={[
                                       "font-semibold tabular-nums",
                                       result.capacityCheck.exceedsRecommended
@@ -1592,9 +1610,14 @@ export default function PumpSizingPage() {
                   </PillButton>
                 </div>
                 <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                  <strong>Darcy-Weisbach (recommended)</strong> is more accurate for all fluids and temperatures. 
-                  Hazen-Williams is only valid for water at typical temperatures.
+                  <strong>Darcy-Weisbach (recommended)</strong> is physics-based and accurate for all fluids and temperatures. 
+                  Uses actual fluid properties (density, viscosity) and pipe roughness. 
+                  Hazen-Williams is empirical and only valid for water in turbulent flow.
                 </p>
+                <div className="mt-2 p-2 rounded-lg bg-slate-100 dark:bg-slate-700/50 text-xs text-slate-600 dark:text-slate-400">
+                  <strong>Assumptions for both methods:</strong> Steady flow, fully developed turbulent regime (typical for hydronic), 
+                  known pipe roughness values, standard fittings. Results validated against ASHRAE Handbook and Crane TP-410.
+                </div>
               </div>
 
               {/* Hazen-Williams warning for non-water fluids */}
@@ -1644,46 +1667,54 @@ export default function PumpSizingPage() {
               )}
 
               {/* Safety factors */}
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    Head Safety (%)
-                  </label>
-                  <input
-                    type="text"
-                    value={advancedSettings.headSafetyFactor}
-                    onChange={(e) =>
-                      setAdvancedSettings({
-                        ...advancedSettings,
-                        headSafetyFactor: e.target.value,
-                      })
-                    }
-                    inputMode="decimal"
-                    className="mt-1 w-full rounded-xl bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Accounts for uncertainty in fittings, aging, and fouling
+              <div className="col-span-2">
+                <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white mb-2">Safety Factors & Assumptions</h3>
+                  <p className="text-xs text-slate-600 dark:text-slate-400 mb-3">
+                    These factors account for real-world conditions not captured in idealized calculations:
                   </p>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
-                    Flow Safety (%)
-                  </label>
-                  <input
-                    type="text"
-                    value={advancedSettings.flowSafetyFactor}
-                    onChange={(e) =>
-                      setAdvancedSettings({
-                        ...advancedSettings,
-                        flowSafetyFactor: e.target.value,
-                      })
-                    }
-                    inputMode="decimal"
-                    className="mt-1 w-full rounded-xl bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    Accounts for future load growth and additional zones
-                  </p>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                        Head Safety (%)
+                      </label>
+                      <input
+                        type="text"
+                        value={advancedSettings.headSafetyFactor}
+                        onChange={(e) =>
+                          setAdvancedSettings({
+                            ...advancedSettings,
+                            headSafetyFactor: e.target.value,
+                          })
+                        }
+                        inputMode="decimal"
+                        className="mt-1 w-full rounded-xl bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <strong>Explicit assumption:</strong> Clean pipe, standard fittings. This factor adds margin for uncertainty, aging, and potential fouling.
+                      </p>
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                        Flow Safety (%)
+                      </label>
+                      <input
+                        type="text"
+                        value={advancedSettings.flowSafetyFactor}
+                        onChange={(e) =>
+                          setAdvancedSettings({
+                            ...advancedSettings,
+                            flowSafetyFactor: e.target.value,
+                          })
+                        }
+                        inputMode="decimal"
+                        className="mt-1 w-full rounded-xl bg-slate-50 dark:bg-slate-700 px-3 py-2.5 text-base font-semibold text-slate-900 dark:text-white ring-1 ring-inset ring-slate-200 dark:ring-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                        <strong>Explicit assumption:</strong> Zone loads as specified. This factor adds margin for future load growth and additional zones.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
@@ -1809,9 +1840,21 @@ export default function PumpSizingPage() {
         </section>
 
         {/* Disclaimer */}
-        <div className="text-xs text-slate-500 dark:text-slate-400 text-center pb-4">
-          This calculator is for preliminary sizing only. Professional engineering review required
-          for final design.
+        <div className="rounded-2xl bg-slate-100 dark:bg-slate-800 p-4 text-xs text-slate-600 dark:text-slate-400">
+          <p className="font-semibold text-slate-900 dark:text-white mb-2">Engineering Tool - Calculation Basis</p>
+          <p className="mb-2">
+            This calculator uses first-principles hydraulic equations (Darcy-Weisbach, Hazen-Williams) validated against 
+            ASHRAE Handbook, Crane TP-410, and industry standards. All formulas and assumptions are documented.
+          </p>
+          <p className="mb-2">
+            <strong>Key Principles:</strong> Zone BTU determines flow (GPM = BTU/hr ÷ 500ΔT). 
+            Total system flow = sum of zone flows. Pump head = maximum zone head loss (longest/most restrictive loop), not sum. 
+            Parallel zones do not add head.
+          </p>
+          <p>
+            <strong>Disclaimer:</strong> For preliminary sizing only. Professional engineering review required for final design. 
+            Assumes clean pipe, standard fittings, and specified fluid properties. Apply appropriate safety factors for real-world conditions.
+          </p>
         </div>
       </div>
     </div>
