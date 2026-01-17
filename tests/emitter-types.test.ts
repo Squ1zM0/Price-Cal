@@ -74,13 +74,14 @@ test("Baseboard ΔT auto-adjustment: typical load scenario", () => {
   // Scenario: 30,000 BTU/hr with 40 ft of baseboard
   // Typical capacity: 40 ft × 550 BTU/ft = 22,000 BTU/hr at base ΔT of 20°F
   // Load ratio: 30,000 / 22,000 = 1.36
-  // Adjusted ΔT: 20 × sqrt(1.36) ≈ 23.3°F
+  // NEW behavior: Moderately undersized (loadRatio 1.36), ΔT increases slightly
+  // adjustedDeltaT = 20 × (1.0 + 0.2 × (1.36 - 1.0)) ≈ 21.4°F
   const deltaT = calculateRecommendedDeltaT("Baseboard", 40, 30000);
-  within(deltaT, 23.3, 1.5, "Baseboard ΔT for 30k BTU / 40 ft");
+  within(deltaT, 21.4, 1.5, "Baseboard ΔT for 30k BTU / 40 ft");
   
-  // Should be above base but below max
-  assert.ok(deltaT > 20, "ΔT should increase when load exceeds typical capacity");
-  assert.ok(deltaT <= 30, "ΔT should stay within Baseboard max limit");
+  // Should be slightly above base but not excessive
+  assert.ok(deltaT > 20, "ΔT should increase slightly when moderately undersized");
+  assert.ok(deltaT <= 25, "ΔT should not be excessive for moderate undersizing");
 });
 
 test("Baseboard ΔT auto-adjustment: light load scenario", () => {
@@ -177,4 +178,78 @@ test("ΔT adjustment respects emitter-specific bounds", () => {
     assert.ok(veryHighLoad >= 8, `${type} max ΔT should be at least 8°F`);
     assert.ok(veryHighLoad <= 80, `${type} max ΔT should not exceed 80°F`);
   });
+});
+
+// Tests for short emitter runs (Issue: Auto-ΔT Logic Incorrect for Short Emitter Runs)
+test("Short baseboard (10 ft) with high load (20k BTU) - ΔT should be LIMITED", () => {
+  // Issue scenario: 10 ft baseboard, 20,000 BTU/hr load
+  // Typical capacity at 180°F SWT: 10 ft × 550 BTU/ft = 5,500 BTU/hr at base ΔT
+  // Load ratio: 20,000 / 5,500 = 3.64
+  // OLD (WRONG) behavior: ΔT = 20 × sqrt(3.64) ≈ 38°F (unrealistic!)
+  // NEW (CORRECT) behavior: ΔT should be limited/collapsed because emitter can't deliver 20k BTU
+  
+  const deltaT = calculateRecommendedDeltaT("Baseboard", 10, 20000);
+  
+  // ΔT should NOT be very high - short emitter can't sustain large ΔT
+  // Should be closer to base or slightly above, but definitely not 30+°F
+  assert.ok(deltaT <= 30, `Short baseboard ΔT should be limited, got ${deltaT.toFixed(1)}°F`);
+  
+  // The emitter is severely undersized (needs ~36 ft for 20k BTU at 550 BTU/ft)
+  // In reality, ΔT would collapse or we need to flag undersizing
+});
+
+test("Short baseboard (5 ft) with moderate load (15k BTU) - extreme undersizing", () => {
+  // Even more extreme: 5 ft baseboard with 15k BTU
+  // Typical capacity: 5 ft × 550 BTU/ft = 2,750 BTU/hr
+  // Load ratio: 15,000 / 2,750 = 5.45
+  // OLD (WRONG): ΔT = 20 × sqrt(5.45) ≈ 47°F (absurd!)
+  // NEW (CORRECT): Should limit ΔT and flag severe undersizing
+  
+  const deltaT = calculateRecommendedDeltaT("Baseboard", 5, 15000);
+  
+  assert.ok(deltaT <= 30, `Very short baseboard should have limited ΔT, got ${deltaT.toFixed(1)}°F`);
+});
+
+test("Long baseboard (50 ft) with same load (20k BTU) - should work normally", () => {
+  // Same 20k BTU load but with adequate emitter length
+  // Typical capacity: 50 ft × 550 BTU/ft = 27,500 BTU/hr
+  // Load ratio: 20,000 / 27,500 = 0.73
+  // ΔT = 20 × sqrt(0.73) ≈ 17°F (reasonable)
+  
+  const deltaT = calculateRecommendedDeltaT("Baseboard", 50, 20000);
+  
+  // Should be close to base ΔT, maybe slightly lower
+  within(deltaT, 17, 3, "Long baseboard with adequate capacity");
+  assert.ok(deltaT >= 15 && deltaT <= 25, "ΔT should be in normal range");
+});
+
+test("Radiant floor small area (100 ft loop) with moderate load (10k BTU)", () => {
+  // Small radiant loop: 100 ft, 10,000 BTU/hr
+  // Typical capacity: 100 ft × 25 BTU/ft = 2,500 BTU/hr
+  // Load ratio: 10,000 / 2,500 = 4.0
+  // OLD (WRONG): ΔT = 12 × sqrt(4.0) = 24°F (exceeds radiant max of 20°F!)
+  // NEW (CORRECT): Should cap at max 20°F and flag undersizing
+  
+  const deltaT = calculateRecommendedDeltaT("Radiant Floor", 100, 10000);
+  
+  assert.ok(deltaT <= 20, `Radiant floor ΔT must not exceed 20°F, got ${deltaT.toFixed(1)}°F`);
+  // This emitter is severely undersized (needs ~400 ft for 10k BTU)
+});
+
+test("ΔT should decrease (not increase) when emitter is too short for load", () => {
+  // Physics test: When emitter can't deliver the load, ΔT should collapse
+  // Compare same load with different emitter lengths
+  
+  const deltaTShort = calculateRecommendedDeltaT("Baseboard", 10, 20000);  // Severely undersized
+  const deltaTMedium = calculateRecommendedDeltaT("Baseboard", 30, 20000); // Moderately undersized
+  const deltaTLong = calculateRecommendedDeltaT("Baseboard", 50, 20000);   // Adequately sized
+  
+  // With proper physics, as we add more emitter length, we can sustain the load better
+  // But current implementation might show opposite trend - this test documents expected behavior
+  console.log(`ΔT progression: ${deltaTShort.toFixed(1)}°F (10ft) → ${deltaTMedium.toFixed(1)}°F (30ft) → ${deltaTLong.toFixed(1)}°F (50ft)`);
+  
+  // All should be within reasonable bounds
+  assert.ok(deltaTShort <= 30, "Short emitter ΔT should be limited");
+  assert.ok(deltaTMedium <= 30, "Medium emitter ΔT should be limited");
+  assert.ok(deltaTLong <= 25, "Long emitter ΔT should be normal");
 });

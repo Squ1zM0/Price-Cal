@@ -23,6 +23,8 @@ import {
   getEmitterTypes,
   getEmitterDescription,
   calculateRecommendedDeltaT,
+  checkEmitterSizing,
+  type EmitterSizingCheck,
 } from "../lib/data/emitterTypes";
 import { generatePumpSizingPDF, type PDFExportData } from "../lib/pdfExport";
 
@@ -393,6 +395,7 @@ export default function PumpSizingPage() {
           velocity: 0,
           reynolds: 0,
           capacityCheck: undefined,
+          emitterSizingCheck: undefined,
         };
       }
 
@@ -446,6 +449,16 @@ export default function PumpSizingPage() {
         calc.velocity
       );
 
+      // Emitter Sizing Check
+      const emitterSizingCheck = emitterLengthFt > 0 && zoneBTU > 0
+        ? checkEmitterSizing(
+            zone.emitterType as EmitterType,
+            emitterLengthFt,
+            zoneBTU,
+            parseNum(advancedSettings.temperature)
+          )
+        : undefined;
+
       return {
         zone,
         valid: true,
@@ -467,6 +480,7 @@ export default function PumpSizingPage() {
         velocity: calc.velocity,
         reynolds: calc.reynolds,
         capacityCheck,
+        emitterSizingCheck,
       };
     });
   }, [zones, advancedSettings]);
@@ -1171,6 +1185,90 @@ export default function PumpSizingPage() {
                                 {result.headLoss.toFixed(2)} ft
                               </span>
                             </div>
+                            
+                            {/* Emitter Sizing Check */}
+                            {result.emitterSizingCheck && (
+                              <>
+                                <div className="h-px bg-slate-300 dark:bg-slate-600 my-2" />
+                                <div className="space-y-2">
+                                  <div className="flex justify-between">
+                                    <span className="text-slate-600 dark:text-slate-400">Emitter capacity:</span>
+                                    <span className={[
+                                      "font-semibold tabular-nums",
+                                      !result.emitterSizingCheck.isAdequate
+                                        ? "text-red-600 dark:text-red-400"
+                                        : result.emitterSizingCheck.utilizationPercent > 85
+                                        ? "text-yellow-600 dark:text-yellow-400"
+                                        : "text-green-600 dark:text-green-400"
+                                    ].join(" ")}>
+                                      {result.emitterSizingCheck.utilizationPercent.toFixed(0)}%
+                                    </span>
+                                  </div>
+                                  
+                                  {/* Warning for severely undersized emitter */}
+                                  {result.emitterSizingCheck.utilizationPercent > 150 && (
+                                    <div className="mt-2 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border-2 border-red-500 dark:border-red-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-red-900 dark:text-red-200">
+                                            <span className="sr-only">Warning: </span>Emitter Severely Undersized
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-1">
+                                            {result.emitterSizingCheck.warning}
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-2">
+                                            <strong>Impact:</strong> Auto-ΔT is limited to {result.effectiveDeltaT.toFixed(1)}°F due to insufficient emitter surface area. 
+                                            The emitter cannot deliver the full {result.zoneBTU.toLocaleString()} BTU/hr at design conditions.
+                                          </p>
+                                          <p className="text-xs text-red-800 dark:text-red-300 mt-2 font-semibold">
+                                            {result.emitterSizingCheck.suggestion}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Warning for moderately undersized emitter */}
+                                  {result.emitterSizingCheck.utilizationPercent > 100 && result.emitterSizingCheck.utilizationPercent <= 150 && (
+                                    <div className="mt-2 p-3 rounded-lg bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 dark:border-yellow-600">
+                                      <div className="flex gap-2">
+                                        <svg className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        <div className="flex-1">
+                                          <p className="text-sm font-bold text-yellow-900 dark:text-yellow-200">
+                                            <span className="sr-only">Warning: </span>Emitter Undersized
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-1">
+                                            {result.emitterSizingCheck.warning}
+                                          </p>
+                                          <p className="text-xs text-yellow-800 dark:text-yellow-300 mt-2">
+                                            <strong>Suggestion:</strong> {result.emitterSizingCheck.suggestion}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+                                  {/* Good status for adequate emitter */}
+                                  {result.emitterSizingCheck.isAdequate && result.emitterSizingCheck.utilizationPercent > 0 && (
+                                    <div className="mt-2 p-2 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-300 dark:border-green-700">
+                                      <div className="flex gap-2 items-center">
+                                        <svg className="w-4 h-4 text-green-600 dark:text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                        <p className="text-xs text-green-800 dark:text-green-300">
+                                          <span className="sr-only">Success: </span>Emitter adequately sized. Can deliver {result.emitterSizingCheck.maxOutputBTU.toLocaleString()} BTU/hr maximum.
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </>
+                            )}
                             
                             {/* Phase 3: Hydraulic Capacity Check */}
                             {result.capacityCheck && (
